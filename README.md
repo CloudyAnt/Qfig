@@ -8,7 +8,7 @@ Useful tools, configurations, commands for developers who use Mac (especially fo
 
 Includes some iTerm basic settings, include shortcuts, windows size, etc.
 
-Shortcut ****Command + ←**** will jump to begin of line
+Shortcut ****Command + ←**** will jump to begin of line, other shortcuts perform is the same as in the Chrome
 
 
 ## Commands
