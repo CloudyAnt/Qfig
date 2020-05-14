@@ -71,3 +71,13 @@ IDEs, pick as you needed
 `FindBugs`
 
 `CheckStyle`
+
+## Chrome extensions
+
+`AdBlock`
+
+`Block Site`
+
+`Google Translate`
+
+`Medium Unlimited`
