@@ -4,17 +4,17 @@ Some useful things for a developer's Mac
 
 ## List
 
-### Iterm basic configuartion
+### QisSweetRecipt.json
 
-shortcuts, windows size, etc.
+Iterm basic settings, include shortcuts, windows size, etc.
 
 ### MyCommand.sh
 
 Useful bash commands. 
 
-Should put this in `.zshrc` or `.bash_profile`
+Should add this file path to `.zshrc` or `.bash_profile`
 
-### Requisites for work
+### Requisites tools for work
 
 `Chrome`, best for developer
 
@@ -24,6 +24,18 @@ Should put this in `.zshrc` or `.bash_profile`
 
 `VSCode`, slight, quick coding experience
 
-`Scroll Reverser`, if you want to mouse, this tool will help you feel just like windows
+`Scroll Reverser`, if you want to use mouse, this tool will help you feel just like windows
 
 IDEs, pick as you needed
+
+### IDEA plugins
+
+`Lombok`
+
+`FindBugs`
+
+`CheckStyle`
+
+`Rainbow Brackets`
+
+`Material theme`
