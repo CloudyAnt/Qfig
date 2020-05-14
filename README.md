@@ -1,41 +1,73 @@
-# MyMacConfig
+# Qfig
 
-Some useful things for a developer's Mac
+Useful tools, configurations, commands for developers who use Mac (especially for java developer)
 
-## List
+## Configurations
 
-### QisSweetRecipt.json
+### `iRecipe.json`, an iTerm profile 
 
-Iterm basic settings, include shortcuts, windows size, etc.
+Includes some iTerm basic settings, include shortcuts, windows size, etc.
 
-### MyCommand.sh
+Shortcut ****Command + ←**** will jump to begin of line
 
-Useful bash commands. 
 
-Should add this file path to `.zshrc` or `.bash_profile`
+## Commands
 
-### Requisites tools for work
+all commmands are in `commands` folder
+
+To use these commands, you should add `source $yourProjectLocation/config.sh` to the end of `.zshrc` or `.bash_profile`
+
+### `gadd`, `gct`
+
+`gadd` will execute command `git add -A`
+
+`gct` allows your commit process and commit message more standardized:
+
+```
+name [story] message
+```
+
+### `defaultV`
+
+```sh
+$ defaultV var 1
+$ echo $var
+1
+$ defaultV var 2
+$ echo $var
+1
+```
+
+## Tools
 
 `Chrome`, best for developer
 
-`Iterm`, better than terminal
+`iTerm`, better than terminal
 
 `Postman`, useful for testing you apis
 
 `VSCode`, slight, quick coding experience
 
-`Scroll Reverser`, if you want to use mouse, this tool will help you feel just like windows
+`Scroll Reverser`, just reverse mouse scroll, all in humanized way
 
 IDEs, pick as you needed
 
-### IDEA plugins
+## IDEA plugins
 
-`Lombok`
-
-`FindBugs`
-
-`CheckStyle`
+### Visual improvement
 
 `Rainbow Brackets`
 
 `Material theme`
+
+### Productivity improvement
+
+`Lombok`
+
+### Problems invesigatation
+
+`SonarLint`
+
+`FindBugs`
+
+`CheckStyle`

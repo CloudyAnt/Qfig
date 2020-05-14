@@ -1,2 +1,0 @@
-source ./MyCommands.sh
-

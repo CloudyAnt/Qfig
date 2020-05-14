@@ -32,13 +32,7 @@
     "Green Component" : 0.90398252010345459
   },
   "Normal Font" : "Monaco 12",
-  "Ansi 2 Color" : {
-    "Red Component" : 0.76874715089797974,
-    "Color Space" : "sRGB",
-    "Blue Component" : 0.39330101013183594,
-    "Alpha Component" : 1,
-    "Green Component" : 0.82634866237640381
-  },
+  "Horizontal Spacing" : 1,
   "Ansi 3 Color" : {
     "Red Component" : 0.92684400081634521,
     "Color Space" : "sRGB",
@@ -111,7 +105,7 @@
     "Alpha Component" : 1,
     "Green Component" : 0.26156574487686157
   },
-  "Columns" : 90,
+  "Columns" : 95,
   "Idle Code" : 0,
   "Ansi 13 Color" : {
     "Red Component" : 1,
@@ -342,7 +336,7 @@
     }
   },
   "Window Type" : 0,
-  "Cursor Type" : 1,
+  "Cursor Type" : 0,
   "Background Image Location" : "",
   "Blur" : false,
   "Badge Color" : {
@@ -374,7 +368,7 @@
     "Alpha Component" : 1,
     "Green Component" : 0.91372549533843994
   },
-  "Name" : "QisSweetRecipe",
+  "Name" : "iRecipe",
   "Cursor Text Color" : {
     "Red Component" : 0.92175871133804321,
     "Color Space" : "sRGB",
@@ -391,6 +385,13 @@
     "Alpha Component" : 1,
     "Green Component" : 0.94901961088180542
   },
+  "Tab Color" : {
+    "Red Component" : 0.070588238537311554,
+    "Color Space" : "sRGB",
+    "Blue Component" : 0.12941177189350128,
+    "Alpha Component" : 1,
+    "Green Component" : 0.10196078568696976
+  },
   "Ansi 0 Color" : {
     "Red Component" : 0,
     "Color Space" : "sRGB",
@@ -398,7 +399,6 @@
     "Alpha Component" : 1,
     "Green Component" : 0
   },
-  "Transparency" : 0.057409977791878175,
   "Guid" : "31A23803-9575-47DB-B0F1-7C86A696424D",
   "Custom Directory" : "No",
   "Ansi 4 Color" : {
@@ -437,12 +437,12 @@
     "Alpha Component" : 1,
     "Green Component" : 0.48961412906646729
   },
-  "Horizontal Spacing" : 1,
-  "Tab Color" : {
-    "Red Component" : 0.070588238537311554,
+  "Ansi 2 Color" : {
+    "Red Component" : 0.76874715089797974,
     "Color Space" : "sRGB",
-    "Blue Component" : 0.12941177189350128,
+    "Blue Component" : 0.39330101013183594,
     "Alpha Component" : 1,
-    "Green Component" : 0.10196078568696976
-  }
+    "Green Component" : 0.82634866237640381
+  },
+  "Transparency" : 0.057409977791878175
 }
