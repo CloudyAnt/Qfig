@@ -1,7 +1,15 @@
+# commit in one line
+function gcto() {
+    echo commit with message '"['$0']' $1: $2'" ? (y for Yes)'
+    read oneline_commit
+    [ "$oneline_commit" = "y" ] && gadd && git commit -m "[$0] $1: $2"
+    unset oneline_commit
+}
 function gadd() {
     git add -A
 }
 
+# commit in process
 function gct() {
     defaultV default_commit_name chaijiaqi
     defaultV default_commit_number N/A 
@@ -30,4 +38,22 @@ function gct() {
     unset commit_number
     unset commit_desc
     unset commit_message
+}
+
+function glog() {
+    git log --oneline
+}
+
+function gst() {
+    git status
+}
+
+function gamend() {
+    no_edit=$1
+    if [ "$no_edit" = "-n" ]
+    then
+        git commit --amend --no-edit
+    else
+        git commit --amend
+    fi
 }
