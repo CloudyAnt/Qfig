@@ -15,7 +15,7 @@ function defaultV() {
 
 function remove_idea_bad_git_track() {
     # include idea, .idea, *.iml, build, target, out 
-    echo -e "# idea\n.idea\n*.iml\n\n# build\nbuild\ntarget\nout" > .gitignore
+    echo -e "# idea\n.idea\n*.iml\n\n# build\nbuild\ntarget\nout" >> .gitignore
     git add .gitignore
     git rm -r --cached .idea > /dev/null 2>&1
     git rm -r --cached build > /dev/null 2>&1

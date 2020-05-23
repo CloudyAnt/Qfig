@@ -1,12 +1,17 @@
+# git related
+alias gadd='git add -A'
+alias glog='git log --oneline'
+alias gamd='git commit -amend'
+## offical
+# gst = git status
+# gco = git checkout
+
 # commit in one line
 function gcto() {
-    echo commit with message '"['$0']' $1: $2'" ? (y for Yes)'
+    echo commit with message '"['$1']' $2: $3'" ? (y for Yes)'
     read oneline_commit
-    [ "$oneline_commit" = "y" ] && gadd && git commit -m "[$0] $1: $2"
+    [ "$oneline_commit" = "y" ] && gadd && git commit -m "[$1] $2: $3"
     unset oneline_commit
-}
-function gadd() {
-    git add -A
 }
 
 # commit in process
@@ -40,20 +45,8 @@ function gct() {
     unset commit_message
 }
 
-function glog() {
-    git log --oneline
-}
-
-function gst() {
-    git status
-}
-
-function gamend() {
-    no_edit=$1
-    if [ "$no_edit" = "-n" ]
-    then
-        git commit --amend --no-edit
-    else
-        git commit --amend
-    fi
+function gstash() {
+    [ "$1" = "-p" ] && git stash pop && return
+    [ "$1" = "-a" ] && git stash apply && return
+    git stash 
 }
