@@ -1,16 +1,21 @@
 # git related
-alias gadd='git add -A'
 alias glog='git log --oneline'
 alias gamd='git commit -amend'
+alias gamdn='git commit --amend --no-edit'
+alias gaap='git add -p'
 ## offical
+# gaa = git add --A
 # gst = git status
 # gco = git checkout
 
+function test() {
+    echo $(dirname "$0")/test
+}
 # commit in one line
 function gcto() {
     echo commit with message '"['$1']' $2: $3'" ? (y for Yes)'
     read oneline_commit
-    [ "$oneline_commit" = "y" ] && gadd && git commit -m "[$1] $2: $3"
+    [ "$oneline_commit" = "y" ] && gaa && git commit -m "[$1] $2: $3"
     unset oneline_commit
 }
 
