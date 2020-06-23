@@ -1,6 +1,6 @@
 # git related
 alias glog='git log --oneline'
-alias gamd='git commit -amend'
+alias gamd='git commit --amend'
 alias gamdn='git commit --amend --no-edit'
 alias gaap='git add -p'
 ## offical
