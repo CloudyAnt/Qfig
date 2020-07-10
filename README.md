@@ -80,4 +80,6 @@ IDEs, pick as you needed
 
 `Google Translate`
 
+`沙拉查词`
+
 `Medium Unlimited`
