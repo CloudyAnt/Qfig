@@ -8,9 +8,6 @@ alias gaap='git add -p'
 # gst = git status
 # gco = git checkout
 
-function test() {
-    echo $(dirname "$0")/test
-}
 # commit in one line
 function gcto() {
     echo commit with message '"['$1']' $2: $3'" ? (y for Yes)'
@@ -21,37 +18,68 @@ function gcto() {
 
 # commit in process
 function gct() {
-    defaultV default_commit_name chaijiaqi
-    defaultV default_commit_number N/A 
-    defaultV default_commit_desc Unknown
+    [ ! -d `pwd`/.git ] && echo "Not a git repository!" && return
 
-    echo "What's your name? ($default_commit_name)"
+    git_commit_info_cache_folder=$TDMT_CONFIG_LOC/.gcache
+    preset_working_directory_cache=$git_commit_info_cache_folder/`pwd | sed 's|/|_|g'`.tmp
+
+    [ ! -d "$git_commit_info_cache_folder" ] && mkdir $git_commit_info_cache_folder
+
+    # read info if cache exist, use default if not
+    info_separator="!@#!@#!@#"
+
+    if [ -f "$preset_working_directory_cache" ]
+    then
+        eval `cat $preset_working_directory_cache | awk  -F $info_separator '{print "commit_name0=" $1 ";commit_number0=" $2 ";commit_type0=" $3 ";commit_desc0=" $4}'`
+    fi
+
+    defaultV commit_name0 "Unknown"
+    defaultV commit_number0 "N/A"
+    defaultV commit_type0 "other"
+    defaultV commit_desc0 "Unknown"
+
+    echo "[1/4] Name? ($commit_name0)"
     read commit_name
-    echo "What's your card number? ($default_commit_number)"
+    echo "[2/4] Card number? ($commit_number0)"
     read commit_number
-    echo "What did you do? ($default_commit_desc)"
+    echo "[3/4] Commit type? ($commit_type0) {refactor, fix, feat, chore, doc, test, style}"
+    read commit_type
+    echo "[4/4] ? ($commit_desc0)"
     read commit_desc
 
-    defaultV commit_name $default_commit_name
-    defaultV commit_number $default_commit_number
-    defaultV commit_desc $default_commit_desc
+    defaultV commit_name $commit_name0
+    defaultV commit_number $commit_number0
+    defaultV commit_type $commit_type0
+    defaultV commit_desc $commit_desc0
 
-    default_commit_name=$commit_name
-    default_commit_number=$commit_number
-    default_commit_desc=$commit_desc
+    # cache new info
+    echo "'$commit_name'$info_separator'$commit_number'$info_separator'$commit_type'$info_separator'$commit_desc'" > $preset_working_directory_cache
 
-    commit_message="$commit_name [$commit_number] $commit_desc"
+    # commit
+    full_commit_message="$commit_name [$commit_number] $commit_type: $commit_desc"
+    git commit -m "$full_commit_message"
 
-    git commit -m "$commit_message"
-    
+    # unset variables
+    unset preset_working_directory
+    unset preset_working_directory_cache
+    unset commit_name0
+    unset commit_number0
+    unset commit_type0
+    unset commit_desc0
+    unset info_separator
     unset commit_name
     unset commit_number
+    unset commit_type
     unset commit_desc
-    unset commit_message
+    unset full_commit_message
 }
 
 function gstash() {
-    [ "$1" = "-p" ] && git stash pop && return
-    [ "$1" = "-a" ] && git stash apply && return
-    git stash 
+    [ -z "$1" ] && git stash && return
+    git stash push -m "git_stash_name_$1"
+}
+
+function gstashpop() {
+    [ -z "$1" ] && git pop && return
+    git stash apply $(git stash list | grep "git_stash_name_$1" | cut -d: -f1)
 }
