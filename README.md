@@ -10,7 +10,6 @@ Includes some iTerm basic settings, include shortcuts, windows size, etc.
 
 Shortcut ****Command + ←**** will jump to begin of line, other shortcuts perform is the same as in the Chrome
 
-
 ## Commands
 
 all commmands are in `commands` folder
@@ -23,7 +22,7 @@ To use these commands, you should add `source $yourProjectLocation/config.sh` to
 
 `gct` allows your commit process and commit message more standardized:
 
-```
+```txt
 name [story] message
 ```
 
@@ -83,3 +82,11 @@ IDEs, pick as you needed
 `沙拉查词`
 
 `Medium Unlimited`
+
+## WebSites
+
+Animated Algorithms: [USFCA](https://www.cs.usfca.edu/~galles/visualization/Algorithms.html)
+
+Git Learning: [learngitbranching](https://learngitbranching.js.org/)
+
+Fronted Learning: [StackBlitz](https://stackblitz.com/)
