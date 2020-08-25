@@ -74,12 +74,34 @@ function gct() {
     unset full_commit_message
 }
 
+# git stash
 function gstash() {
     [ -z "$1" ] && git stash && return
     git stash push -m "git_stash_name_$1"
 }
 
+# git stash pop
 function gstashpop() {
     [ -z "$1" ] && git pop && return
     git stash apply $(git stash list | grep "git_stash_name_$1" | cut -d: -f1)
+}
+
+# check commit status of some folders
+function gcst() {
+    [ -z "$1" ] && gcst0 `pwd` && return
+    present_directory=`pwd`
+    for file in $1/* ; do
+        gcst0 $file -p
+    done
+    cd $present_directory
+}
+
+# check commit status of one folder
+function gcst0() {
+    [[ ! -d "$1" || ! -d "$1/.git" ]] && return
+    cd $1
+    [ "-p" = "$2" ] && echo $file | awk -F '/' '{print "\033[1;34m" $NF ":\033[0m" }'
+    git status | awk '/Your branch is/{print}' | awk '{sub("Your branch is ", "")} 1' \
+        | awk '{sub("up to date", "\033[1;32mUP TO DATE\033[0m")} 1' \
+        | awk '{sub("ahead", "\033[1;31mAHEAD\033[0m")} 1'
 }
