@@ -8,7 +8,7 @@ Useful tools, configurations, commands for developers who use Mac (especially fo
 
 Includes some iTerm basic settings, include shortcuts, windows size, etc.
 
-Shortcut ****Command + ←**** will jump to begin of line, other shortcuts perform is the same as in the Chrome
+Shortcut ****Command + ←**** will jump to begin of line, other shortcuts perform is also the same as in the Chrome
 
 ## Commands
 
@@ -36,12 +36,13 @@ $ defaultV var 2
 $ echo $var
 1
 ```
+...
 
 ## Tools
 
 `Chrome`, best for developer
 
-`iTerm`, better than terminal
+`iTerm`, better than terminal, by the way, `oh-my-zsh` is a good friend
 
 `Postman`, useful for testing you apis
 
