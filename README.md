@@ -42,16 +42,19 @@ $ echo $var
 
 `Chrome`, best for developer
 
+`Homebrew`, great package manager, it's similiar with `yum` & `apt-get`
+
 `iTerm`, better than terminal, by the way, `oh-my-zsh` is a good friend
 
 `Postman`, useful for testing you apis
+
+`tablePlus`, convenient DB GUI tool
 
 `VSCode`, slight, quick coding experience
 
 `Scroll Reverser`, just reverse mouse scroll, all in humanized way
 
-IDEs, pick as you needed
-
+`JetBrains IDEs`, pick as you needed
 ## IDEA plugins
 
 ### Visual improvement
