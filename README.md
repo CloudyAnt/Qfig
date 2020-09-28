@@ -2,6 +2,8 @@
 
 Useful tools, configurations, commands for developers who use Mac (especially for java developer)
 
+run the script `active.sh`, you'll have full access to these commands in the command folder
+
 ## Configurations
 
 ### `iRecipe.json`, an iTerm profile 
