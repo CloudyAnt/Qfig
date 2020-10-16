@@ -57,6 +57,11 @@ $ echo $var
 `Scroll Reverser`, just reverse mouse scroll, all in humanized way
 
 `JetBrains IDEs`, pick as you needed
+
+`Yuyue`, perfect note taking software
+
+`Sougou Input Method`, perferred software for chinese inputting
+
 ## IDEA plugins
 
 ### Visual improvement
