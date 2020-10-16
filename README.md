@@ -46,6 +46,8 @@ $ echo $var
 
 `Homebrew`, great package manager, it's similiar with `yum` & `apt-get`
 
+*if connection refuesed, set your DNS Server to 8.8.8.8*
+
 `iTerm`, better than terminal, by the way, `oh-my-zsh` is a good friend
 
 `Postman`, useful for testing you apis
@@ -101,3 +103,24 @@ Animated Algorithms: [USFCA](https://www.cs.usfca.edu/~galles/visualization/Algo
 Git Learning: [learngitbranching](https://learngitbranching.js.org/)
 
 Fronted Learning: [StackBlitz](https://stackblitz.com/)
+
+## Scripts
+
+### Configure Vim
+
+```
+" 打开行号
+set nu
+" 设置配色
+colorscheme desert
+" 打开代码高亮
+syntax on
+" use plugin to enable indent setting
+filetype plugin indent on
+" show existing tab with 4 spaces width
+set tabstop=4
+" when indenting with '>', use 4 spaces width
+set shiftwidth=4
+" On pressing tab, insert 4 spaces
+set expandtab
+```
