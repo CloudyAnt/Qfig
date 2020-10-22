@@ -12,9 +12,6 @@ alias gaap='git add -p'
 gctCommitTypes=(refactor fix feat chore doc test style)
 gctCommitTypesTip=`echo $gctCommitTypes | awk '{for (i = 1; i <= NF; i++) { printf " \033[1;3" i "m" i ":" $i }} END{printf "\033[0m"}'`
 
-function tt() {
-    mkdir .abc
-}
 function gaaf() {
     [ -z $1 ] && return
     git add "*$1*"
@@ -33,7 +30,7 @@ function gct() { #? commit in process
     needToCommit=`gst | awk '/Changes to be committed/{print 1}'`
     [ -z $needToCommit ] && echo "Nothing to commit!" && return
 
-    git_commit_info_cache_folder=$qfig_loc/.gcache
+    git_commit_info_cache_folder=$Qfig_loc/.gcache
     preset_working_directory_cache=$git_commit_info_cache_folder/`pwd | sed 's|/|_|g'`.tmp
 
     [ ! -d "$git_commit_info_cache_folder" ] && mkdir $git_commit_info_cache_folder
@@ -99,7 +96,7 @@ function gstash() { #? = git stash
     git stash push -m "git_stash_name_$1"
 }
 
-function gstashpop() { #? = git stash pop
+function gpop() { #? = git stash pop
     [ -z "$1" ] && git pop && return
     git stash apply $(git stash list | grep "git_stash_name_$1" | cut -d: -f1)
 }

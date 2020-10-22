@@ -1,5 +1,6 @@
-qfig_loc=$(dirname "$0")/command
+Qfig_loc=$(dirname "$0")
 
-source $qfig_loc/gitCommands.sh
-source $qfig_loc/utilCommands.sh
-source $qfig_loc/dockerCommands.sh
+source $Qfig_loc/command/devscripts.sh
+source $Qfig_loc/command/gitCommands.sh
+source $Qfig_loc/command/utilCommands.sh
+source $Qfig_loc/command/dockerCommands.sh

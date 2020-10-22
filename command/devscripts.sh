@@ -26,6 +26,7 @@ alias mysqlu='mysql -uroot -p'
 ## System
 
 function vimcs() { #? vim commands
-   [ -z $1 ] || [ ! -f `tdmt`/command/$1Commands.sh ] && return
-   vim `tdmt`/command/$1Commands.sh
+   echo $Qfig_loc/command/$1Commands.sh
+   [ -z $1 ] || [ ! -f $Qfig_loc/command/$1Commands.sh ] && return
+   vim $Qfig_loc/command/$1Commands.sh
 }
