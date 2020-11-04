@@ -12,6 +12,9 @@ alias gaap='git add -p'
 gctCommitTypes=(refactor fix feat chore doc test style)
 gctCommitTypesTip=`echo $gctCommitTypes | awk '{for (i = 1; i <= NF; i++) { printf " \033[1;3" i "m" i ":" $i }} END{printf "\033[0m"}'`
 
+function gpr() { #? git pull --rebase
+    git pull --rebase
+}
 function gaaf() {
     [ -z $1 ] && return
     git add "*$1*"

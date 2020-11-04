@@ -15,7 +15,7 @@ function defaultV() { #? set default value for variable
     unset real_value
 }
 
-function recursive() { #? recursive call
+function call1level() { #? call function in 1 level folders
     begin=`pwd`
     command=$1
 
@@ -25,8 +25,9 @@ function recursive() { #? recursive call
     fi
 
     for d in *; do
+        [ ! -d "$begin/$d" ] && continue;
         cd "$begin/$d"
-        `$command`
+        eval $command
     done
 
     cd $begin
@@ -89,7 +90,7 @@ function mktouch() { #? make dirs & touch file
 
 ###
 
-function replaceWord() {
+function replaceWord() { #? backup file with pointed suffix & replace word in file 
     [ $# -lt 4 ] && logError "required params: file placeholder replacement backupSuffix" && return
 
     [ ! -z = "$4" ] &&  cp "$1" "$1.$4"
@@ -98,7 +99,7 @@ function replaceWord() {
 }
 
 
-function undoReplaceWord() {
+function undoReplaceWord() { #? recovery file with pointed suffix 
     [ $# -lt 2 ] && logError "required params: sourceFile suffix" && return
     [ -f "$1.$2" ] && mv "$1.$2" $1
 }
