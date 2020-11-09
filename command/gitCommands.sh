@@ -12,10 +12,21 @@ alias gaap='git add -p'
 gctCommitTypes=(refactor fix feat chore doc test style)
 gctCommitTypesTip=`echo $gctCommitTypes | awk '{for (i = 1; i <= NF; i++) { printf " \033[1;3" i "m" i ":" $i }} END{printf "\033[0m"}'`
 
+function gmergec() { #? git merge --continue
+    gaa
+    git merge --continue
+}
+
+function grebasec() { #? git rebase --continue
+    gaa
+    git rebase --continue
+}
+
 function gpr() { #? git pull --rebase
     git pull --rebase
 }
-function gaaf() {
+
+function gaaf() { #? git add files in pattern
     [ -z $1 ] && return
     git add "*$1*"
 }
@@ -96,12 +107,17 @@ function gct() { #? commit in process
 
 function gstash() { #? = git stash
     [ -z "$1" ] && git stash && return
-    git stash push -m "git_stash_name_$1"
+    git stash push -m "git_stash_name_$1" # stash with specific name
 }
 
-function gpop() { #? = git stash pop
-    [ -z "$1" ] && git pop && return
-    git stash apply $(git stash list | grep "git_stash_name_$1" | cut -d: -f1)
+function gapply() { #? = git stash apply 
+    [ -z "$1" ] && git stash apply && return
+    git stash apply $(git stash list | grep "git_stash_name_$1" | cut -d: -f1) # apply with specific name
+}
+
+function gpop() { #? = git stash pop 
+    [ -z "$1" ] && git stash pop && return
+    git stash pop $(git stash list | grep "git_stash_name_$1" | cut -d: -f1) # pop with specific name
 }
 
 function gcst() { #? check multi folder commit status

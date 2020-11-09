@@ -1,4 +1,10 @@
-# A script only contain operations which only use system commands
+# This script only contain operations which only use system commands
+
+function vimcs() { #? edit Qfig commands
+   echo $Qfig_loc/command/$1Commands.sh
+   [ -z $1 ] || [ ! -f $Qfig_loc/command/$1Commands.sh ] && return
+   vim $Qfig_loc/command/$1Commands.sh
+}
 
 function defaultV() { #? set default value for variable
     value_name=$1
@@ -112,4 +118,10 @@ function assertExistFiles() { #! check required files for fc deploy
         [ ! -f "$file" ] && logError "Missing file: $file" && return
     done
     echo "checked"
+}
+
+### 
+
+function vimsm() {
+    vim $Qfig_loc/sshMappingFile
 }

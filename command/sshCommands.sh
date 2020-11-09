@@ -1,30 +1,72 @@
-# ssh mapping
-# a mapping should like: a=111.222.333.444:555
+# Ssh mapping. You need to edit the sshMappingFile
+# a mapping should like: a=user@111.222.333.444:555
 
-TDMT_LOCAL_SERVER_USER=jiaqichai
-
-TDMT_SSH_MAPPING_FILE=$TDMT_LOC/sshMappingFile
+_SSH_MAPPING_FILE=$Qfig_loc/sshMappingFile
 
 # Resolve ssh mappings
-[ ! -f $TDMT_SSH_MAPPING_FILE ] && touch $TDMT_SSH_MAPPING_FILE
-eval `cat $TDMT_SSH_MAPPING_FILE | awk -F '=' 'BEGIN{ s = "declare -A TDMT_SSH_MAPPING; TDMT_SSH_MAPPING=("} \
+[ ! -f $_SSH_MAPPING_FILE ] && touch $_SSH_MAPPING_FILE
+eval `cat $_SSH_MAPPING_FILE | awk -F '=' 'BEGIN{ s = "declare -A _SSH_MAPPING; _SSH_MAPPING=("} \
 { if ( NF >= 2) s = s " [" $1 "]=" $2; } \
 END { s = s ")"; print s}'`
 
 
-function cs() { #? if mapping 'a:0.0.0.0:80' exist, 'ca a' will try to '0.0.0.0:80'
-    [ -z "$1" ] || [ -z $TDMT_SSH_MAPPING[$1] ] && return
+function cs() { #? connect server. syntax: cs mapping 
+    [ -z "$1" ] || [ -z $_SSH_MAPPING[$1] ] && return # need mapping
+    _SshEndpoint=$_SSH_MAPPING[$1]
 
-    HostAndPort=$TDMT_SSH_MAPPING[$1]
-    
-    ssh ssh://$TDMT_LOCAL_SERVER_USER@$HostAndPort
+    if [[ -z "$2" || ! -f "$2" ]] 
+    then
+        ssh ssh://$_SshEndpoint
+    else
+        ssh -i $2 ssh://$_SshEndpoint
+    fi
 }
 
+function cpt() {
+    [ -z "$2" ] || [ -z $_SSH_MAPPING[$2] ] && return # need mapping
+    _SshEndpoint=$_SSH_MAPPING[$2]
 
-function csi() { #? identified cs & login as root
-    [ -z "$1" ] || [ -z $TDMT_SSH_MAPPING[$1] ] && return
-
-    HostAndPort=$TDMT_SSH_MAPPING[$1]
-
-    ssh -i $TDMT_SERVER_ID ssh://root@$HostAndPort
+    if [[ -z "$4" || ! -f "$4" ]] 
+    then
+        scp $1 $_SshEndpoint:/$3
+    else
+        scp -i $4 $1 $_SshEndpoint:/$3
+    fi
 }
+
+function cprt() {
+    [ -z "$2" ] || [ -z $_SSH_MAPPING[$2] ] && return # need mapping
+    _SshEndpoint=$_SSH_MAPPING[$2]
+
+    if [[ -z "$4" || ! -f "$4" ]] 
+    then
+        scp -r $1 $_SshEndpoint:/$3
+    else
+        scp -r -i $4 $1 $_SshEndpoint:/$3
+    fi
+}
+
+function cpf() {
+    [ -z "$1" ] || [ -z $_SSH_MAPPING[$1] ] && return # need mapping
+    _SshEndpoint=$_SSH_MAPPING[$1]
+
+    if [[ -z "$4" || ! -f "$4" ]] 
+    then
+        scp $_SshEndpoint:/$2 $3
+    else
+        scp -i $4 $_SshEndpoint:/$2 $3
+    fi
+}
+
+function cprf() {
+    [ -z "$1" ] || [ -z $_SSH_MAPPING[$1] ] && return # need mapping
+    _SshEndpoint=$_SSH_MAPPING[$1]
+
+    if [[ -z "$4" || ! -f "$4" ]] 
+    then
+        scp -r $_SshEndpoint:/$2 $3
+    else
+        scp -r -i $4 $_SshEndpoint:/$2 $3
+    fi
+}
+
