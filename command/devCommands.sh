@@ -4,7 +4,8 @@
 
 function mpkg() { #? maven package & tell the size of jar in ./target
     logInfo "Maven packaging.."
-    [ "-s" = $1 ] && mvn clean package -Dmaven.test.skip=true || mvn clean package
+    [ -z "$1" ] && mvn clean package || mvn clean package -P $1
+    #[ "-s" = $1 ] && mvn clean package -Dmaven.test.skip=true || mvn clean package
     logInfo "Target size: "
     du -h target/*.jar
 }
