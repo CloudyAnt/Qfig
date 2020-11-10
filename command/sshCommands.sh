@@ -2,15 +2,22 @@
 # a mapping should like: a=user@111.222.333.444:555
 
 _SSH_MAPPING_FILE=$Qfig_loc/sshMappingFile
+_PEM_MAPPING_FILE=$Qfig_loc/pemMappingFile
 
 # Resolve ssh mappings
+# TODO optimze these 2 mapping
 [ ! -f $_SSH_MAPPING_FILE ] && touch $_SSH_MAPPING_FILE
 eval `cat $_SSH_MAPPING_FILE | awk -F '=' 'BEGIN{ s = "declare -A _SSH_MAPPING; _SSH_MAPPING=("} \
 { if ( NF >= 2) s = s " [" $1 "]=" $2; } \
 END { s = s ")"; print s}'`
 
+[ ! -f $_PEM_MAPPING_FILE ] && touch $_PEM_MAPPING_FILE
+eval `cat $_PEM_MAPPING_FILE | awk -F '=' 'BEGIN{ s = "declare -A _PEM_MAPPING; _PEM_MAPPING=("} \
+{ if ( NF >= 2) s = s " [" $1 "]=" $2; } \
+END { s = s ")"; print s}'`
 
-function cs() { #? connect server. syntax: cs mapping 
+
+function cs() { #? connect server. syntax: cs mapping; cs mapping identification 
     [ -z "$1" ] || [ -z $_SSH_MAPPING[$1] ] && return # need mapping
     _SshEndpoint=$_SSH_MAPPING[$1]
 
@@ -20,6 +27,14 @@ function cs() { #? connect server. syntax: cs mapping
     else
         ssh -i $2 ssh://$_SshEndpoint
     fi
+}
+
+function csi() { #? connect server with identification. syntax: csi mapping 
+    [ -z "$1" ] || [ -z $_SSH_MAPPING[$1] ] || [ -z $_PEM_MAPPING[$1] ] && return # need mapping
+    _SshEndpoint=$_SSH_MAPPING[$1]
+    _PemFile=$_PEM_MAPPING[$1]
+
+    ssh -i $_PemFile ssh://$_SshEndpoint
 }
 
 function cpt() {
