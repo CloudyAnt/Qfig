@@ -1,9 +1,35 @@
 # This script only contain operations which only use system commands
 
 function vimcs() { #? edit Qfig commands
-   echo $Qfig_loc/command/$1Commands.sh
-   [ -z $1 ] || [ ! -f $Qfig_loc/command/$1Commands.sh ] && return
-   vim $Qfig_loc/command/$1Commands.sh
+    targetFile=$Qfig_loc/command/$1Commands.sh
+    [ ! -f "$targetFile" ]  && logWarn "$targetFile dosen't exist" && return
+    vim $targetFile
+}
+
+function vimmap() { #? edit mappingFile
+    targetFile=$Qfig_loc/$1MappingFile
+    [ ! -f "$targetFile" ] && logWarn "$targetFile dosen't exist" && return
+    vim $targetFile
+}
+
+function explain() { #? show comments for functions which defined like: function example() #? explaination
+    targetFile=$1
+    [ ! -f "$targetFile" ] && logWarn "$targetFile dosen't exist" && return
+
+    logInfo "Explains of $targetFile: "
+
+    cat $targetFile | awk '/^function /{command = "\033[1;34m" $2 "\033[0m"; printf("%-30s", command); if ($4 == "#?") printf "\033[1;36m:\033[0;36m "; if ($4 == "#!") printf "\033[0;31m:\033[1;31m ";  \
+        for (i = 5; i <= NF; i++) \
+            printf $i " "; \
+            printf "\n";}' \
+            | awk '{sub("\\(\\)", "\033[1;37m()\033[0m")} 1'  | awk '{sub(":", "\033[0;" c "m:\033[1;" c "m")} 1'
+}
+
+function explaincs() { #? show function comments in command folder 
+    targetFile=$Qfig_loc/command/$1Commands.sh
+    [ ! -f "$targetFile" ] && [ ! -f "$1" ] && logWarn "$targetFile dosen't exist" && return
+
+    explain $targetFile
 }
 
 function defaultV() { #? set default value for variable
@@ -37,16 +63,6 @@ function call1level() { #? call function in 1 level folders
     done
 
     cd $begin
-}
-
-function explain() { #? show comments for functions which defined like: function example() #? explaination
-    [ ! -f "$1" ] && return
-
-    cat $1 | awk '/^function /{command = "\033[1;34m" $2 "\033[0m"; printf("%-30s", command); if ($4 == "#?") printf "\033[1;36m:\033[0;36m "; if ($4 == "#!") printf "\033[0;31m:\033[1;31m ";  \
-        for (i = 5; i <= NF; i++) \
-            printf $i " "; \
-            printf "\n";}' \
-            | awk '{sub("\\(\\)", "\033[1;37m()\033[0m")} 1'  | awk '{sub(":", "\033[0;" c "m:\033[1;" c "m")} 1'
 }
 
 ### Log
@@ -118,10 +134,4 @@ function assertExistFiles() { #! check required files for fc deploy
         [ ! -f "$file" ] && logError "Missing file: $file" && return
     done
     echo "checked"
-}
-
-### 
-
-function vimsm() {
-    vim $Qfig_loc/sshMappingFile
 }

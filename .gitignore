@@ -5,3 +5,5 @@
 !active.sh
 !README.md
 !iReceipt.sh
+command/tempCommands.sh
+*.swp

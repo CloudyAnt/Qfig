@@ -1,16 +1,21 @@
-# git related
+# Git related
+
 alias glog='git log --oneline'
+alias glogg='git log --oneline --abbrev-commit --graph'
 alias gamd='git commit --amend'
 alias gamdn='git commit --amend --no-edit'
 alias gaap='git add -p'
+
 ## offical
 # gaa = git add --A
 # gst = git status
 # gss = git status -s
 # gco = git checkout
 
-gctCommitTypes=(refactor fix feat chore doc test style)
-gctCommitTypesTip=`echo $gctCommitTypes | awk '{for (i = 1; i <= NF; i++) { printf " \033[1;3" i "m" i ":" $i }} END{printf "\033[0m"}'`
+function grmc() { #? git rm --cached xx
+    [ -z $1 ] && return
+    git rm --cached $1
+}
 
 function gmergec() { #? git merge --continue
     gaa
@@ -37,6 +42,9 @@ function gcto() { #? commit in one line
     [ "$oneline_commit" = "y" ] && gaa && git commit -m "[$1] $2: $3"
     unset oneline_commit
 }
+
+gctCommitTypes=(refactor fix feat chore doc test style)
+gctCommitTypesTip=`echo $gctCommitTypes | awk '{for (i = 1; i <= NF; i++) { printf " \033[1;3" i "m" i ":" $i }} END{printf "\033[0m"}'`
 
 function gct() { #? commit in process
     [ ! -d `pwd`/.git ] && echo "Not a git repository!" && return
@@ -105,17 +113,17 @@ function gct() { #? commit in process
     unset full_commit_message
 }
 
-function gstash() { #? = git stash
+function gstash() { #? git stash
     [ -z "$1" ] && git stash && return
     git stash push -m "git_stash_name_$1" # stash with specific name
 }
 
-function gapply() { #? = git stash apply 
+function gapply() { #? git stash apply 
     [ -z "$1" ] && git stash apply && return
     git stash apply $(git stash list | grep "git_stash_name_$1" | cut -d: -f1) # apply with specific name
 }
 
-function gpop() { #? = git stash pop 
+function gpop() { #? git stash pop 
     [ -z "$1" ] && git stash pop && return
     git stash pop $(git stash list | grep "git_stash_name_$1" | cut -d: -f1) # pop with specific name
 }

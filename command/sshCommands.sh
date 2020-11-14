@@ -1,10 +1,10 @@
-# Ssh mapping. You need to edit the sshMappingFile
-# a mapping should like: a=user@111.222.333.444:555
+# Ssh mapping. 
+# You need to edit the sshMappingFile. A mapping should like: a=user@111.222.333.444:555
 
 _SSH_MAPPING_FILE=$Qfig_loc/sshMappingFile
 _PEM_MAPPING_FILE=$Qfig_loc/pemMappingFile
 
-# Resolve ssh mappings
+# Resolve ssh & pem mappings
 # TODO optimze these 2 mapping
 [ ! -f $_SSH_MAPPING_FILE ] && touch $_SSH_MAPPING_FILE
 eval `cat $_SSH_MAPPING_FILE | awk -F '=' 'BEGIN{ s = "declare -A _SSH_MAPPING; _SSH_MAPPING=("} \
@@ -17,7 +17,7 @@ eval `cat $_PEM_MAPPING_FILE | awk -F '=' 'BEGIN{ s = "declare -A _PEM_MAPPING; 
 END { s = s ")"; print s}'`
 
 
-function cs() { #? connect server. syntax: cs mapping; cs mapping identification 
+function cs() { #? connect server. syntax: cs mapping; cs mapping identification[optional] 
     [ -z "$1" ] || [ -z $_SSH_MAPPING[$1] ] && return # need mapping
     _SshEndpoint=$_SSH_MAPPING[$1]
 
@@ -29,15 +29,23 @@ function cs() { #? connect server. syntax: cs mapping; cs mapping identification
     fi
 }
 
-function csi() { #? connect server with identification. syntax: csi mapping 
+function csc() { #? connect server & send command. syntax: csc mapping command
+    [ -z "$1" ] || [ -z $_SSH_MAPPING[$1] ] && logWarn "Need available mapping" && return # need mapping
+    [ -z "$2" ] && logWarn "Need command" && return # need mapping
+    _SshEndpoint=$_SSH_MAPPING[$1]
+     
+    ssh ssh://$_SshEndpoint $2 
+}
+
+function csi() { #? connect server (send command) with identification. syntax: csi mapping; csi mapping command[optional]
     [ -z "$1" ] || [ -z $_SSH_MAPPING[$1] ] || [ -z $_PEM_MAPPING[$1] ] && return # need mapping
     _SshEndpoint=$_SSH_MAPPING[$1]
     _PemFile=$_PEM_MAPPING[$1]
 
-    ssh -i $_PemFile ssh://$_SshEndpoint
+    ssh -i $_PemFile ssh://$_SshEndpoint $2
 }
 
-function cpt() {
+function cpt() { #? copy to server. syntax: cpt file mapping folder identification[optional]
     [ -z "$2" ] || [ -z $_SSH_MAPPING[$2] ] && return # need mapping
     _SshEndpoint=$_SSH_MAPPING[$2]
 
@@ -47,6 +55,14 @@ function cpt() {
     else
         scp -i $4 $1 $_SshEndpoint:/$3
     fi
+}
+
+function cpti() { #? copy to server with identification. syntax: cpti file mapping folder
+    [ -z "$2" ] || [ -z $_SSH_MAPPING[$2] ] || [ -z $_PEM_MAPPING[$2] ] && return # need mapping
+    _SshEndpoint=$_SSH_MAPPING[$2]
+    _PemFile=$_PEM_MAPPING[$2]
+
+    scp -i $_PemFile $1 $_SshEndpoint:/$3
 }
 
 function cprt() {
@@ -84,4 +100,3 @@ function cprf() {
         scp -r -i $4 $_SshEndpoint:/$2 $3
     fi
 }
-
