@@ -113,19 +113,21 @@ function gct() { #? commit in process
     unset full_commit_message
 }
 
+_git_stash_key="_git_stash_:"
+
 function gstash() { #? git stash
     [ -z "$1" ] && git stash && return
-    git stash push -m "git_stash_name_$1" # stash with specific name
+    git stash push -m "$_git_stash_key""$1" # stash with specific name
 }
 
 function gapply() { #? git stash apply 
     [ -z "$1" ] && git stash apply && return
-    git stash apply $(git stash list | grep "git_stash_name_$1" | cut -d: -f1) # apply with specific name
+    git stash apply $(git stash list | grep "$_git_stash_key""$1" | cut -d: -f1) # apply with specific name
 }
 
 function gpop() { #? git stash pop 
     [ -z "$1" ] && git stash pop && return
-    git stash pop $(git stash list | grep "git_stash_name_$1" | cut -d: -f1) # pop with specific name
+    git stash pop $(git stash list | grep "$_git_stash_key""$1" | cut -d: -f1) # pop with specific name
 }
 
 function gcst() { #? check multi folder commit status
