@@ -12,6 +12,10 @@ alias gaap='git add -p'
 # gss = git status -s
 # gco = git checkout
 
+function greset() { #? git reset
+    git reset
+}
+
 function grmc() { #? git rm --cached xx
     [ -z $1 ] && return
     git rm --cached $1
