@@ -16,7 +16,9 @@ Shortcut ****Command + ←**** will jump to begin of line, other shortcuts perfo
 
 all commmands are in `commands` folder
 
-To use these commands, you should add `source $yourProjectLocation/config.sh` to the end of `.zshrc` or `.bash_profile`
+To use these commands, you should add `source $yourProjectLocation/config.sh` to the end of `.zshrc` or `.bash_profile`. Actually, the `active.sh` will help you do this.
+
+Here are some example commands:
 
 ### `gadd`, `gct`
 
@@ -39,6 +41,8 @@ $ echo $var
 1
 ```
 ...
+
+There are more commands in the **command** folder.
 
 ## Tools
 
