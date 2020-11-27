@@ -45,7 +45,7 @@ function csi() { #? connect server (send command) with identification. syntax: c
     ssh -i $_PemFile ssh://$_SshEndpoint $2
 }
 
-function cpt() { #? copy to server. syntax: cpt file mapping folder identification[optional]
+function cpt() { #? copy to server. syntax: cpt localFile mapping remoteFile identification[optional]
     [ -z "$2" ] || [ -z $_SSH_MAPPING[$2] ] && return # need mapping
     _SshEndpoint=$_SSH_MAPPING[$2]
 
@@ -57,7 +57,7 @@ function cpt() { #? copy to server. syntax: cpt file mapping folder identificati
     fi
 }
 
-function cpti() { #? copy to server with identification. syntax: cpti file mapping folder
+function cpti() { #? copy to server with identification. syntax: cpti localFile mapping remoteFile 
     [ -z "$2" ] || [ -z $_SSH_MAPPING[$2] ] || [ -z $_PEM_MAPPING[$2] ] && return # need mapping
     _SshEndpoint=$_SSH_MAPPING[$2]
     _PemFile=$_PEM_MAPPING[$2]
@@ -77,16 +77,24 @@ function cprt() {
     fi
 }
 
-function cpf() {
-    [ -z "$1" ] || [ -z $_SSH_MAPPING[$1] ] && return # need mapping
-    _SshEndpoint=$_SSH_MAPPING[$1]
+function cpf() { #? copy from server. syntax: cpf remoteFile mapping localFile identification[optional]
+    [ -z "$2" ] || [ -z $_SSH_MAPPING[$2] ] && return # need mapping
+    _SshEndpoint=$_SSH_MAPPING[$2]
 
     if [[ -z "$4" || ! -f "$4" ]] 
     then
-        scp $_SshEndpoint:/$2 $3
+        scp $_SshEndpoint:/$1 $3
     else
-        scp -i $4 $_SshEndpoint:/$2 $3
+        scp -i $4 $_SshEndpoint:/$1 $3
     fi
+}
+
+function cpfi() { #? copy from server with identification. syntax: cpfi romoteFile mapping localFile
+    [ -z "$2" ] || [ -z $_SSH_MAPPING[$2] ] || [ -z $_PEM_MAPPING[$2] ] && return # need mapping
+    _SshEndpoint=$_SSH_MAPPING[$2]
+    _PemFile=$_PEM_MAPPING[$2]
+
+    scp -i $_PemFile $_SshEndpoint:/$1 $3
 }
 
 function cprf() {
