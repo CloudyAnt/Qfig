@@ -1,16 +1,17 @@
 # Git related
 
-alias glog='git log --oneline'
-alias glogg='git log --oneline --abbrev-commit --graph'
+alias glog='git log --oneline --abbrev-commit --graph'
 alias gamd='git commit --amend'
 alias gamdn='git commit --amend --no-edit'
 alias gaap='git add -p'
+alias glist='git stash list'
 
 ## offical
 # gaa = git add --A
 # gst = git status
 # gss = git status -s
 # gco = git checkout
+# glo = git log --oneline
 
 function greset() { #? git reset
     git reset
