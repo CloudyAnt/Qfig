@@ -58,7 +58,7 @@ function cpt() { #? copy to server. syntax: cpt localFile mapping remoteFile ide
 }
 
 function cpti() { #? copy to server with identification. syntax: cpti localFile mapping remoteFile 
-    [ -z "$2" ] || [ -z $_SSH_MAPPING[$2] ] || [ -z $_PEM_MAPPING[$2] ] && return # need mapping
+    [ -z "$2" ] || [ -z $_SSH_MAPPING[$2] ] || [ -z $_PEM_MAPPING[$2] ] && logWarn "No Mapping For:$2" && return # need mapping
     _SshEndpoint=$_SSH_MAPPING[$2]
     _PemFile=$_PEM_MAPPING[$2]
 

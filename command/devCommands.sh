@@ -2,11 +2,7 @@
 
 ### Maven
 
-function mpush() {
-    mvn compile
-    git push
-}
-
+alias mrefresh='mvn clean && mvn compile'
 
 function mpkg() { #? maven package & tell the size of jar in ./target
     logInfo "Maven packaging.."
