@@ -1,5 +1,9 @@
 # This script only contain operations which only use system commands
 
+function qfig() { #? enter the Qfig project folder
+    cd $Qfig_loc
+}
+
 function vimcs() { #? edit Qfig commands
     targetFile=$Qfig_loc/command/$1Commands.sh
     [ ! -f "$targetFile" ]  && logWarn "$targetFile dosen't exist" && return

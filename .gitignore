@@ -1,9 +1,14 @@
+# First, exclude all
 /*
+
+# Second, add required files and folders
 !.gitignore
 !command
 !config.sh
 !active.sh
 !README.md
 !iReceipt.sh
+
+# Third, exclude files again
 command/tempCommands.sh
 *.swp

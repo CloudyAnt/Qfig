@@ -3,6 +3,7 @@
 ### Maven
 
 alias mrefresh='mvn clean && mvn compile'
+alias minst='mvn install'
 
 function mpkg() { #? maven package & tell the size of jar in ./target
     logInfo "Maven packaging.."
