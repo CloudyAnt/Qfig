@@ -52,22 +52,24 @@ gctCommitTypes=(refactor fix feat chore doc test style)
 gctCommitTypesTip=`echo $gctCommitTypes | awk '{for (i = 1; i <= NF; i++) { printf " \033[1;3" i "m" i ":" $i }} END{printf "\033[0m"}'`
 
 function gct() { #? commit in process
-    [ ! -d `pwd`/.git ] && echo "Not a git repository!" && return
+    # CHECK if this is a git repository
+    [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return
     
+    # CHECK if it's need to commit
     needToCommit=`gst | awk '/Changes to be committed/{print 1}'`
-    [ -z $needToCommit ] && echo "Nothing to commit!" && return
+    [ -z $needToCommit ] && logWarn "Nothing to commit!" && return
 
+    # GET commit message cache, use default if it not exists
     git_commit_info_cache_folder=$Qfig_loc/.gcache
-    preset_working_directory_cache=$git_commit_info_cache_folder/`pwd | sed 's|/|_|g'`.tmp
+    preset_working_repository_cache=$git_commit_info_cache_folder/`git rev-parse --show-toplevel | sed 's|/|_|g'`.tmp
 
     [ ! -d "$git_commit_info_cache_folder" ] && mkdir $git_commit_info_cache_folder
 
-    # read info if cache exist, use default if not
     info_separator="!@#!@#!@#"
 
-    if [ -f "$preset_working_directory_cache" ]
+    if [ -f "$preset_working_repository_cache" ]
     then
-        eval `cat $preset_working_directory_cache | awk  -F $info_separator '{print "commit_name0=" $1 ";commit_number0=" $2 ";commit_type0=" $3 ";commit_desc0=" $4}'`
+        eval `cat $preset_working_repository_cache | awk  -F $info_separator '{print "commit_name0=" $1 ";commit_number0=" $2 ";commit_type0=" $3 ";commit_desc0=" $4}'`
     fi
 
     defaultV commit_name0 "Unknown"
@@ -75,6 +77,7 @@ function gct() { #? commit in process
     defaultV commit_type0 "other"
     defaultV commit_desc0 "Unknown"
 
+    # COMMIT step by step
     echo "[1/4] Name? ($commit_name0)"
     read commit_name
     echo "[2/4] Card? ($commit_number0)"
