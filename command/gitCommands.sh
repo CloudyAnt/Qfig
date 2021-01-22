@@ -61,15 +61,15 @@ function gct() { #? commit in process
 
     # GET commit message cache, use default if it not exists
     git_commit_info_cache_folder=$Qfig_loc/.gcache
-    preset_working_repository_cache=$git_commit_info_cache_folder/`git rev-parse --show-toplevel | sed 's|/|_|g'`.tmp
+    present_working_repository_cache=$git_commit_info_cache_folder/`git rev-parse --show-toplevel | sed 's|/|_|g'`.tmp
 
     [ ! -d "$git_commit_info_cache_folder" ] && mkdir $git_commit_info_cache_folder
 
     info_separator="!@#!@#!@#"
 
-    if [ -f "$preset_working_repository_cache" ]
+    if [ -f "$present_working_repository_cache" ]
     then
-        eval `cat $preset_working_repository_cache | awk  -F $info_separator '{print "commit_name0=" $1 ";commit_number0=" $2 ";commit_type0=" $3 ";commit_desc0=" $4}'`
+        eval `cat $present_working_repository_cache | awk  -F $info_separator '{print "commit_name0=" $1 ";commit_number0=" $2 ";commit_type0=" $3 ";commit_desc0=" $4}'`
     fi
 
     defaultV commit_name0 "Unknown"
@@ -100,25 +100,12 @@ function gct() { #? commit in process
     defaultV commit_desc $commit_desc0
 
     # cache new info
-    echo "'$commit_name'$info_separator'$commit_number'$info_separator'$commit_type'$info_separator'$commit_desc'" > $preset_working_directory_cache
+    echo "'$commit_name'$info_separator'$commit_number'$info_separator'$commit_type'$info_separator'$commit_desc'" > $present_working_repository_cache
 
     # commit
     full_commit_message="$commit_name [$commit_number] $commit_type: $commit_desc"
     git commit -m "$full_commit_message"
 
-    # unset variables
-    unset preset_working_directory
-    unset preset_working_directory_cache
-    unset commit_name0
-    unset commit_number0
-    unset commit_type0
-    unset commit_desc0
-    unset info_separator
-    unset commit_name
-    unset commit_number
-    unset commit_type
-    unset commit_desc
-    unset full_commit_message
 }
 
 _git_stash_key="_git_stash_:"
