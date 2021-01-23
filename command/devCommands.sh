@@ -1,14 +1,21 @@
-# These commands require 3rd programs
+# These commands require 3rd party programs
 
 ### Maven
 
 alias mrefresh='mvn clean && mvn compile'
 alias minst='mvn install'
 
+function mpkgp() { #? maven package with profile
+    [ -z "$1" ] && logWarn "No profile specified" && return 
+    mvn clean package -Dmaven.test.skip=true -P $1
+    logInfo "Target size: "
+    du -h target/*.jar
+}
+
 function mpkg() { #? maven package & tell the size of jar in ./target
     logInfo "Maven packaging.."
     [ -z "$1" ] && mvn clean package || mvn clean package -P $1
-    #[ "-s" = $1 ] && mvn clean package -Dmaven.test.skip=true || mvn clean package
+    [ "-s" = $1 ] && mvn clean package -Dmaven.test.skip=true || mvn clean package
     logInfo "Target size: "
     du -h target/*.jar
 }
