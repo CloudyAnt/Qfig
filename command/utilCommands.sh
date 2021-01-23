@@ -132,7 +132,7 @@ function undoReplaceWord() { #? recovery file with pointed suffix
 
 ###
 
-function assertExistFiles() { #! check required files for fc deploy 
+function assertExist() { #? check file existence 
     for file in "$@"
     do
         [ ! -f "$file" ] && logError "Missing file: $file" && return

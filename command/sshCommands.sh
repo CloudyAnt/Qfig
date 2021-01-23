@@ -30,8 +30,8 @@ function cs() { #? connect server. syntax: cs mapping; cs mapping identification
 }
 
 function csc() { #? connect server & send command. syntax: csc mapping command
-    [ -z "$1" ] || [ -z $_SSH_MAPPING[$1] ] && logWarn "Need available mapping" && return # need mapping
-    [ -z "$2" ] && logWarn "Need command" && return # need mapping
+    [ -z "$1" ] || [ -z $_SSH_MAPPING[$1] ] && logWarn "Need available mapping" && return # check mapping 
+    [ -z "$2" ] && logWarn "Need command" && return # check command 
     _SshEndpoint=$_SSH_MAPPING[$1]
      
     ssh ssh://$_SshEndpoint $2 
@@ -97,7 +97,7 @@ function cpfi() { #? copy from server with identification. syntax: cpfi romoteFi
     scp -i $_PemFile $_SshEndpoint:/$1 $3
 }
 
-function cprf() {
+function cprf() { #! [UNTESTED] copy folder from sever
     [ -z "$1" ] || [ -z $_SSH_MAPPING[$1] ] && return # need mapping
     _SshEndpoint=$_SSH_MAPPING[$1]
 

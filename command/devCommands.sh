@@ -2,7 +2,7 @@
 
 ### Maven
 
-alias mrefresh='mvn clean && mvn compile'
+alias mfresh='mvn clean && mvn compile'
 alias minst='mvn install'
 
 function mpkgp() { #? maven package with profile
