@@ -50,8 +50,29 @@ function qs {
 }
 
 arr=($@)
-recursion=0
 
-qs $arr 0 `expr ${#arr[@]} - 1`
+if [ ${#arr[@]} -lt 1 ] 
+then
+    echo "To sort what??"
+else
+    intRe='^[0-9]+$'
+    arrIsValid=1
 
-echo ${arr[*]}
+    for i in `seq 0 $(expr ${#arr[@]} - 1)`;do
+        if [[ ! ${arr[$i]} =~ $intRe ]] 
+        then 
+            arrIsValid=0
+            break
+        fi
+    done
+
+    if [ $arrIsValid -eq 1 ]
+    then
+        recursion=0
+        qs $arr 0 `expr ${#arr[@]} - 1`
+        echo ${arr[*]}
+    else
+        echo "Array is invalid!!"
+    fi
+fi
+
