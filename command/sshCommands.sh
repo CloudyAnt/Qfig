@@ -62,6 +62,7 @@ function cpti() { #? copy to server with identification. syntax: cpti localFile 
     _SshEndpoint=$_SSH_MAPPING[$2]
     _PemFile=$_PEM_MAPPING[$2]
 
+    logInfo "Tarnsferring $1 to $_SshEndpoint:/$3"
     scp -i $_PemFile $1 $_SshEndpoint:/$3
 }
 

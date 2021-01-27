@@ -13,10 +13,6 @@ alias glist='git stash list'
 # gco = git checkout
 # glo = git log --oneline
 
-function greset() { #? git reset
-    git reset
-}
-
 function grmc() { #? git rm --cached xx
     [ -z $1 ] && return
     git rm --cached $1
