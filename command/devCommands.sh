@@ -5,17 +5,29 @@
 alias mfresh='mvn clean && mvn compile'
 alias minst='mvn install'
 
-function mpkgp() { #? maven package with profile
-    [ -z "$1" ] && logWarn "No profile specified" && return 
-    mvn clean package -Dmaven.test.skip=true -P $1
-    logInfo "Target size: "
-    du -h target/*.jar
-}
-
 function mpkg() { #? maven package & tell the size of jar in ./target
-    logInfo "Maven packaging.."
-    [ -z "$1" ] && mvn clean package || mvn clean package -P $1
-    [ "-s" = $1 ] && mvn clean package -Dmaven.test.skip=true || mvn clean package
+    while getopts ":p:s" opt; do
+        case $opt in
+            s) # Skip tset
+                skipSegment="-Dmaven.test.skip=true" >&2
+                logInfo "Skip tests"
+                ;;
+            p) # Select profile
+                [ -z $OPTARG ] && logError "Which profile ?" && return
+                profileSegment="-P $OPTARG"
+                logInfo "Using profile: $OPTARG"
+                ;;
+            :)
+                echo "Option $OPTARG requires an arg" && return
+                ;;
+            \?)
+                echo "Invalid option: -$OPTARG" && return
+                ;;
+        esac
+    done
+
+    logInfo "Packaging.."
+    mvn clean package $skipSegment $profileSegment
     logInfo "Target size: "
     du -h target/*.jar
 }
@@ -28,7 +40,7 @@ function mdhl() { #? hightlight a word in dependency tree
 ### Gradle
 
 function gpkg() {
-    logInfo "Gradle packaging.."
+    logInfo "Packaging.."
     [ "-s" = $1 ] && gradle clean build -x tset || gradle clean build
     logInfo "Target size: "
     du -h target/*.jar
