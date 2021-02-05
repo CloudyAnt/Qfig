@@ -54,17 +54,3 @@ function gdhl() { #? hightlight a word in dependency tree
 ### MySQL
 
 alias mysqlu='mysql -uroot -p'
-
-### JAVA
-
-function jrun() { #? java compile hello.java && java hello 
-    [ -z $1 ] && logError "Which file to run ?" && return
-    file=$1
-    
-    fileSuffix=`echo $file | awk -F '.' '{print $2}'`
-    [ "java" != "$fileSuffix" ] && logWarn "File is not end with .java" && return
-
-    simpleName=`echo $file | awk -F '.' '{print $1}'` 
-    javac $file
-    java $simpleName
-}
