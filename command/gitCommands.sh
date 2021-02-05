@@ -68,10 +68,10 @@ function gct() { #? commit in process
         eval `cat $present_working_repository_cache | awk  -F $info_separator '{print "commit_name0=" $1 ";commit_number0=" $2 ";commit_type0=" $3 ";commit_desc0=" $4}'`
     fi
 
-    defaultV commit_name0 "Unknown"
-    defaultV commit_number0 "N/A"
-    defaultV commit_type0 "other"
-    defaultV commit_desc0 "Unknown"
+    default commit_name0 "Unknown"
+    default commit_number0 "N/A"
+    default commit_type0 "other"
+    default commit_desc0 "Unknown"
 
     # COMMIT step by step
     echo "[1/4] Name? ($commit_name0)"
@@ -90,10 +90,10 @@ function gct() { #? commit in process
     echo "[4/4] Note? ($commit_desc0)"
     read commit_desc
 
-    defaultV commit_name $commit_name0
-    defaultV commit_number $commit_number0
-    defaultV commit_type $commit_type0
-    defaultV commit_desc $commit_desc0
+    default commit_name $commit_name0
+    default commit_number $commit_number0
+    default commit_type $commit_type0
+    default commit_desc $commit_desc0
 
     # cache new info
     echo "'$commit_name'$info_separator'$commit_number'$info_separator'$commit_type'$info_separator'$commit_desc'" > $present_working_repository_cache
@@ -137,15 +137,4 @@ function gcst0() { #? check single folder commit status
     git status | awk '/Your branch is/{print}' | awk '{sub("Your branch is ", "")} 1' \
         | awk '{sub("up to date", "\033[1;32mUP TO DATE\033[0m")} 1' \
         | awk '{sub("ahead", "\033[1;31mAHEAD\033[0m")} 1' 
-}
-
-function remove_idea_bad_git_track() { #! do not use if unnecessary
-    # include idea, .idea, *.iml, build, target, out 
-    echo -e "# idea\n.idea\n*.iml\n\n# build\nbuild\ntarget\nout" >> .gitignore
-    git add .gitignore
-    git rm -r --cached .idea > /dev/null 2>&1
-    git rm -r --cached build > /dev/null 2>&1
-    git rm -r --cached target > /dev/null 2>&1
-    git rm -r --cached out > /dev/null 2>&1
-    git rm --cached *.iml > /dev/null 2>&1
 }

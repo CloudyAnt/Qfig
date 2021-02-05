@@ -36,20 +36,6 @@ function explaincs() { #? show function comments in command folder
     explain $targetFile
 }
 
-function defaultV() { #? set default value for variable
-    value_name=$1
-    default_value=$2
-
-    [ -z "$value_name" ] && return
-
-    eval "real_value=\$$value_name"
-
-    [ -z "$real_value" ] && eval "$value_name='$default_value'"
-
-    unset value_name
-    unset default_value
-    unset real_value
-}
 
 function call1level() { #? call function in 1 level folders
     begin=`pwd`
