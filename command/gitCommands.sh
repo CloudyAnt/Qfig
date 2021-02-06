@@ -68,10 +68,10 @@ function gct() { #? commit in process
         eval `cat $present_working_repository_cache | awk  -F $info_separator '{print "commit_name0=" $1 ";commit_number0=" $2 ";commit_type0=" $3 ";commit_desc0=" $4}'`
     fi
 
-    default commit_name0 "Unknown"
-    default commit_number0 "N/A"
-    default commit_type0 "other"
-    default commit_desc0 "Unknown"
+    defaultV commit_name0 "Unknown"
+    defaultV commit_number0 "N/A"
+    defaultV commit_type0 "other"
+    defaultV commit_desc0 "Unknown"
 
     # COMMIT step by step
     echo "[1/4] Name? ($commit_name0)"
@@ -90,10 +90,10 @@ function gct() { #? commit in process
     echo "[4/4] Note? ($commit_desc0)"
     read commit_desc
 
-    default commit_name $commit_name0
-    default commit_number $commit_number0
-    default commit_type $commit_type0
-    default commit_desc $commit_desc0
+    defaultV commit_name $commit_name0
+    defaultV commit_number $commit_number0
+    defaultV commit_type $commit_type0
+    defaultV commit_desc $commit_desc0
 
     # cache new info
     echo "'$commit_name'$info_separator'$commit_number'$info_separator'$commit_type'$info_separator'$commit_desc'" > $present_working_repository_cache
