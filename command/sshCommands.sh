@@ -21,12 +21,7 @@ function cs() { #? connect server. syntax: cs mapping; cs mapping identification
     [ -z "$1" ] || [ -z $_SSH_MAPPING[$1] ] && return # need mapping
     _SshEndpoint=$_SSH_MAPPING[$1]
 
-    if [[ -z "$2" || ! -f "$2" ]] 
-    then
-        ssh ssh://$_SshEndpoint
-    else
-        ssh -i $2 ssh://$_SshEndpoint
-    fi
+    ssh ssh://$_SshEndpoint $2
 }
 
 function csc() { #? connect server & send command. syntax: csc mapping command

@@ -5,6 +5,7 @@ alias gamd='git commit --amend'
 alias gamdn='git commit --amend --no-edit'
 alias gaap='git add -p'
 alias glist='git stash list'
+alias gp='echo "FORBIDDEND ALIAS"'
 
 ## offical
 # gaa = git add --A
