@@ -112,6 +112,11 @@ function gstash() { #? git stash
     git stash push -m "$_git_stash_key""$1" # stash with specific name
 }
 
+function gstashunstaged() { #? git stash unstaged files 
+    [ -z "$1" ] && git stash --keep-index && return
+    git stash push -m "$_git_stash_key""$1" --keep-index # stash with specific name
+}
+
 function gapply() { #? git stash apply 
     [ -z "$1" ] && git stash apply && return
     git stash apply $(git stash list | grep "$_git_stash_key""$1" | cut -d: -f1) # apply with specific name
