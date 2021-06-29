@@ -1,4 +1,4 @@
-# These commands require 3rd party programs
+# These commands require 3rd party programs like maven, mysql, etc.
 
 ### Maven
 
@@ -72,4 +72,12 @@ function jrun() { #? java compile hello.java && java hello
     [ 1 -eq $? ] && return
 
     java $simpleName
+}
+
+### Oh my zsh
+
+function rezsh() {
+    logInfo "Refreshing oh-my-zsh..."
+    source ~/.zshrc
+    logSuccess "Oh-my-zsh refreshed"
 }

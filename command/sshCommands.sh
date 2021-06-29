@@ -104,3 +104,16 @@ function cprf() { #! [UNTESTED] copy folder from sever
         scp -r -i $4 $_SshEndpoint:/$2 $3
     fi
 }
+
+function cprfi() { #! [UNTESTED] copy folder from sever
+    [ -z "$1" ] || [ -z $_SSH_MAPPING[$1] ] && return # need mapping
+    _SshEndpoint=$_SSH_MAPPING[$1]
+    _PemFile=$_PEM_MAPPING[$2]
+
+    if [[ -z "$4" || ! -f "$4" ]] 
+    then
+        scp -r $_PemFile $_SshEndpoint:/$2 $3
+    else
+        scp -r -i $_PemFile $4 $_SshEndpoint:/$2 $3
+    fi
+}
