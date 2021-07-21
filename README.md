@@ -1,50 +1,13 @@
 # Qfig
 
-Useful tools, configurations, commands for developers who use Mac (especially for java developer)
+The repo contains some useful shell commands, and thery are easily to be updated. 
+*run the script `active.sh`, you'll have full access to these commands in the command folder*
 
-run the script `active.sh`, you'll have full access to these commands in the command folder
+Also, there are configurations like `iTerm` settings contained
 
-## Configurations
+Then, I hava some recommendations of **Developing tools**, **Intellij plugins** .etc just in the below
 
-### `iRecipe.json`, an iTerm profile 
-
-Includes some iTerm basic settings, include shortcuts, windows size, etc.
-
-Shortcut ****Command + ←**** will jump to begin of line, other shortcuts perform is also the same as in the Chrome
-
-## Commands
-
-all commmands are in `commands` folder
-
-To use these commands, you should add `source $yourProjectLocation/config.sh` to the end of `.zshrc` or `.bash_profile`. Actually, the `active.sh` will help you do this.
-
-Here are some example commands:
-
-### `gadd`, `gct`
-
-`gadd` will execute command `git add -A`
-
-`gct` allows your commit process and commit message more standardized:
-
-```txt
-name [story] message
-```
-
-### `defaultV`
-
-```sh
-$ defaultV var 1
-$ echo $var
-1
-$ defaultV var 2
-$ echo $var
-1
-```
-...
-
-There are more commands in the **command** folder.
-
-## Tools
+## Developing tools
 
 `Chrome`, best for developer
 
@@ -96,7 +59,7 @@ There are more commands in the **command** folder.
 
 `Google Translate`
 
-`沙拉查词`
+`沙拉查词` . A select-then-translate tool
 
 `Medium Unlimited`
 
@@ -113,11 +76,11 @@ Fronted Learning: [StackBlitz](https://stackblitz.com/)
 ### Configure Vim
 
 ```
-" 打开行号
+" show line number 
 set nu
-" 设置配色
+" set colorschema 
 colorscheme desert
-" 打开代码高亮
+" open code hightlights
 syntax on
 " use plugin to enable indent setting
 filetype plugin indent on
