@@ -51,6 +51,11 @@ function defaultV() { #? set default value for variable
     unset real_value
 }
 
+function unsetFunctionsInFile() {
+    [ -z $1 ] && logError "trying to unsert functions, but no file was provided" && return 
+    unset -f $(cat $1 | awk '/^function /{print $2}' | awk '{sub("\\(\\)", "")} 1')
+}
+
 ### Log
 
 function logInfo() {

@@ -1,4 +1,4 @@
-# Ssh mapping. 
+# Ssh related commands. 
 # You need to edit the sshMappingFile. A mapping should like: a=user@111.222.333.444:555
 
 _SSH_MAPPING_FILE=$Qfig_loc/sshMappingFile
@@ -32,7 +32,7 @@ function csc() { #? connect server & send command. syntax: csc mapping command
     ssh ssh://$_SshEndpoint $2 
 }
 
-function csi() { #? connect server (send command) with identification. syntax: csi mapping; csi mapping command[optional]
+function csi() { #? connect server (send command) with identification. syntax: csi mapping; csi mapping 'your remote command'
     [ -z "$1" ] || [ -z $_SSH_MAPPING[$1] ] || [ -z $_PEM_MAPPING[$1] ] && return # need mapping
     _SshEndpoint=$_SSH_MAPPING[$1]
     _PemFile=$_PEM_MAPPING[$1]
