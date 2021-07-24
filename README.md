@@ -1,7 +1,7 @@
 # Qfig
 
 The repo contains some useful shell commands, and thery are easily to be updated. 
-*run the script `active.sh`, you'll have full access to these commands in the command folder*
+*run the script `active.sh`, you'll have full access to all commands configured in the myConfig.sh*
 
 And then, I hava some recommendations of **Developing tools**, **Intellij plugins** .etc just in the below
 
