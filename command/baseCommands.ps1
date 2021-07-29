@@ -4,12 +4,22 @@ function qfig { #? enter the Qfig project folder
     cd $Qfig_loc
 }
 
+function repower() {
+    Write-Host "Repowering" -f blue
+    . $Qfig_loc/config.ps1
+    Write-Host "Repowered!"-f green
+}
+
 function vimcs { #? edit Qfig commands
     param($prefix)
 
     $targetFile = "$Qfig_loc/command/" + $prefix + "Commands.ps1"
     If (Test-Path $targetFile) {
-        Start-Process NotePad $targetFile
+        If ($IsWindows) {
+            Start-Process NotePad $targetFile
+        } ElseIf ($IsMacOs -Or $IsLinux) {
+            vim $targetFile
+        }
     } Else {
         Write-Warning "$targetFile doesn't exist" 
     }
