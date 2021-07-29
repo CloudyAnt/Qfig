@@ -4,8 +4,8 @@
 # Second, add required files and folders
 !.gitignore
 !command
-!active.sh
-!active.ps1
+!activation.sh
+!activation.ps1
 !config.sh
 !config.ps1
 !README.md
