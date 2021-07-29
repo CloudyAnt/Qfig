@@ -15,11 +15,22 @@ function vimcs { #? edit Qfig commands
     }
 }
 
-function defaultV() { #? set default value for variable
-    param([Parameter(Mandatory)]$name, [Parameter(Mandatory)$value)
+function defaultV() { #? return default value
+    param([Parameter(Mandatory)]$name, [Parameter(Mandatory)]$default)
     iex "`$cur_value = `$$name"
-    
     If ($cur_value.Length -Eq 0) {
-        iex "`$$name = $value"
+        Return $default
+    }
+    Return $cur_value
+}
+
+function defaultGV() { #? set default global value for variable
+    param([Parameter(Mandatory)]$name, [Parameter(Mandatory)]$default)
+    iex "`$cur_value = `$$name"
+    If ($cur_value.Length -Eq 0) {
+        $type = $value.GetType().Name
+        iex "[$type]`$global`:$name = '$default'"
+    } Else {
+        $cur_value.Length
     }
 }
