@@ -8,7 +8,7 @@
 Qfig_loc=$(dirname "$0")
 
 ## Base configs
-source $Qfig_loc/command/utilCommands.sh
+source $Qfig_loc/command/baseCommands.sh
 
 ## Custom configs
 [ -f "$Qfig_loc/myConfig.sh" ] && source $Qfig_loc/myConfig.sh

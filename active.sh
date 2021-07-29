@@ -7,7 +7,7 @@ sysConfigFile=".zshrc"
 [ ! -z "$sysConfigFile" ] && sysConifgFile=".bash_profile"
 
 activedFile=`cat ${HOME}/.zshrc | awk -v f="$fileToActive" '$0 ~ f'`
-[ ! -z "$activedFile" ] && echo "Qfig had already actieved!" && exit
+[ ! -z "$activedFile" ] && echo "Qfig had already been activated!" && exit
 
 echo source $fileToActive >> $HOME/.zshrc 
 echo "Qfig activated!"
