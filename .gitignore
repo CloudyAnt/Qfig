@@ -4,6 +4,7 @@
 # Second, add required files and folders
 !.gitignore
 !command
+!script
 !activation.sh
 !activation.ps1
 !config.sh
