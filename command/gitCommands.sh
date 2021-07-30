@@ -66,7 +66,7 @@ function gct() { #? commit in process
 
     if [ -f "$present_working_repository_cache" ]
     then
-        eval `cat $present_working_repository_cache | awk  -F $info_separator '{print "commit_name0=" $1 ";commit_number0=" $2 ";commit_type0=" $3 ";commit_desc0=" $4}'`
+        eval `cat $present_working_repository_cache | awk  -F $info_separator '{print "commit_name0=\"" $1 "\";commit_number0=\"" $2 "\";commit_type0=\"" $3 "\";commit_desc0=\"" $4 "\""}'`
     fi
 
     defaultV commit_name0 "Unknown"
@@ -97,7 +97,7 @@ function gct() { #? commit in process
     defaultV commit_desc $commit_desc0
 
     # cache new info
-    echo "'$commit_name'$info_separator'$commit_number'$info_separator'$commit_type'$info_separator'$commit_desc'" > $present_working_repository_cache
+    echo "$commit_name$info_separator$commit_number$info_separator$commit_type$info_separator$commit_desc" > $present_working_repository_cache
 
     # commit
     full_commit_message="$commit_name [$commit_number] $commit_type: $commit_desc"

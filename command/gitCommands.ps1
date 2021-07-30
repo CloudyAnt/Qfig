@@ -89,7 +89,7 @@ function gct() { #? commit in process
 
     # GET commit message cache, use default if it not exists
     $git_commit_info_cache_folder = "$Qfig_loc/.gcache"
-    $present_working_repository_cache = $git_commit_info_cache_folder + '/' +  $(git rev-parse --show-toplevel | sed 's|/|_|g') + '.tmp'
+    $present_working_repository_cache = $git_commit_info_cache_folder + '/' +  $(git rev-parse --show-toplevel).replace("/", "_") + '.tmp'
 
     If (-Not(Test-Path $git_commit_info_cache_folder -PathType Container)) {
        md $git_commit_info_cache_folder 
@@ -97,7 +97,7 @@ function gct() { #? commit in process
     $info_separator = "!@#!@#!@#"
 
     If (Test-Path $present_working_repository_cache -PathType Leaf) {
-        $repo_cache_content = (cat $present_working_repository_cache) -split $info_separator
+        $repo_cache_content = (cat $present_working_repository_cache).split($info_separator)
         $commit_name0 = $repo_cache_content[0]
         $commit_card0 = $repo_cache_content[1]
         $commit_type0 = $repo_cache_content[2]
