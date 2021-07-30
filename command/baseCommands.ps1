@@ -4,10 +4,14 @@ function qfig { #? enter the Qfig project folder
     cd $Qfig_loc
 }
 
-function repower() {
+function repower() { #? reload config(Not working now)
     Write-Host "Repowering" -f blue
     . $Qfig_loc/config.ps1
     Write-Host "Repowered!"-f green
+}
+
+function ..() {
+   cd ../ 
 }
 
 function vimcs { #? edit Qfig commands

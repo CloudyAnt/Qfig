@@ -2,9 +2,8 @@
 
 The repo contains some useful shell commands, and thery are easily to be updated. 
 
-For unix-like os, run the script `activation.sh`, to activate commands configured in the `config.sh` and `myConfig.sh`
-
-For Windows os, run the script `activation.ps1`, to activate commands configured in the `config.ps1` and `myConfig.ps1`
+To activate these commands, run the script `activation.sh` in the terminal if you are using `unix-like` os, 
+else run the script `activation.ps1` in the PowerShell if you are using `Windows` os
 
 ---
 
@@ -30,7 +29,7 @@ And then, I hava some recommendations of **Developing tools**, **Intellij plugin
 
 `JetBrains IDEs`, pick as you needed
 
-`Yuyue`, perfect note taking software
+`Yuque`, good note taking software
 
 `Sougou Input Method`, perferred software for chinese inputting
 
