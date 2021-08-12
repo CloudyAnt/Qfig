@@ -119,12 +119,16 @@ function gstashunstaged() { #? git stash unstaged files
 
 function gapply() { #? git stash apply 
     [ -z "$1" ] && git stash apply && return
-    git stash apply $(git stash list | grep "$_git_stash_key""$1" | cut -d: -f1) # apply with specific name
+    key=$(git stash list | grep "$_git_stash_key""$1" | cut -d: -f1)
+    [ -z "$key"] && logWarn "The stash key \"$1\" doesn't exist!" && return
+    git stash apply $key # apply with specific name
 }
 
 function gpop() { #? git stash pop 
     [ -z "$1" ] && git stash pop && return
-    git stash pop $(git stash list | grep "$_git_stash_key""$1" | cut -d: -f1) # pop with specific name
+    key=$(git stash list | grep "$_git_stash_key""$1" | cut -d: -f1)
+    [ -z "$key"] && logWarn "The stash key \"$1\" doesn't exist!" && return
+    git stash pop $key # pop with specific name
 }
 
 function gcst() { #? check multi folder commit status
