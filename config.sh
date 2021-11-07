@@ -7,12 +7,18 @@
 ## The location of Qfig project
 Qfig_loc=$(dirname "$0")
 
+## The functions used in this script
+function doNothing() {}
+
 ## Base configs
 source $Qfig_loc/command/baseCommands.sh
 
 ## Custom configs
-[ -f "$Qfig_loc/myConfig.sh" ] && source $Qfig_loc/myConfig.sh
+[ -f "$Qfig_loc/myConfig.sh" ] && source $Qfig_loc/myConfig.sh || doNothing
+
 
 ## For complex functions only works for your current orgnization, add them to the tempCommands.sh
 ## All functions in this file will not be included in git
-[ -f "$Qfig_loc/command/tempCommands.sh" ] && source $Qfig_loc/command/tempCommands.sh 
+[ -f "$Qfig_loc/command/tempCommands.sh" ] && source $Qfig_loc/command/tempCommands.sh || doNothing 
+
+unset -f doNothing
