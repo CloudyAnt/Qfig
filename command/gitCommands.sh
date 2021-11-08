@@ -5,7 +5,6 @@ alias gamd='git commit --amend'
 alias gamdn='git commit --amend --no-edit'
 alias gaap='git add -p'
 alias glist='git stash list'
-alias gp='echo "FORBIDDEND ALIAS"'
 
 ## offical
 # gaa = git add --A
@@ -108,24 +107,40 @@ function gct() { #? commit in process
 _git_stash_key="_git_stash_:"
 
 function gstash() { #? git stash
-    [ -z "$1" ] && git stash && return
+    if [ -z "$1" ] 
+    then
+        git stash
+        return
+    fi
     git stash push -m "$_git_stash_key""$1" # stash with specific name
 }
 
 function gstashunstaged() { #? git stash unstaged files 
-    [ -z "$1" ] && git stash --keep-index && return
+    if [ -z "$1" ] 
+    then
+        git stash --keep-index
+        return
+    fi
     git stash push -m "$_git_stash_key""$1" --keep-index # stash with specific name
 }
 
 function gapply() { #? git stash apply 
-    [ -z "$1" ] && git stash apply && return
+    if [ -z "$1" ] 
+    then
+        git stash apply
+        return
+    fi
     key=$(git stash list | grep "$_git_stash_key""$1" | cut -d: -f1)
     [ -z "$key"] && logWarn "The stash key \"$1\" doesn't exist!" && return
     git stash apply $key # apply with specific name
 }
 
 function gpop() { #? git stash pop 
-    [ -z "$1" ] && git stash pop && return
+    if [ -z "$1" ] 
+    then
+        git stash pop
+        return
+    fi
     key=$(git stash list | grep "$_git_stash_key""$1" | cut -d: -f1)
     [ -z "$key"] && logWarn "The stash key \"$1\" doesn't exist!" && return
     git stash pop $key # pop with specific name

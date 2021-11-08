@@ -52,7 +52,7 @@ function gdhl() { #? hightlight a word in dependency tree
 
 ### MySQL
 
-alias mysqlu='mysql -uroot -p'
+alias mysqll='mysql -uroot -p' # Connect local mysql 
 
 _MYSQL_MAPPING_FILE=$Qfig_loc/mysqlMappingFile
 
@@ -65,7 +65,7 @@ eval `cat $_MYSQL_MAPPING_FILE | awk -F '=' 'BEGIN{ s0 = "";s = "declare -A _MYS
     }} \
     END { s = s ")"; print s0; print s; print s1}'`
 
-function mysqlc() {
+function mysqlc() { #? Connect mysql by mapping defined in mysqlMappingFile
     [ -z $1 ] || [ -z $_MYSQL_MAPPING[$1] ] && logError "Which mapping?" && return
     unset mapping
     eval "mapping=($_MYSQL_MAPPING[$1])"
