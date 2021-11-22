@@ -4,7 +4,8 @@ alias glog='git log --oneline --abbrev-commit --graph'
 alias gamd='git commit --amend'
 alias gamdn='git commit --amend --no-edit'
 alias gaap='git add -p'
-alias glist='git stash list'
+alias glist='git stash list --date=local'
+alias glistp='git stash list --pretty=format:"%C(red)%h%C(reset) - %C(dim yellow)(%C(bold magenta)%gd%C(dim yellow))%C(reset) %<(70,trunc)%s %C(green)(%cr) %C(bold blue)<%an>%C(reset)"'
 
 ## offical
 # gaa = git add --A
