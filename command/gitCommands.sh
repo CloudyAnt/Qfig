@@ -116,7 +116,7 @@ function gstash() { #? git stash
     git stash push -m "$_git_stash_key""$1" # stash with specific name
 }
 
-function gstashunstaged() { #? git stash unstaged files 
+function gstashu() { #? git stash unstaged files 
     if [ -z "$1" ] 
     then
         git stash --keep-index
