@@ -4,7 +4,7 @@ function qfig() { #? enter the Qfig project folder
     cd $Qfig_loc
 }
 
-function vimcs() { #? edit Qfig commands
+function vimcmd() { #? edit Qfig commands
     targetFile=$Qfig_loc/command/$1Commands.sh
     [ ! -f "$targetFile" ]  && logWarn "$targetFile dosen't exist" && return
     vim $targetFile

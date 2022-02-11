@@ -38,6 +38,12 @@ function gaaf() { #? git add files in pattern
     git add "*$1*"
 }
 
+function gbco() { #? git branch foo && git checkout foo
+    [ -z $1 ] && return
+	git branch $1
+	git checkout $1
+}
+
 function gcto() { #? commit in one line
     echo commit with message '"['$1']' $2: $3'" ? (y for Yes)'
     read oneline_commit
