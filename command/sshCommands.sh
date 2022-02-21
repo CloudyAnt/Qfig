@@ -18,14 +18,14 @@ END { s = s ")"; print s}'`
 
 
 function cs() { #? connect server. syntax: cs mapping; cs mapping identification[optional] 
-    [ -z "$1" ] || [ -z $_SSH_MAPPING[$1] ] && logWarn "No mapping for: $1" && return # need mapping
+    [ -z "$1" ] || [ -z $_SSH_MAPPING[$1] ] && logWarn "No ssh mapping for: $1" && return # need mapping
     _SshEndpoint=$_SSH_MAPPING[$1]
 
     ssh ssh://$_SshEndpoint $2
 }
 
 function csc() { #? connect server & send command. syntax: csc mapping command
-    [ -z "$1" ] || [ -z $_SSH_MAPPING[$1] ] && logWarn "No mapping for: $1" && return # check mapping 
+    [ -z "$1" ] || [ -z $_SSH_MAPPING[$1] ] && logWarn "No ssh mapping for: $1" && return # check mapping 
     [ -z "$2" ] && logWarn "Need command" && return # check command 
     _SshEndpoint=$_SSH_MAPPING[$1]
      
@@ -33,7 +33,7 @@ function csc() { #? connect server & send command. syntax: csc mapping command
 }
 
 function csi() { #? connect server (send command) with identification. syntax: csi mapping; csi mapping 'your remote command'
-    [ -z "$1" ] || [ -z $_SSH_MAPPING[$1] ] || [ -z $_PEM_MAPPING[$1] ] && logWarn "No mapping for: $1" && return # need mapping
+    [ -z "$1" ] || [ -z $_SSH_MAPPING[$1] ] || [ -z $_PEM_MAPPING[$1] ] && logWarn "No ssh/pem mapping for: $1" && return # need mapping
     _SshEndpoint=$_SSH_MAPPING[$1]
     _PemFile=$_PEM_MAPPING[$1]
 
@@ -41,7 +41,7 @@ function csi() { #? connect server (send command) with identification. syntax: c
 }
 
 function cpt() { #? copy to server. syntax: cpt localFile mapping remoteFile identification[optional]
-    [ -z "$2" ] || [ -z $_SSH_MAPPING[$2] ] && logWarn "No mapping for: $2" && return # need mapping
+    [ -z "$2" ] || [ -z $_SSH_MAPPING[$2] ] && logWarn "No ssh mapping for: $2" && return # need mapping
     _SshEndpoint=$_SSH_MAPPING[$2]
 
     if [[ -z "$4" || ! -f "$4" ]] 
@@ -53,7 +53,7 @@ function cpt() { #? copy to server. syntax: cpt localFile mapping remoteFile ide
 }
 
 function cpti() { #? copy to server with identification. syntax: cpti localFile mapping remoteFile 
-    [ -z "$2" ] || [ -z $_SSH_MAPPING[$2] ] || [ -z $_PEM_MAPPING[$2] ] && logWarn "No Mapping For: $2" && return # need mapping
+    [ -z "$2" ] || [ -z $_SSH_MAPPING[$2] ] || [ -z $_PEM_MAPPING[$2] ] && logWarn "No ssh/pem Mapping For: $2" && return # need mapping
     _SshEndpoint=$_SSH_MAPPING[$2]
     _PemFile=$_PEM_MAPPING[$2]
 
@@ -62,7 +62,7 @@ function cpti() { #? copy to server with identification. syntax: cpti localFile 
 }
 
 function cprt() {
-    [ -z "$2" ] || [ -z $_SSH_MAPPING[$2] ] && logWarn "No Mapping For: $2" && return # need mapping
+    [ -z "$2" ] || [ -z $_SSH_MAPPING[$2] ] && logWarn "No ssh Mapping For: $2" && return # need mapping
     _SshEndpoint=$_SSH_MAPPING[$2]
 
     if [[ -z "$4" || ! -f "$4" ]] 
@@ -74,7 +74,7 @@ function cprt() {
 }
 
 function cpf() { #? copy from server. syntax: cpf remoteFile mapping localFile identification[optional]
-    [ -z "$2" ] || [ -z $_SSH_MAPPING[$2] ] && logWarn "No Mapping For: $2" && return # need mapping
+    [ -z "$2" ] || [ -z $_SSH_MAPPING[$2] ] && logWarn "No ssh Mapping For: $2" && return # need mapping
     _SshEndpoint=$_SSH_MAPPING[$2]
 
     if [[ -z "$4" || ! -f "$4" ]] 
@@ -86,7 +86,7 @@ function cpf() { #? copy from server. syntax: cpf remoteFile mapping localFile i
 }
 
 function cpfi() { #? copy from server with identification. syntax: cpfi romoteFile mapping localFile
-    [ -z "$2" ] || [ -z $_SSH_MAPPING[$2] ] || [ -z $_PEM_MAPPING[$2] ] && logWarn "No Mapping For: $2" && return # need mapping
+    [ -z "$2" ] || [ -z $_SSH_MAPPING[$2] ] || [ -z $_PEM_MAPPING[$2] ] && logWarn "No ssh/pem Mapping For: $2" && return # need mapping
     _SshEndpoint=$_SSH_MAPPING[$2]
     _PemFile=$_PEM_MAPPING[$2]
 
@@ -94,7 +94,7 @@ function cpfi() { #? copy from server with identification. syntax: cpfi romoteFi
 }
 
 function cprf() { #! [UNTESTED] copy folder from sever
-    [ -z "$1" ] || [ -z $_SSH_MAPPING[$1] ] && logWarn "No Mapping For: $2" && return # need mapping
+    [ -z "$1" ] || [ -z $_SSH_MAPPING[$1] ] && logWarn "No ssh Mapping For: $2" && return # need mapping
     _SshEndpoint=$_SSH_MAPPING[$1]
 
     if [[ -z "$4" || ! -f "$4" ]] 
@@ -106,7 +106,7 @@ function cprf() { #! [UNTESTED] copy folder from sever
 }
 
 function cprfi() { #! [UNTESTED] copy folder from sever
-    [ -z "$1" ] || [ -z $_SSH_MAPPING[$1] ] && logWarn "No Mapping For: $2" && return # need mapping
+    [ -z "$1" ] || [ -z $_SSH_MAPPING[$1] ] && logWarn "No ssh/pem Mapping For: $2" && return # need mapping
     _SshEndpoint=$_SSH_MAPPING[$1]
     _PemFile=$_PEM_MAPPING[$2]
 
