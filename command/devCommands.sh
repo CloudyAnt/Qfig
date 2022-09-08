@@ -91,11 +91,3 @@ function jrun() { #? java compile hello.java && java hello
 
     java $simpleName
 }
-
-### Oh my zsh
-
-function rezsh() {
-    logInfo "Refreshing oh-my-zsh..."
-    source ~/.zshrc
-    logSuccess "Oh-my-zsh refreshed"
-}

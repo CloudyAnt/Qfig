@@ -126,3 +126,9 @@ function assertExist() { #? check file existence
     done
     echo "checked"
 }
+
+function rezsh() { #? source .zshrc
+    logInfo "Refreshing zsh..."
+    source ~/.zshrc
+    logSuccess "Refreshed zsh"
+}
