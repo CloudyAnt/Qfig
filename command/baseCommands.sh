@@ -4,6 +4,12 @@ function qfig() { #? enter the Qfig project folder
     cd $Qfig_loc
 }
 
+function qread() {
+	[ -z $1 ] && logError "Missing variable name!" && return 1
+	eval "$1="
+	eval "vared $1"
+}
+
 function vimcmd() { #? edit Qfig commands
     targetFile=$Qfig_loc/command/$1Commands.sh
     [ ! -f "$targetFile" ]  && logWarn "$targetFile dosen't exist" && return

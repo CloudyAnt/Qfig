@@ -45,9 +45,21 @@ function gbco() { #? git branch foo && git checkout foo
 	git checkout $1
 }
 
+function gcm() { #? commit with message
+	if [ "$1" = '' ]
+	then 
+		logWarn "Commit without message?"
+		qread confirm
+		[ "$confirm" = "y" ] && gaa && git commit -m "" 
+	else
+		gaa
+		git commit -m "$1"
+	fi
+}
+
 function gcto() { #? commit in one line
     echo commit with message '"['$1']' $2: $3'" ? (y for Yes)'
-    read oneline_commit
+    qread oneline_commit
     [ "$oneline_commit" = "y" ] && gaa && git commit -m "[$1] $2: $3"
     unset oneline_commit
 }
@@ -83,11 +95,11 @@ function gct() { #? commit in process
 
     # COMMIT step by step
     echo "[1/4] Name? ($commit_name0)"
-    read commit_name
+    qread commit_name
     echo "[2/4] Card? ($commit_number0)"
-    read commit_number
+    qread commit_number
     echo "[3/4] Type? ($commit_type0) |$gctCommitTypesTip"
-    read commit_type
+    qread commit_type
 
     if echo $commit_type | egrep -q '^[0-9]+$' && [ $commit_type -gt 0 ] && [ $commit_type -le ${#gctCommitTypes} ]
     then
@@ -96,7 +108,7 @@ function gct() { #? commit in process
     fi
 
     echo "[4/4] Note? ($commit_desc0)"
-    read commit_desc
+    qread commit_desc
 
     defaultV commit_name $commit_name0
     defaultV commit_number $commit_number0

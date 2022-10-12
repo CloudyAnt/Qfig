@@ -17,8 +17,9 @@ source $Qfig_loc/command/baseCommands.sh
 [ -f "$Qfig_loc/myConfig.sh" ] && source $Qfig_loc/myConfig.sh || doNothing
 
 
-## For complex functions only works for your current orgnization, add them to the tempCommands.sh
-## All functions in this file will not be included in git
+## For functions only works on current computer, add them to the tempCommands.sh/tempCommands.ps1
+## All functions in these files will not be included in git
 [ -f "$Qfig_loc/command/tempCommands.sh" ] && source $Qfig_loc/command/tempCommands.sh || doNothing 
+[ -f "$Qfig_loc/command/tempCommands.ps1" ] && source $Qfig_loc/command/tempCommands.ps1|| doNothing 
 
 unset -f doNothing
