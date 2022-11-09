@@ -74,27 +74,27 @@ function cprt() {
 }
 
 function cpf() { #? copy from server. syntax: cpf remoteFile mapping localFile identification[optional]
-    [ -z "$2" ] || [ -z $_SSH_MAPPING[$2] ] && logWarn "No ssh Mapping For: $2" && return # need mapping
-    _SshEndpoint=$_SSH_MAPPING[$2]
+    [ -z "$1" ] || [ -z $_SSH_MAPPING[$1] ] && logWarn "No ssh Mapping For: $1" && return # need mapping
+    _SshEndpoint=$_SSH_MAPPING[$1]
 
     if [[ -z "$4" || ! -f "$4" ]] 
     then
-        scp $_SshEndpoint:/$1 $3
+        scp $_SshEndpoint:/$2 $3
     else
-        scp -i $4 $_SshEndpoint:/$1 $3
+        scp -i $4 $_SshEndpoint:/$2 $3
     fi
 }
 
 function cpfi() { #? copy from server with identification. syntax: cpfi romoteFile mapping localFile
-    [ -z "$2" ] || [ -z $_SSH_MAPPING[$2] ] || [ -z $_PEM_MAPPING[$2] ] && logWarn "No ssh/pem Mapping For: $2" && return # need mapping
-    _SshEndpoint=$_SSH_MAPPING[$2]
-    _PemFile=$_PEM_MAPPING[$2]
+    [ -z "$1" ] || [ -z $_SSH_MAPPING[$1] ] || [ -z $_PEM_MAPPING[$1] ] && logWarn "No ssh/pem Mapping For: $1" && return # need mapping
+    _SshEndpoint=$_SSH_MAPPING[$1]
+    _PemFile=$_PEM_MAPPING[$1]
 
-    scp -i $_PemFile $_SshEndpoint:/$1 $3
+    scp -i $_PemFile $_SshEndpoint:/$2 $3
 }
 
 function cprf() { #! [UNTESTED] copy folder from sever
-    [ -z "$1" ] || [ -z $_SSH_MAPPING[$1] ] && logWarn "No ssh Mapping For: $2" && return # need mapping
+    [ -z "$1" ] || [ -z $_SSH_MAPPING[$1] ] && logWarn "No ssh Mapping For: $1" && return # need mapping
     _SshEndpoint=$_SSH_MAPPING[$1]
 
     if [[ -z "$4" || ! -f "$4" ]] 
@@ -106,9 +106,9 @@ function cprf() { #! [UNTESTED] copy folder from sever
 }
 
 function cprfi() { #! [UNTESTED] copy folder from sever
-    [ -z "$1" ] || [ -z $_SSH_MAPPING[$1] ] && logWarn "No ssh/pem Mapping For: $2" && return # need mapping
+    [ -z "$1" ] || [ -z $_SSH_MAPPING[$1] ] && logWarn "No ssh/pem Mapping For: $1" && return # need mapping
     _SshEndpoint=$_SSH_MAPPING[$1]
-    _PemFile=$_PEM_MAPPING[$2]
+    _PemFile=$_PEM_MAPPING[$1]
 
     if [[ -z "$4" || ! -f "$4" ]] 
     then

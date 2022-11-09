@@ -1,13 +1,12 @@
 #!/bin/bash
 # Print Colors
-# Reference:
-# https://i.stack.imgur.com/OK3po.png
 
 function logTitle() {
     [ -z "$1" ] && return
     echo "\033[;3m\033[92;100m<--- $1 --->\033[0m"
 }
 
+printf '\e]8;;https://i.stack.imgur.com/OK3po.png\aReference\e]8;;\a\n'
 logTitle "Full FG Colors"
 
 echo "echo -e \"\\\e[38;05;nm\"hello"

@@ -25,6 +25,12 @@ function gmergec() { #? git merge --continue
     git merge --continue
 }
 
+function grbt() { #? git rebase $branch && git tag $branch
+    [ -z $1 ] && return
+	git rebase $1
+	git tag $1	
+}
+
 function grebasec() { #? git rebase --continue
     gaa
     git rebase --continue

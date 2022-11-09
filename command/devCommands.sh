@@ -72,6 +72,14 @@ function mysqlc() { #? Connect mysql by mapping defined in mysqlMappingFile
     mysql -u $mapping[2] -p$mapping[3] -h $mapping[1]
 }
  
+function mysqlo() { #? Connect mysql by mapping defined in mysqlMappingFile THEN pass command and output result to files
+    [ -z $1 ] || [ -z $_MYSQL_MAPPING[$1] ] && logError "Which mapping?" && return
+    [ -z $2 ] && logError "Need Command" && return
+    [ -z $3 ] && logError "Need Output File" && return
+    unset mapping
+    eval "mapping=($_MYSQL_MAPPING[$1])"
+    mysql -u $mapping[2] -p$mapping[3] -h $mapping[1] -e "$2 INTO OUTFILE '$3' FIELDS TERMINATED BY ',';" 
+}
 
 ### JAVA
 
