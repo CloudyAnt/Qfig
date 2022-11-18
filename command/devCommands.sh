@@ -69,7 +69,15 @@ function mysqlc() { #? Connect mysql by mapping defined in mysqlMappingFile
     [ -z $1 ] || [ -z $_MYSQL_MAPPING[$1] ] && logError "Which mapping?" && return
     unset mapping
     eval "mapping=($_MYSQL_MAPPING[$1])"
-    mysql -u $mapping[2] -p$mapping[3] -h $mapping[1]
+	hostPort="$mapping[1]:"
+	host=`cut -d":" -f1 <<< $hostPort`
+	port=`cut -d":" -f2 <<< $hostPort`
+	if [ -z "$port" ]
+	then
+    	mysql -u $mapping[2] -p$mapping[3] -h $host
+	else
+    	mysql -u $mapping[2] -p$mapping[3] -h $host -P $port
+ 	fi		
 }
  
 function mysqlo() { #? Connect mysql by mapping defined in mysqlMappingFile THEN pass command and output result to files
