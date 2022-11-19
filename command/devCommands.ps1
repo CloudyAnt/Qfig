@@ -1,3 +1,9 @@
+### MAVEN
+
+function minst() {
+    mvn install	
+}
+
 ### JAVA
 
 function jrun() { #? java compile hello.java && java hello
