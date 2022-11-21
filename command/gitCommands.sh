@@ -157,7 +157,7 @@ function gapply() { #? git stash apply
         return
     fi
     key=$(git stash list | grep "$_git_stash_key""$1" | cut -d: -f1)
-    [ -z "$key"] && logWarn "The stash key \"$1\" doesn't exist!" && return
+    [ -z "$key" ] && logWarn "The stash key \"$1\" doesn't exist!" && return
     git stash apply $key # apply with specific name
 }
 
@@ -168,7 +168,7 @@ function gpop() { #? git stash pop
         return
     fi
     key=$(git stash list | grep "$_git_stash_key""$1" | cut -d: -f1)
-    [ -z "$key"] && logWarn "The stash key \"$1\" doesn't exist!" && return
+    [ -z "$key" ] && logWarn "The stash key \"$1\" doesn't exist!" && return
     git stash pop $key # pop with specific name
 }
 
