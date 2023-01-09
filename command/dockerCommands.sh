@@ -19,3 +19,8 @@ function dcrm() { #? delete container by id
     [ -z "$1" ] && return
     docker container rm $1
 }
+
+function diprune() {
+	docker rm $(docker ps -a -q)
+	docker image prune
+}

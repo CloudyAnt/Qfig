@@ -14,6 +14,7 @@ alias gp='logWarn "FORBIDDEN ALIAS"'
 # gss = git status -s
 # gco = git checkout
 # glo = git log --oneline
+# gcm = git checkout $(git_main_branch)
 
 function grmc() { #? git rm --cached xx
     [ -z $1 ] && return
@@ -51,7 +52,7 @@ function gbco() { #? git branch foo && git checkout foo
 	git checkout $1
 }
 
-function gcm() { #? commit with message
+function gctm() { #? commit with message
 	if [ "$1" = '' ]
 	then 
 		logWarn "Commit without message?"

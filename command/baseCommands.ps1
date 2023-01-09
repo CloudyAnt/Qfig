@@ -14,7 +14,7 @@ function ..() {
    cd ../ 
 }
 
-function vimcs { #? edit Qfig commands
+function vimcmds { #? edit Qfig commands
     param($prefix)
 
     $targetFile = "$Qfig_loc/command/" + $prefix + "Commands.ps1"

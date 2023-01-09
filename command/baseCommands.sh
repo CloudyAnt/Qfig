@@ -10,10 +10,16 @@ function qread() {
 	eval "vared $1"
 }
 
-function vimcmd() { #? edit Qfig commands
+function vimcmds() { #? edit Qfig commands
     targetFile=$Qfig_loc/command/$1Commands.sh
     [ ! -f "$targetFile" ]  && logWarn "$targetFile dosen't exist" && return
     vim $targetFile
+}
+
+function catcmds() { #? cat Qfig commands
+    targetFile=$Qfig_loc/command/$1Commands.sh
+    [ ! -f "$targetFile" ]  && logWarn "$targetFile dosen't exist" && return
+    cat $targetFile
 }
 
 function vimmap() { #? edit mappingFile
@@ -22,9 +28,11 @@ function vimmap() { #? edit mappingFile
     vim $targetFile
 }
 
-function explain() { #? show comments for functions which defined like: function example() #? explaination
-    targetFile=$1
-    [ ! -f "$targetFile" ] && logWarn "$targetFile dosen't exist" && return
+function explaincmds() { #? show function comments in command folder 
+    targetFile=$Qfig_loc/command/$1Commands.sh
+    [ ! -f "$targetFile" ] && [ ! -f "$1" ] && logWarn "$targetFile dosen't exist" && return
+
+    explain $targetFile
 
     logInfo "Explains of $targetFile: "
 
@@ -33,13 +41,6 @@ function explain() { #? show comments for functions which defined like: function
             printf $i " "; \
             printf "\n";}' \
             | awk '{sub("\\(\\)", "\033[1;37m()\033[0m")} 1'  | awk '{sub(":", "\033[0;" c "m:\033[1;" c "m")} 1'
-}
-
-function explaincs() { #? show function comments in command folder 
-    targetFile=$Qfig_loc/command/$1Commands.sh
-    [ ! -f "$targetFile" ] && [ ! -f "$1" ] && logWarn "$targetFile dosen't exist" && return
-
-    explain $targetFile
 }
 
 function defaultV() { #? set default value for variable
