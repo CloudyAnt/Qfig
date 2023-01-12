@@ -11,16 +11,36 @@ alias dcsa="docker container ls -a"
 alias drun="docker run"
 
 function dbash() { #? enter docker bash
+	[ -z "$1" ] && logError "Which one?" && return
     docker exec -it $1 bash
 }
 
+function drmi() { #? delete image by id
+    [ -z "$1" ] && return
+    docker image rm $1
+}
 
-function dcrm() { #? delete container by id
+function drmc() { #? delete container by id
     [ -z "$1" ] && return
     docker container rm $1
 }
 
-function diprune() {
-	docker rm $(docker ps -a -q)
-	docker image prune
+function dprune() { #? remove all stopped containders and useless images
+	allStoppedContainers=$(docker ps -a -q)
+	if [ -z "$allStoppedContainers" ]
+	then
+		logInfo "No stopped containers"	
+	else
+		logInfo "Remove stopped containers:"
+		docker rm $(docker ps -a -q)
+	fi
+	logInfo "Remove useless imagess:"
+	docker image prune -f
+}
+
+function dbt() { #? build docker image with tag using Dockerfile in current folder
+	[ -z "$1" ] && logError "What name?" && return
+	[ -z "$2" ] && logError "What tag?" && return
+
+	docker build -t $1:$2 .
 }

@@ -6,7 +6,8 @@ alias gamdn='git commit --amend --no-edit'
 alias gaap='git add -p'
 alias glist='git stash list --date=local'
 alias glistp='git stash list --pretty=format:"%C(red)%h%C(reset) - %C(dim yellow)(%C(bold magenta)%gd%C(dim yellow))%C(reset) %<(70,trunc)%s %C(green)(%cr) %C(bold blue)<%an>%C(reset)"'
-alias gp='logWarn "FORBIDDEN ALIAS"'
+alias gp='forbiddenAlias gp "git push"'
+alias gl='forbiddenAlias gl "git pull"'
 
 ## offical
 # gaa = git add --A

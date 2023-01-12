@@ -1,4 +1,5 @@
 # These commands require 3rd party programs like maven, mysql, etc.
+# TODO separate these commands to corrosponding coomands file
 
 ### Maven
 
@@ -39,7 +40,8 @@ function mdhl() { #? hightlight a word in dependency tree
 
 ### Gradle
 
-function gpkg() { logInfo "Packaging.."
+function gpkg() { #? gradle package & tell the size of jar
+	logInfo "Packaging.."
     [ "-s" = $1 ] && gradle clean build -x tset || gradle clean build
     logInfo "Target size: "
     du -h target/*.jar

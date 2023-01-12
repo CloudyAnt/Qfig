@@ -32,8 +32,6 @@ function explaincmds() { #? show function comments in command folder
     targetFile=$Qfig_loc/command/$1Commands.sh
     [ ! -f "$targetFile" ] && [ ! -f "$1" ] && logWarn "$targetFile dosen't exist" && return
 
-    explain $targetFile
-
     logInfo "Explains of $targetFile: "
 
     cat $targetFile | awk '/^function /{command = "\033[1;34m" $2 "\033[0m"; printf("%-30s", command); if ($4 == "#?") printf "\033[1;36m:\033[0;36m "; if ($4 == "#!") printf "\033[0;31m:\033[1;31m ";  \
@@ -58,7 +56,7 @@ function defaultV() { #? set default value for variable
     unset real_value
 }
 
-function unsetFunctionsInFile() {
+function unsetFunctionsInFile() { #! unset functions in file 
     [ -z $1 ] && logError "trying to unsert functions, but no file was provided" && return 
     unset -f $(cat $1 | awk '/^function /{print $2}' | awk '{sub("\\(\\)", "")} 1')
 }
@@ -67,35 +65,48 @@ function unsetFunctionsInFile() {
 
 function logInfo() {
     [ -z $1 ] && return
-    logColor "\033[30;46m" $1 
+    #logColor "\033[30;46m" $1 
+	logColor "\033[38;05;123m" $1
 }
 
 
 function logError() {
     [ -z $1 ] && return
-    logColor "\033[30;41m" $1 
+    #logColor "\033[30;41m" $1 
+	logColor "\033[38;05;196m" $1
 }
 
 function logWarn() {
     [ -z $1 ] && return
-    logColor "\033[30;103m" $1
+    #logColor "\033[30;103m" $1
+	logColor "\033[38;05;226m" $1
 }
 
 function logSuccess() {
     [ -z $1 ] && return
-    logColor "\033[30;42m" $1
+    #logColor "\033[30;42m" $1
+	logColor "\033[38;05;118m" $1
 }
 
 function logDebug() {
     [ -z $1 ] && return
-    logColor "\033[1;3m\033[34;100m" $1
+	echo "\033[;3m\033[34;100mDEBUG\033[0;0m \033[1;3m$1\033[0;0m"
 }
 
-function logColor() {
+function logColor() { #? log string in color
     [[ -z "$1" || -z "$2" ]] && return
-    echo $1$2"\033[0;0m"
+	echo "$1●\033[0;0m $2"
 }
 
+function forbiddenAlias() { #! alert a alias is forbidden
+	[ -z "$1" ] && return
+	if [ -z "$2" ]
+	then
+		logWarn "Forbidden Alias. Use \033[92;38m$1\033[0;0m Instead"
+	else
+		logWarn "Forbidden Alias: \033[31;38m$1\033[0;0m. Use \033[92;38m$2\033[0;0m Instead"
+	fi
+}
 
 ### 
 
@@ -138,4 +149,10 @@ function rezsh() { #? source .zshrc
     logInfo "Refreshing zsh..."
     source ~/.zshrc
     logSuccess "Refreshed zsh"
+}
+
+function targz() { #? compress folder to tar.gz using option -czvf
+	[ ! -d $1 ] && logError "Folder required" && return 
+	name=$(echo $1 | rev | cut -d/ -f1 | rev)
+	tar -czvf $(echo $1 | rev | cut -d/ -f1 | rev).tar.gz $1
 }
