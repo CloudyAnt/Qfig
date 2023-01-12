@@ -10,7 +10,7 @@ function doNothing() {}
 source $Qfig_loc/command/baseCommands.sh
 
 ## Custom configs 
-[ -f "$Qfig_loc/config" ] && awk '/<activedCommands>/{f = 1; next} /<\/activedCommands>/{f = 0} f' $Qfig_loc/config | \
+[ -f "$Qfig_loc/config" ] && awk '/<enabledCommands>/{f = 1; next} /<\/enabledCommands>/{f = 0} f' $Qfig_loc/config | \
 	while read -r cmds; do \
 		cmdsFile="$Qfig_loc/command/${cmds}Commands.sh"
 		[ -f "$cmdsFile" ] && source $cmdsFile || logWarn "$cmdsFile Not Exists!"

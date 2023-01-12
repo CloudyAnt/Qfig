@@ -8,7 +8,7 @@ $Qfig_loc = $PSScriptRoot
 
 ## Custom configs
 If (Test-Path $Qfig_loc/config) {
-	If(Get-Content $Qfig_loc/config -join "`n" -match '<activedCommands>([\s\S]*)</activedCommands>') {
+	If(Get-Content $Qfig_loc/config -join "`n" -match '<enabledCommands>([\s\S]*)</enabledCommands>') {
 		$matches[1].Split("`n") | % {
 			If ([string]::IsNullOrEmpty($_)) {
 				Continue
