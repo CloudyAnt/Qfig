@@ -1,0 +1,7 @@
+# This is a config example, cp this as 'config'
+
+## Add needed commands between >>> and <<<. Available commands are under commands folder
+activedCommands>>>
+curl
+docker
+<<<

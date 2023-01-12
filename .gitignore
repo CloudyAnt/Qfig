@@ -7,8 +7,9 @@
 !script
 !activation.sh
 !activation.ps1
-!config.sh
-!config.ps1
+!init.sh
+!init.ps1
+!configTemplate
 !README.md
 
 # Third, exclude files again

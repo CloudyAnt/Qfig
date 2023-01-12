@@ -7,7 +7,7 @@ If (-Not(Test-Path $profile)) {
 }
 
 
-$activationSegment = ". $CurrentLoc/config.ps1"
+$activationSegment = ". $CurrentLoc/init.ps1"
 $activated = $false
 cat $profile | % {
 	If ($_.Equals($activationSegment)) {
