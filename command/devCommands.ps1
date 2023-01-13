@@ -18,7 +18,7 @@ function jrun() { #? java compile hello.java && java hello
     }
 
     If (-Not(Test-Path $file)) {
-        Write-Error "File doesn't exist !"
+        logError "File doesn't exist !"
         Return
     }
 

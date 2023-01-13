@@ -1,4 +1,4 @@
-# Make sure you are using Windows os! Else if you are using unix-like os, please use activation.sh
+# Activate Qfig for powershell
 
 $CurrentLoc = $PSScriptRoot
 

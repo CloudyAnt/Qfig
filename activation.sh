@@ -1,4 +1,4 @@
-# Make sure you are using unix-like os! Else if you are using Windows os, please use activation.ps1
+# Activate Qfig for zsh 
 
 currentLoc="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 

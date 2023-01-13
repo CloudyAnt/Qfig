@@ -156,3 +156,12 @@ function targz() { #? compress folder to tar.gz using option -czvf
 	name=$(echo $1 | rev | cut -d/ -f1 | rev)
 	tar -czvf $(echo $1 | rev | cut -d/ -f1 | rev).tar.gz $1
 }
+
+function utargz() { #? decompress a tar.gz file by using oftion -xvf
+	if [ ! -f $1 ] || [ ! ${1: -7}  = ".tar.gz" ]
+	then	
+		logError "A tar.gz file required"
+	else
+		tar -xvf $1
+	fi
+}

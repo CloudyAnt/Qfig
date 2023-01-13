@@ -4,12 +4,6 @@ function qfig { #? enter the Qfig project folder
     cd $Qfig_loc
 }
 
-function repower() { #? reload config(Not working now)
-    Write-Host "Repowering" -f blue
-    . $Qfig_loc/config.ps1
-    Write-Host "Repowered!"-f green
-}
-
 function ..() {
    cd ../ 
 }
@@ -47,4 +41,30 @@ function defaultGV() { #? set default global value for variable
     } Else {
         $cur_value.Length
     }
+}
+
+function logSuccess() {
+	param([Parameter(Mandatory)]$text)
+	logColor green$text
+}
+
+function logInfo() {
+	param([Parameter(Mandatory)]$text)
+	logColor blue $text
+}
+
+function logWarn() {
+	param([Parameter(Mandatory)]$text)
+	logColor yellow $text
+}
+
+function logError() {
+	param([Parameter(Mandatory)]$text)
+	logColor red $text
+}
+
+function logColor() {
+	param([Parameter(Mandatory)]$dotColor, [Parameter(Mandatory)]$text)
+	Write-Host "●" -ForegroundColor $dotColor -NoNewLine
+	Write-Host " $text"
 }

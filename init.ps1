@@ -8,13 +8,13 @@ $Qfig_loc = $PSScriptRoot
 
 ## Custom configs
 If (Test-Path $Qfig_loc/config) {
-	If(Get-Content $Qfig_loc/config -join "`n" -match '<enabledCommands>([\s\S]*)</enabledCommands>') {
+	If((Get-Content $Qfig_loc/config) -join "`n" -match '<enabledCommands>([\s\S]*)</enabledCommands>') {
 		$matches[1].Split("`n") | % {
 			If ([string]::IsNullOrEmpty($_)) {
-				Continue
+				return
 			} Else {
-				cmdsFile="$Qfig_loc/command/$_Commands.ps1"	
-				If (Test-Path $cmdsFile) {
+				$cmdsFile="$Qfig_loc/command/${_}Commands.ps1"	
+				If (Test-Path "$cmdsFile") {
 					. $cmdsFile
 				} else {
 					logWarn "$cmdsFile Not Exists!"
