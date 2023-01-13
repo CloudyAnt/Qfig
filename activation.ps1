@@ -7,21 +7,26 @@ If (-Not(Test-Path $profile)) {
 }
 
 
+# Check registration
 $activationSegment = ". $CurrentLoc/init.ps1"
 $activated = $false
-cat $profile | % {
+Get-Content $profile | % {
 	If ($_.Equals($activationSegment)) {
 		$activated = $true
-		Break
+		Return
 	}
 }	
 
 If ($activated) {
-	echo "Qfig had already been activated!"
+	Write-Host "Qfig had already been activated!"
 } Else {
 	$activationSegment > $profile
-	echo "Qfig has been activated! Open a new session to check."
+	Write-Host "Qfig has been activated! Open a new session to check."
 }
+
+# Delete old registration
+$oldSegment = ". $CurrentLoc/config.ps1"
+Set-Content -Path $profile -Value (Get-Content -Path $profile | Select-String -Pattern "$oldSegment" -NotMatch)
 
 clv activationSegment 
 clv activated 
