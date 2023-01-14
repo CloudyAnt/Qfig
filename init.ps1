@@ -7,19 +7,29 @@ $Qfig_loc = $PSScriptRoot
 . $Qfig_loc/command/baseCommands.ps1
 
 ## Custom configs
+$preferTextEditor="NotePad"
+If (-Not $IsWindows) {
+	$preferTextEditor="vim"
+}
 If (Test-Path $Qfig_loc/config) {
 	If((Get-Content $Qfig_loc/config) -join "`n" -match '<enabledCommands>([\s\S]*)</enabledCommands>') {
 		$matches[1].Split("`n") | % {
 			If ([string]::IsNullOrEmpty($_)) {
-				return
+				Return
 			} Else {
 				$cmdsFile="$Qfig_loc/command/${_}Commands.ps1"	
 				If (Test-Path "$cmdsFile") {
 					. $cmdsFile
-				} else {
+				} Else {
 					logWarn "$cmdsFile Not Exists!"
 				}
 			}
+		}
+	}
+	If((Get-Content $Qfig_loc/config) -join "`n" -match '<preferTextEditor>(.+)</preferTextEditor>') {
+		If (-Not [string]::IsNullOrEmpty($matches[1])) {
+			$preferTextEditor=$matches[1]
+			logInfo "Using prefer text editor: $preferTextEditor"
 		}
 	}
 }

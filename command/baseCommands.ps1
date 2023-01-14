@@ -8,20 +8,22 @@ function ..() {
    cd ../ 
 }
 
-function vimcmds { #? edit Qfig commands
+function editCmds() { #? edit Qfig commands
     param($prefix)
 
     $targetFile = "$Qfig_loc/command/" + $prefix + "Commands.ps1"
     If (Test-Path $targetFile) {
-        If ($IsWindows) {
-            Start-Process NotePad $targetFile
-        } ElseIf ($IsMacOs -Or $IsLinux) {
-            vim $targetFile
-        }
+        editFile $targetFile
     } Else {
         Write-Warning "$targetFile doesn't exist" 
     }
 }
+
+function editFile() {
+    param([Parameter(Mandatory)]$path)
+    # set prefer text editor in config <perferTextEditor> label
+    Invoke-Expression "$preferTextEditor $path"
+} 
 
 function defaultV() { #? return default value
     param([Parameter(Mandatory)]$name, [Parameter(Mandatory)]$default)

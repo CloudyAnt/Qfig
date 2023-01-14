@@ -1,7 +1,11 @@
 # This is a config example, cp this as 'config'
 
-## Add needed commands between >>> and <<<. Available commands are under commands folder
+## Add needed commands in this label. Available commands are under commands folder
 <enabledCommands>
 docker
 curl
 </enabledCommands>
+
+
+## Set prefer text editor
+<preferTextEditor>NotePad</preferTextEditor>
