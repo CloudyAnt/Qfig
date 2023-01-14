@@ -191,3 +191,16 @@ function gcst0() { #? check single folder commit status
         | awk '{sub("up to date", "\033[1;32mUP TO DATE\033[0m")} 1' \
         | awk '{sub("ahead", "\033[1;31mAHEAD\033[0m")} 1' 
 }
+
+function ghttpproxy() {
+    if [ -z "$1" ]
+    then
+        git config --global --unset http.proxy
+        git config --global --unset https.proxy
+        logSuccess "Clean git http/https proxy"
+    else
+        git config --global http.proxy $1
+        git config --global https.proxy $1
+        logSuccess "Set git http/https proxy as $1"
+    fi
+}
