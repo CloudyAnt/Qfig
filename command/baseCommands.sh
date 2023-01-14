@@ -10,10 +10,15 @@ function qread() {
 	eval "vared $1"
 }
 
-function vimcmds() { #? edit Qfig commands
+function editcmds() { #? edit Qfig commands
     targetFile=$Qfig_loc/command/$1Commands.sh
     [ ! -f "$targetFile" ]  && logWarn "$targetFile dosen't exist" && return
-    vim $targetFile
+    editfile $targetFile
+}
+
+function editfile() {
+    [ ! -f $1 ] && logError "File required!"
+    eval "$preferTextEditor $1"
 }
 
 function catcmds() { #? cat Qfig commands
@@ -22,10 +27,10 @@ function catcmds() { #? cat Qfig commands
     cat $targetFile
 }
 
-function vimmap() { #? edit mappingFile
+function editmap() { #? edit mappingFile
     targetFile=$Qfig_loc/$1MappingFile
     [ ! -f "$targetFile" ] && logWarn "$targetFile dosen't exist" && return
-    vim $targetFile
+    editfile $targetFile
 }
 
 function explaincmds() { #? show function comments in command folder 

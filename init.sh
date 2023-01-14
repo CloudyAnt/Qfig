@@ -10,11 +10,23 @@ function doNothing() {}
 source $Qfig_loc/command/baseCommands.sh
 
 ## Custom configs 
-[ -f "$Qfig_loc/config" ] && awk '/<enabledCommands>/{f = 1; next} /<\/enabledCommands>/{f = 0} f' $Qfig_loc/config | \
-	while read -r cmds; do \
-		cmdsFile="$Qfig_loc/command/${cmds}Commands.sh"
-		[ -f "$cmdsFile" ] && source $cmdsFile || logWarn "$cmdsFile Not Exists!"
-	done
+preferTextEditor=vim
+if [ -f "$Qfig_loc/config" ]
+then
+    awk '/<enabledCommands>/{f = 1; next} /<\/enabledCommands>/{f = 0} f' $Qfig_loc/config | \
+        while read -r cmds; do \
+            cmdsFile="$Qfig_loc/command/${cmds}Commands.sh"
+            [ -f "$cmdsFile" ] && source $cmdsFile || logWarn "$cmdsFile Not Exists!"
+        done
+    
+    _preferTextEditor=$(sed -rn 's|<preferTextEditor>(.+)</preferTextEditor>|\1|p' $Qfig_loc/config)
+    if [ ! -z "_preferTextEditor" ]
+    then
+        preferTextEditor=$_preferTextEditor
+        unset _preferTextEditor
+        logInfo "Using prefer text editor: $preferTextEditor"
+    fi
+fi
 
 ## For functions only works on current computer, add them to the tempCommands.sh/tempCommands.ps1
 ## All functions in these files will not be included in git
