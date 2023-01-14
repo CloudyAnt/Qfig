@@ -15,14 +15,22 @@ function editCmds() { #? edit Qfig commands
     If (Test-Path $targetFile) {
         editFile $targetFile
     } Else {
-        Write-Warning "$targetFile doesn't exist" 
+        logError "$targetFile doesn't exist" 
     }
 }
 
 function editFile() {
     param([Parameter(Mandatory)]$path)
-    # set prefer text editor in config <perferTextEditor> label
-    Invoke-Expression "$preferTextEditor $path"
+    If (Test-Path $path) {
+        If (Test-Path $path -PathType Leaf) {
+            # set prefer text editor in config <perferTextEditor> label
+            Invoke-Expression "$preferTextEditor $path"
+        } Else {
+            logError "'$path' is a directory!"
+        }
+    } Else {
+        logError "'$path' is NOT a file!"
+    }
 } 
 
 function defaultV() { #? return default value
