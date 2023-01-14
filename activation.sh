@@ -6,6 +6,8 @@ baseConfig=$currentLoc/init.sh
 
 sysConfigFile="$HOME/.zshrc"
 [ ! -z "$sysConfigFile" ] && sysConifgFile="$HOME/.bash_profile"
+# Backup
+cp $sysConfigFile $sysConfigFile.bk
 
 # Check if actived
 activationSegment=`cat ${HOME}/.zshrc | awk -v f="$baseConfig" '$0 ~ f'`
@@ -19,7 +21,7 @@ else
 fi
 
 # Delete old registration
-awk -v or="source $currentLoc/config.sh" '{if($0 !=or) print}' $sysConfigFile > $HOME/.temprc
+awk -v odr="source $currentLoc/config.sh" '{if($0 !=odr) print}' $sysConfigFile > $HOME/.temprc
 cat $HOME/.temprc > $sysConfigFile
 rm $HOME/.temprc
 
