@@ -1,4 +1,4 @@
-# Activate Qfig for powershell
+# Activate Qfig for powershell(core 6+)
 
 $CurrentLoc = $PSScriptRoot
 

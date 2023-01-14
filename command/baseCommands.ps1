@@ -45,7 +45,7 @@ function defaultGV() { #? set default global value for variable
 
 function logSuccess() {
 	param([Parameter(Mandatory)]$text)
-	logColor green$text
+	logColor green $text
 }
 
 function logInfo() {
