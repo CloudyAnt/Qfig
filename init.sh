@@ -20,7 +20,7 @@ then
         done
     
     _preferTextEditor=$(sed -rn 's|<preferTextEditor>(.+)</preferTextEditor>|\1|p' $Qfig_loc/config)
-    if [ ! -z "_preferTextEditor" ]
+    if [ ! -z "$_preferTextEditor" ]
     then
         preferTextEditor=$_preferTextEditor
         unset _preferTextEditor
