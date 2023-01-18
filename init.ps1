@@ -11,15 +11,20 @@ $preferTextEditor="NotePad"
 If (-Not $IsWindows) {
 	$preferTextEditor="vim"
 }
+$verbose = ((Get-Content $Qfig_loc/config) -join "`n" -match '<showVerboseInitMsg>(.+)</showVerboseInitMsg>' -And "true".Equals($matches[1])) ? 1 : 0
 If (Test-Path $Qfig_loc/config) {
 	If((Get-Content $Qfig_loc/config) -join "`n" -match '<enabledCommands>([\s\S]*)</enabledCommands>') {
 		$matches[1].Split("`n") | % {
 			If ([string]::IsNullOrEmpty($_)) {
 				Return
 			} Else {
-				$cmdsFile="$Qfig_loc/command/${_}Commands.ps1"	
+				$cmds = $_.trim()
+				$cmdsFile = "$Qfig_loc/command/${cmds}Commands.ps1"	
 				If (Test-Path "$cmdsFile") {
 					. $cmdsFile
+					If ($verbose) {
+						logInfo "Enabled commands: $cmds"
+					}
 				} Else {
 					logWarn "$cmdsFile Not Exists!"
 				}
@@ -27,9 +32,12 @@ If (Test-Path $Qfig_loc/config) {
 		}
 	}
 	If((Get-Content $Qfig_loc/config) -join "`n" -match '<preferTextEditor>(.+)</preferTextEditor>') {
-		If (-Not [string]::IsNullOrEmpty($matches[1])) {
-			$preferTextEditor=$matches[1]
-			logInfo "Using prefer text editor: $preferTextEditor"
+		$_preferTextEditor=$matches[1].trim()
+		If (-Not [string]::IsNullOrEmpty($_preferTextEditor)) {
+			$preferTextEditor=$_preferTextEditor
+			if ($verbose) {
+				logInfo "Using prefer text editor: $preferTextEditor"
+			}
 		}
 	}
 }
@@ -39,3 +47,9 @@ If (Test-Path $Qfig_loc/config) {
 If (Test-Path $Qfig_loc/command/tempCommands.ps1) {
 	. $Qfig_loc/command/tempCommands.ps1
 }
+
+## Unset temp variables
+Clear-Variable cmds
+Clear-Variable cmdsFile
+Clear-Variable matches
+Clear-Variable _preferTextEditor

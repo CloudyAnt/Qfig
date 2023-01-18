@@ -27,7 +27,6 @@ then
     if [ ! -z "$_preferTextEditor" ]
     then
         preferTextEditor=$_preferTextEditor
-        unset _preferTextEditor
         [ $verbose ] && logInfo "Using prefer text editor: $preferTextEditor"
 	elif [ $verbose ]; then
 		logInfo "Using default text editor: $preferTextEditor"
@@ -38,4 +37,6 @@ fi
 ## All functions in these files will not be included in git
 [ -f "$Qfig_loc/command/tempCommands.sh" ] && source $Qfig_loc/command/tempCommands.sh
 
+unset cmdsFile
 unset verbose
+unset _preferTextEditor
