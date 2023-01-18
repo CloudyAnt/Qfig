@@ -10,3 +10,7 @@ curl
 ## Set prefer text editor. It can be a command-line editor(vim, nano) or a command-line shortcut of a editor with UI(NotePad, code).
 ## Note: code is the command-line shortcut for VSCode
 <preferTextEditor>code</preferTextEditor>
+## Default text editor for Powershell(Windows) is Notepad, otherwise is vim
+
+## Whether to show verbose initiation message
+<showVerboseInitMsg>false</showVerboseInitMsg>
