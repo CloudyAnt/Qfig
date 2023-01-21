@@ -4,7 +4,7 @@ function qfig() { #? enter the Qfig project folder
     cd $Qfig_loc
 }
 
-function qread() {
+function qread() { #? use vared like read
 	[ -z $1 ] && logError "Missing variable name!" && return 1
 	eval "$1="
 	eval "vared $1"
@@ -16,7 +16,7 @@ function editcmds() { #? edit Qfig commands
     editfile $targetFile
 }
 
-function editfile() {
+function editfile() { #? edit a file using preferedTextEditor
     [ ! -f $1 ] && logError "File required!"
     eval "$preferTextEditor $1"
 }
@@ -33,13 +33,34 @@ function editmap() { #? edit mappingFile
     editfile $targetFile
 }
 
-function explaincmds() { #? show function comments in command folder 
+function explaincmds() { #? show function commentsi. -h for more.
+	while getopts ":h" opt; do
+        case $opt in
+            h) # show help 
+				cat <<EOF
+Define function signatures in $Qfig_loc/command/fooCommands.sh like below:
+1: function fun() { #? do something awesome
+2: function dangerfun() { #! do something dangerous
+3: function hiddenfun() { #x you can't see me
+Then run explaincmds foo
+EOF
+				return
+                ;;
+            :)
+                echo "Option $OPTARG requires an arg" && return
+                ;;
+            \?)
+                echo "Invalid option: -$OPTARG" && return
+                ;;
+        esac
+    done
+
     targetFile=$Qfig_loc/command/$1Commands.sh
     [ ! -f "$targetFile" ] && [ ! -f "$1" ] && logWarn "$targetFile dosen't exist" && return
 
-    logInfo "Explains of $targetFile: "
+    logInfo "Explanations of $targetFile: "
 
-    cat $targetFile | awk '/^function /{command = "\033[1;34m" $2 "\033[0m"; printf("%-30s", command); if ($4 == "#?") printf "\033[1;36m:\033[0;36m "; if ($4 == "#!") printf "\033[0;31m:\033[1;31m ";  \
+	cat $targetFile | awk '/^function /{if ($4 == "#x") next; command = "\033[1;34m" $2 "\033[0m"; printf("%-30s", command); if ($4 == "#?") printf "\033[1;36m:\033[0;36m "; if ($4 == "#!") printf "\033[0;31m:\033[1;31m ";  \
         for (i = 5; i <= NF; i++) \
             printf $i " "; \
             printf "\n";}' \
@@ -61,7 +82,7 @@ function defaultV() { #? set default value for variable
     unset real_value
 }
 
-function unsetFunctionsInFile() { #! unset functions in file 
+function unsetFunctionsInFile() { #x unset functions in file 
     [ -z $1 ] && logError "trying to unsert functions, but no file was provided" && return 
     unset -f $(cat $1 | awk '/^function /{print $2}' | awk '{sub("\\(\\)", "")} 1')
 }
@@ -71,39 +92,39 @@ function unsetFunctionsInFile() { #! unset functions in file
 function logInfo() {
     [ -z $1 ] && return
     #logColor "\033[30;46m" $1 
-	logColor "\033[38;05;123m" $1
+	qfigLog "\033[38;05;123m" $1
 }
 
 
 function logError() {
     [ -z $1 ] && return
     #logColor "\033[30;41m" $1 
-	logColor "\033[38;05;196m" $1
+	qfigLog "\033[38;05;196m" $1
 }
 
 function logWarn() {
     [ -z $1 ] && return
     #logColor "\033[30;103m" $1
-	logColor "\033[38;05;226m" $1
+	qfigLog "\033[38;05;226m" $1
 }
 
 function logSuccess() {
     [ -z $1 ] && return
     #logColor "\033[30;42m" $1
-	logColor "\033[38;05;118m" $1
+	qfigLog "\033[38;05;118m" $1
 }
 
-function logDebug() {
+function logDebug() { #x debug
     [ -z $1 ] && return
 	echo "\033[;3m\033[34;100mDEBUG\033[0;0m \033[1;3m$1\033[0;0m"
 }
 
-function logColor() { #? log string in color
+function qfigLog() { #x log with a colored dot prefix
     [[ -z "$1" || -z "$2" ]] && return
 	echo "$1●\033[0;0m $2"
 }
 
-function forbiddenAlias() { #! alert a alias is forbidden
+function forbiddenAlias() { #x alert a alias is forbidden
 	[ -z "$1" ] && return
 	if [ -z "$2" ]
 	then

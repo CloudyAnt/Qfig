@@ -180,14 +180,12 @@ function gcst() { #? check multi folder commit status
     for file in $1/* ; do
         gcst0 $file -p
     done
-    cd $present_directory
 }
 
 function gcst0() { #? check single folder commit status
     [[ ! -d "$1" || ! -d "$1/.git" ]] && return
-    cd $1
     [ "-p" = "$2" ] && echo $file | awk -F '/' '{print "\033[1;34m" $NF ":\033[0m" }'
-    git status | awk '/Your branch is/{print}' | awk '{sub("Your branch is ", "")} 1' \
+    git -C $1 status | awk '/Your branch is/{print}' | awk '{sub("Your branch is ", "")} 1' \
         | awk '{sub("up to date", "\033[1;32mUP TO DATE\033[0m")} 1' \
         | awk '{sub("ahead", "\033[1;31mAHEAD\033[0m")} 1' 
 }

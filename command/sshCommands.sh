@@ -1,5 +1,6 @@
 # Ssh related commands. 
-# You need to edit the sshMappingFile. A mapping should like: a=user@111.222.333.444:555
+# You need to edit the sshMappingFile. A ssh mapping should like: a=user@111.222.333.444:555
+# You also need to edit the pemMapping File if needed. A pem mapping like: a=/path/to/pem
 
 _SSH_MAPPING_FILE=$Qfig_loc/sshMappingFile
 _PEM_MAPPING_FILE=$Qfig_loc/pemMappingFile
@@ -32,7 +33,7 @@ function csc() { #? connect server & send command. syntax: csc mapping command
     ssh ssh://$_SshEndpoint $2 
 }
 
-function csi() { #? connect server (send command) with identification. syntax: csi mapping; csi mapping 'your remote command'
+function csi() { #? connect server (or send command) with identification. syntax: csi mapping; csi mapping 'your remote command'
     [ -z "$1" ] || [ -z $_SSH_MAPPING[$1] ] || [ -z $_PEM_MAPPING[$1] ] && logWarn "No ssh/pem mapping for: $1" && return # need mapping
     _SshEndpoint=$_SSH_MAPPING[$1]
     _PemFile=$_PEM_MAPPING[$1]
@@ -61,7 +62,7 @@ function cpti() { #? copy to server with identification. syntax: cpti localFile 
     scp -i $_PemFile $1 $_SshEndpoint:/$3
 }
 
-function cprt() {
+function cprt() { #? recursively copy entire directories to server. syntax: cprt dir mapping remoteDir identification[optional]
     [ -z "$2" ] || [ -z $_SSH_MAPPING[$2] ] && logWarn "No ssh Mapping For: $2" && return # need mapping
     _SshEndpoint=$_SSH_MAPPING[$2]
 
