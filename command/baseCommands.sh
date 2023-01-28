@@ -10,21 +10,44 @@ function qread() { #? use vared like read
 	eval "vared $1"
 }
 
-function editcmds() { #? edit Qfig commands
+function qcmds() { #? operate available commands. syntax: qcmds commandsPrefix subcommands. -h for more
+	[ -z "$1" ] && logInfo "Available commands(prefix): $(ls $Qfig_loc/command | perl -n -e'/(.+)Commands\.sh/ && print "$1 "')" && return
+	if [ "-h" = "$1" ]; then
+		logInfo "Basic syntax: qcmds commandsPrefix subcommands"
+		qcmds
+		logInfo "Subcommands: explain(default), cat(or read), vim(or edit)"
+		return
+	fi
+
     targetFile=$Qfig_loc/command/$1Commands.sh
-    [ ! -f "$targetFile" ]  && logWarn "$targetFile dosen't exist" && return
-    editfile $targetFile
+    [ ! -f "$targetFile" ]  && logError "$targetFile dosen't exist" && qcmds && return
+	
+	case $2 in
+		cat|read)
+			cat $targetFile && return
+			;;
+		vim|edit)
+			editfile $targetFile && return
+			;;	
+		""|explain)
+			cat $targetFile | awk '/^function /{if ($4 == "#x") next; command = "\033[1;34m" $2 "\033[0m"; printf("%-30s", command); if ($4 == "#?") printf "\033[1;36m:\033[0;36m "; if ($4 == "#!") printf "\033[0;31m:\033[1;31m ";  \
+				for (i = 5; i <= NF; i++) \
+					printf $i " "; \
+					printf "\n";}' \
+					| awk '{sub("\\(\\)", "\033[1;37m()\033[0m")} 1'  | awk '{sub(":", "\033[0;" c "m:\033[1;" c "m")} 1'
+			return
+			;;
+		*)
+			logError "Unknown subcommands: $2"
+			qcmds -h
+			return 1
+			;;
+	esac
 }
 
 function editfile() { #? edit a file using preferedTextEditor
     [ ! -f $1 ] && logError "File required!"
     eval "$preferTextEditor $1"
-}
-
-function catcmds() { #? cat Qfig commands
-    targetFile=$Qfig_loc/command/$1Commands.sh
-    [ ! -f "$targetFile" ]  && logWarn "$targetFile dosen't exist" && return
-    cat $targetFile
 }
 
 function editmap() { #? edit mappingFile
@@ -33,39 +56,6 @@ function editmap() { #? edit mappingFile
     editfile $targetFile
 }
 
-function explaincmds() { #? show function commentsi. -h for more.
-	while getopts ":h" opt; do
-        case $opt in
-            h) # show help 
-				cat <<EOF
-Define function signatures in $Qfig_loc/command/fooCommands.sh like below:
-1: function fun() { #? do something awesome
-2: function dangerfun() { #! do something dangerous
-3: function hiddenfun() { #x you can't see me
-Then run explaincmds foo
-EOF
-				return
-                ;;
-            :)
-                echo "Option $OPTARG requires an arg" && return
-                ;;
-            \?)
-                echo "Invalid option: -$OPTARG" && return
-                ;;
-        esac
-    done
-
-    targetFile=$Qfig_loc/command/$1Commands.sh
-    [ ! -f "$targetFile" ] && [ ! -f "$1" ] && logWarn "$targetFile dosen't exist" && return
-
-    logInfo "Explanations of $targetFile: "
-
-	cat $targetFile | awk '/^function /{if ($4 == "#x") next; command = "\033[1;34m" $2 "\033[0m"; printf("%-30s", command); if ($4 == "#?") printf "\033[1;36m:\033[0;36m "; if ($4 == "#!") printf "\033[0;31m:\033[1;31m ";  \
-        for (i = 5; i <= NF; i++) \
-            printf $i " "; \
-            printf "\n";}' \
-            | awk '{sub("\\(\\)", "\033[1;37m()\033[0m")} 1'  | awk '{sub(":", "\033[0;" c "m:\033[1;" c "m")} 1'
-}
 
 function defaultV() { #? set default value for variable
     value_name=$1
