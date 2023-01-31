@@ -5,6 +5,7 @@
 !.gitignore
 !command
 !script
+!staff
 !activation.sh
 !activation.ps1
 !init.sh

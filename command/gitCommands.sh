@@ -72,66 +72,6 @@ function gcto() { #? commit in one line
     unset oneline_commit
 }
 
-gctCommitTypes=(refactor fix feat chore doc test style)
-gctCommitTypesTip=`echo $gctCommitTypes | awk '{for (i = 1; i <= NF; i++) { printf " \033[1;3" i "m" i ":" $i }} END{printf "\033[0m"}'`
-
-function gct() { #? commit in process
-    # CHECK if this is a git repository
-    [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return
-    
-    # CHECK if it's need to commit
-    needToCommit=`gst | awk '/Changes to be committed/{print 1}'`
-    [ -z $needToCommit ] && logWarn "Nothing to commit!" && return
-
-    # GET commit message cache, use default if it not exists
-    git_commit_info_cache_folder=$Qfig_loc/.gcache
-    present_working_repository_cache=$git_commit_info_cache_folder/`git rev-parse --show-toplevel | sed 's|/|_|g'`.tmp
-
-    [ ! -d "$git_commit_info_cache_folder" ] && mkdir $git_commit_info_cache_folder
-
-    info_separator="!@#!@#!@#"
-
-    if [ -f "$present_working_repository_cache" ]
-    then
-        eval `cat $present_working_repository_cache | awk  -F $info_separator '{print "commit_name0=\"" $1 "\";commit_number0=\"" $2 "\";commit_type0=\"" $3 "\";commit_desc0=\"" $4 "\""}'`
-    fi
-
-    defaultV commit_name0 "Unknown"
-    defaultV commit_number0 "N/A"
-    defaultV commit_type0 "other"
-    defaultV commit_desc0 "Unknown"
-
-    # COMMIT step by step
-    echo "[1/4] Name? ($commit_name0)"
-    qread commit_name
-    echo "[2/4] Card? ($commit_number0)"
-    qread commit_number
-    echo "[3/4] Type? ($commit_type0) |$gctCommitTypesTip"
-    qread commit_type
-
-    if echo $commit_type | egrep -q '^[0-9]+$' && [ $commit_type -gt 0 ] && [ $commit_type -le ${#gctCommitTypes} ]
-    then
-        echo "\033[1;3${commit_type}m$gctCommitTypes[$commit_type]\033[0m"
-        commit_type=$gctCommitTypes[$commit_type]   
-    fi
-
-    echo "[4/4] Note? ($commit_desc0)"
-    qread commit_desc
-
-    defaultV commit_name $commit_name0
-    defaultV commit_number $commit_number0
-    defaultV commit_type $commit_type0
-    defaultV commit_desc $commit_desc0
-
-    # cache new info
-    echo "$commit_name$info_separator$commit_number$info_separator$commit_type$info_separator$commit_desc" > $present_working_repository_cache
-
-    # commit
-    full_commit_message="$commit_name [$commit_number] $commit_type: $commit_desc"
-    git commit -m "$full_commit_message"
-
-}
-
 _git_stash_key="_git_stash_:"
 
 function gstash() { #? git stash
@@ -201,4 +141,126 @@ function ghttpproxy() {
         git config --global https.proxy $1
         logSuccess "Set git http/https proxy as $1"
     fi
+}
+
+function gct() { #? git commit step by step
+	# READ flags
+	setPattern=""
+	while getopts "ph" opt; do
+		case $opt in
+			h)
+				logInfo "A Command to git-commit step by step. -p to specify pattern or use default after prompt
+Pattern hint: use '[a:b c d]' to define a step named as a with b, c, d options(the first is default value). Use '\\' to escape
+Pattern example: [name] \[[card]\] [type:a b c]: [msg:Default]"
+				return
+				;;
+			p) # specify pattern
+				setPattern=1
+				;;
+			\?)
+				logError "Invalid option: -$OPTARG" && return 1
+				;;
+		esac
+	done
+
+    # CHECK if this is a git repository
+    [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
+
+    # GET pattern & cache, use default if it not exists
+    git_commit_info_cache_folder=$Qfig_loc/.gcache
+	[ ! -d "$git_commit_info_cache_folder" ] && mkdir $git_commit_info_cache_folder
+    pattern_tokens_file=$git_commit_info_cache_folder/`git rev-parse --show-toplevel | sed 's|/|_|g'`.ptk
+	step_values_cache_file=$git_commit_info_cache_folder/`git rev-parse --show-toplevel | sed 's|/|_|g'`.svc
+
+	# SET pattern
+	if [ $setPattern ]; then
+		logInfo "Please specify the pattern:"
+		qread pattern
+	elif [ ! -f "$pattern_tokens_file" ]; then
+		setPattern=1
+		logInfo "Use default pattern \033[34;3;38m$(cat $Qfig_loc/staff/defaultPattern)\033[0m ? y(Y) for Yes, others for No."
+		qread yn	
+		if [[ 'y' = "$yn" || 'Y' = "$yn" ]]; then
+			pattern=$(cat $Qfig_loc/staff/defaultPattern)
+		else
+			logInfo "Then please specify the pattern(Run with -p to change. Run wih -h to get hint):"
+			qread pattern
+		fi		
+	fi
+
+	# RESOLVE pattern
+	if [ $setPattern ]; then
+		resolveResult=$($Qfig_loc/staff/resolveGctPattern.sh $pattern)
+		if [ $? -eq 0 ]; then
+			echo $resolveResult > $pattern_tokens_file
+			[ -f "$step_values_cache_file" ] && rm $step_values_cache_file
+		else
+			logError "Invalid pattern: $resolveResult" && return 1
+		fi
+	fi
+
+    # CHECK if it's need to commit
+    needToCommit=`gst | awk '/Changes to be committed/{print 1}'`
+    [ -z $needToCommit ] && logWarn "Nothing to commit!" && return 1
+
+	# GET pattern tokens
+	IFS=$'\n' tokens=($(cat $pattern_tokens_file)) IFS=' '
+
+	stepsCount=0
+	for t in ${tokens[@]}; do
+		if [[ "$t" = 1:* ]]; then
+			stepsCount=$((stepsCount + 1))	
+		fi
+	done
+	
+	# APPEND message step by step
+	message=""
+	curStepNum=0	
+	[ -f $step_values_cache_file ] && IFS=$'\n' stepValues=($(cat $step_values_cache_file)) IFS=' ' || stepValues=()
+	newStepValues=""
+	for t in ${tokens[@]}; do
+		if [[ "$t" = 1:* ]]; then
+			curStepNum=$((curStepNum + 1))
+			stepPrompt="\033[33;1;38m[$curStepNum/$stepsCount]\033[0m "
+			stepDefValue="${stepValues[$curStepNum]:1}" # caced value start with '>'
+			keyAndOptions=(${(@s/:/)${t:2}})
+			stepKey=${keyAndOptions[1]}
+			stepOptions=(${(@s/ /)${keyAndOptions[2]}})
+
+			# APPEND and show prompt
+			stepPrompt+="$stepKey? "
+			if [ ! -z "$stepOptions" ]; then
+				[ -z "$stepDefValue" ] && stepDefValue=${stepOptions[1]}
+				stepPrompt+="($stepDefValue) " 
+				if [ 1 -lt "${#stepOptions[@]}" ]; then
+					# append option id
+					stepPrompt+="|$(echo $stepOptions | awk '{for (i = 1; i <= NF; i++) { printf " \033[1;3" i "m" i ":" $i }} END{printf "\033[0m"}')"
+				fi
+			else
+				[ ! -z "$stepDefValue" ] && stepPrompt+="($stepDefValue) " 
+			fi
+			echo "$stepPrompt"
+
+			# READ and record value
+			qread partial
+			if [ 1 -lt "${#stepOptions[@]}" ]; then
+				# select by option id
+				if echo $partial | egrep -q '^[0-9]+$' && [ $partial -gt 0 ] && [ $partial -le ${#stepOptions} ]
+				then
+					echo "Selected: \033[1;3${partial}m$stepOptions[$partial]\033[0m"
+					partial=$stepOptions[$partial]
+				fi
+			fi
+			[ -z "$partial" ] && partial=$stepDefValue
+			message+=$partial
+			newStepValues+=">$partial\n" # start width '>' to avoid empty line
+		elif [[ "$t" = 0:* ]]; then
+			message+=${t:2}
+		fi
+	done
+
+	echo $newStepValues > $step_values_cache_file
+
+	# COMMIT 
+	git commit -m "$message"
 }

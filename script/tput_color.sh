@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/bin/sh
+
 function logTitle() {
     [ -z "$1" ] && return
     echo "\033[;3m\033[92;100m<--- $1 --->\033[0m"

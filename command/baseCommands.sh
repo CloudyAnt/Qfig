@@ -20,7 +20,7 @@ function qcmds() { #? operate available commands. syntax: qcmds commandsPrefix s
 	fi
 
     targetFile=$Qfig_loc/command/$1Commands.sh
-    [ ! -f "$targetFile" ]  && logError "$targetFile dosen't exist" && qcmds && return
+    [ ! -f "$targetFile" ]  && logError "$targetFile dosen't exist" && qcmds && return 1
 	
 	case $2 in
 		cat|read)
