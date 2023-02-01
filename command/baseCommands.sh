@@ -82,26 +82,26 @@ function unsetFunctionsInFile() { #x unset functions in file
 function logInfo() {
     [ -z $1 ] && return
     #logColor "\033[30;46m" $1 
-	qfigLog "\033[38;05;123m" $1
+	qfigLog "\033[38;05;123m" $1 $2
 }
 
 
 function logError() {
     [ -z $1 ] && return
     #logColor "\033[30;41m" $1 
-	qfigLog "\033[38;05;196m" $1
+	qfigLog "\033[38;05;196m" $1 $2
 }
 
 function logWarn() {
     [ -z $1 ] && return
     #logColor "\033[30;103m" $1
-	qfigLog "\033[38;05;226m" $1
+	qfigLog "\033[38;05;226m" $1 $2
 }
 
 function logSuccess() {
     [ -z $1 ] && return
     #logColor "\033[30;42m" $1
-	qfigLog "\033[38;05;118m" $1
+	qfigLog "\033[38;05;118m" $1 $2
 }
 
 function logDebug() { #x debug
@@ -111,7 +111,8 @@ function logDebug() { #x debug
 
 function qfigLog() { #x log with a colored dot prefix
     [[ -z "$1" || -z "$2" ]] && return
-	echo "$1●\033[0;0m $2"
+	[ -z "$3" ] && prefix="●" || prefix=$3
+	echo "$1$prefix\033[0;0m $2"
 }
 
 function forbiddenAlias() { #x alert a alias is forbidden

@@ -149,7 +149,7 @@ function gct() { #? git commit step by step
 	while getopts "ph" opt; do
 		case $opt in
 			h)
-				logInfo "A Command to git-commit step by step. -p to specify pattern or use default after prompt
+				logInfo "A Command to git-commit step by step. specify pattern in .gctpattern or use -p to specify a local pattern
 Pattern hint: use '[a:b c d]' to define a step named as a with b, c, d options(the first is default value). Use '\\' to escape
 Pattern example: [name] \[[card]\] [type:a b c]: [msg:Default]"
 				return
@@ -167,33 +167,57 @@ Pattern example: [name] \[[card]\] [type:a b c]: [msg:Default]"
     [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
 
     # GET pattern & cache, use default if it not exists
+	git_toplevel=$(git rev-parse --show-toplevel)
     git_commit_info_cache_folder=$Qfig_loc/.gcache
 	[ ! -d "$git_commit_info_cache_folder" ] && mkdir $git_commit_info_cache_folder
-    pattern_tokens_file=$git_commit_info_cache_folder/`git rev-parse --show-toplevel | sed 's|/|_|g'`.ptk
-	step_values_cache_file=$git_commit_info_cache_folder/`git rev-parse --show-toplevel | sed 's|/|_|g'`.svc
+	pattern_tokens_file=$git_commit_info_cache_folder/$(echo $git_toplevel | sed 's|/|_|g').ptk
+	step_values_cache_file=$git_commit_info_cache_folder/$(echo $git_toplevel | sed 's|/|_|g').svc
 
 	# SET pattern
-	if [ $setPattern ]; then
-		logInfo "Please specify the pattern:"
-		qread pattern
-	elif [ ! -f "$pattern_tokens_file" ]; then
-		setPattern=1
-		logInfo "Use default pattern \033[34;3;38m$(cat $Qfig_loc/staff/defaultPattern)\033[0m ? y(Y) for Yes, others for No."
-		qread yn	
-		if [[ 'y' = "$yn" || 'Y' = "$yn" ]]; then
-			pattern=$(cat $Qfig_loc/staff/defaultPattern)
-		else
-			logInfo "Then please specify the pattern(Run with -p to change. Run wih -h to get hint):"
+	repoPattern=".gctpattern"
+	boldRepoPattern="\033[1m$repoPattern\033[0m"
+	gctpattern_file=$git_toplevel/$repoPattern
+	saveToRepo=""
+	if [ -f "$gctpattern_file" ]; then
+		[ $setPattern ] && logError "Can not specify pattern cause $boldRepoPattern exists, modify it to achieve this" && return 1
+
+		# read from .gctpattern
+		pattern=$(cat $gctpattern_file)
+		logInfo "Using pattern in $boldRepoPattern"
+		[ -f "$pattern_tokens_file" ] && [ "?:$pattern" = "$(head -n 1 $pattern_tokens_file)" ] || setPattern=1
+	else
+		if [ $setPattern ]; then
+			# specify local pattern
+			logInfo "Please specify the pattern:"
 			qread pattern
-		fi		
+		elif [ ! -f "$pattern_tokens_file" ]; then
+			setPattern=1
+			logInfo "Use default pattern \033[34;3;38m$(cat $Qfig_loc/staff/defaultPattern)\033[0m ? \033[90mY for Yes, others for No.\033[0m" "?"
+			qread yn
+			if [[ 'y' = "$yn" || 'Y' = "$yn" ]]; then
+				logInfo "Using default pattern"
+				pattern=$(cat $Qfig_loc/staff/defaultPattern)
+			else
+				logInfo "Then please specify the pattern(Run with -p to change, -h to get hint):"
+				qread pattern
+			fi
+		fi
+		if [ $setPattern ]; then
+			# whether save to .gctpattern
+			logInfo "Save it in $boldRepoPattern(It may be shared through your git repo) ? \033[90mY for Yes, others for No.\033[0m" "?"
+			qread saveToRepo
+		fi
 	fi
 
 	# RESOLVE pattern
 	if [ $setPattern ]; then
 		resolveResult=$($Qfig_loc/staff/resolveGctPattern.sh $pattern)
 		if [ $? -eq 0 ]; then
-			echo $resolveResult > $pattern_tokens_file
+			echo "?:$pattern" > $pattern_tokens_file
+			echo $resolveResult >> $pattern_tokens_file
 			[ -f "$step_values_cache_file" ] && rm $step_values_cache_file
+			[[ 'y' = "$saveToRepo" || 'Y' = "$saveToRepo" ]] && echo $pattern > $gctpattern_file && logInfo "Pattern saved in $boldRepoPattern"
+			logSuccess "New pattern resolved!"
 		else
 			logError "Invalid pattern: $resolveResult" && return 1
 		fi

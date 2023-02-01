@@ -3,6 +3,7 @@
 
 # Second, add required files and folders
 !.gitignore
+!.gctpattern
 !command
 !script
 !staff
