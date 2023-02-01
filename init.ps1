@@ -52,8 +52,7 @@ If (Test-Path $Qfig_loc/config) {
 	Clear-Variable _preferTextEditor
 }
 
-## For complex functions only works for your current orgnization, add them to the tempCommands.ps1
-## All functions in this file will not be included in git
+## For functions only works on current computer, add them to the tempCommands.sh/tempCommands.ps1. The file is ignored by git
 If (Test-Path $Qfig_loc/command/tempCommands.ps1) {
 	. $Qfig_loc/command/tempCommands.ps1
 }

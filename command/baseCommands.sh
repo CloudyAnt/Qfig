@@ -1,7 +1,31 @@
 # This script only contain operations which only use system commands
 
 function qfig() { #? enter the Qfig project folder
-    cd $Qfig_loc
+	[ -z "$1" ] && cd $Qfig_loc && return 
+	case $1 in
+		help)
+			logInfo "Usage: qfig <command>\n\nAvailable commands:\n"
+		 	printf "  %-10s%s\n" "help" "Print this help message"		
+		 	printf "  %-10s%s\n" "update" "Update qfig"		
+		 	printf "  %-10s%s\n" "into" "Go into qfig project folder"		
+			echo ""
+			;;
+		update)
+			needToCommit=`gst | awk '/Changes to be committed/{print 1}'`
+			hasChanges=`gst | awk '/Changes not staged for commit/{print 1}'`
+			[[ $needToCommit || $hasChanges ]] && logError "Commit or stash your changes for Qfig first!" && return 1
+			git -C $Qfig_loc pull --rebase > /dev/null	
+			logSuccess "Latest changes has been pulled"
+			rezsh
+			logSuccess "Qfig updated!"
+			;;
+		into)
+			cd $Qfig_loc
+			;;
+		*)
+			qfig help
+			return 1
+	esac
 }
 
 function qread() { #? use vared like read
