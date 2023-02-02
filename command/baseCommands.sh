@@ -1,18 +1,17 @@
 # This script only contain operations which only use system commands
 
 function qfig() { #? enter the Qfig project folder
-	[ -z "$1" ] && cd $Qfig_loc && return 
 	case $1 in
 		help)
-			logInfo "Usage: qfig <command>\n\nAvailable commands:\n"
-		 	printf "  %-10s%s\n" "help" "Print this help message"		
-		 	printf "  %-10s%s\n" "update" "Update qfig"		
-		 	printf "  %-10s%s\n" "into" "Go into qfig project folder"		
+			logInfo "Usage: qfig <command>\n\n  Available commands:\n"
+			printf "    %-10s%s\n" "help" "Print this help message"
+			printf "    %-10s%s\n" "update" "Update Qfig"
+			printf "    %-10s%s\n" "into" "Go into Qfig project folder"
 			echo ""
 			;;
 		update)
-			needToCommit=`gst | awk '/Changes to be committed/{print 1}'`
-			hasChanges=`gst | awk '/Changes not staged for commit/{print 1}'`
+			needToCommit=`git -C $Qfig_loc status | awk '/Changes to be committed/{print 1}'`
+			hasChanges=`git -C $Qfig_loc status | awk '/Changes not staged for commit/{print 1}'`
 			[[ $needToCommit || $hasChanges ]] && logError "Commit or stash your changes for Qfig first!" && return 1
 			git -C $Qfig_loc pull --rebase > /dev/null	
 			logSuccess "Latest changes has been pulled"
@@ -35,9 +34,9 @@ function qread() { #? use vared like read
 }
 
 function qcmds() { #? operate available commands. syntax: qcmds commandsPrefix subcommands. -h for more
-	[ -z "$1" ] && logInfo "Available commands(prefix): $(ls $Qfig_loc/command | perl -n -e'/(.+)Commands\.sh/ && print "$1 "')" && return
+	[ -z "$1" ] && logInfo "Available Qfig tool commands(prefix): $(ls $Qfig_loc/command | perl -n -e'/(.+)Commands\.sh/ && print "$1 "')" && return
 	if [ "-h" = "$1" ]; then
-		logInfo "Basic syntax: qcmds commandsPrefix subcommands"
+		logInfo "Basic syntax: qcmds toolCommandsPrefix subcommands"
 		qcmds
 		logInfo "Subcommands: explain(default), cat(or read), vim(or edit)"
 		return
@@ -198,7 +197,7 @@ function targz() { #? compress folder to tar.gz using option -czvf
 	tar -czvf $(echo $1 | rev | cut -d/ -f1 | rev).tar.gz $1
 }
 
-function utargz() { #? decompress a tar.gz file by using oftion -xvf
+function utargz() { #? decompress a tar.gz file using option -xvf
 	if [ ! -f $1 ] || [ ! ${1: -7}  = ".tar.gz" ]
 	then	
 		logError "A tar.gz file required"

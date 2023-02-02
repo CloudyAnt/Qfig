@@ -114,7 +114,7 @@ function gpop() { #? git stash pop
     git stash pop $key # pop with specific name
 }
 
-function gcst() { #? check multi folder commit status
+function gcst() { #! [DEPRECATED] check multi folder commit status
     [ -z "$1" ] && gcst0 `pwd` && return
     present_directory=`pwd`
     for file in $1/* ; do
@@ -122,7 +122,7 @@ function gcst() { #? check multi folder commit status
     done
 }
 
-function gcst0() { #? check single folder commit status
+function gcst0() { #! [DEPRECATED] check single folder commit status
     [[ ! -d "$1" || ! -d "$1/.git" ]] && return
     [ "-p" = "$2" ] && echo $file | awk -F '/' '{print "\033[1;34m" $NF ":\033[0m" }'
     git -C $1 status | awk '/Your branch is/{print}' | awk '{sub("Your branch is ", "")} 1' \
