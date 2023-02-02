@@ -12,8 +12,8 @@ If (-Not $IsWindows) {
 	$preferTextEditor = "vim"
 }
 
-$verbose = ((Get-Content $Qfig_loc/config) -join "`n" -match '<showVerboseInitMsg>(.+)</showVerboseInitMsg>' -And "true".Equals($matches[1])) ? 1 : 0
 If (Test-Path $Qfig_loc/config) {
+	$verbose = ((Get-Content $Qfig_loc/config) -join "`n" -match '<showVerboseInitMsg>(.+)</showVerboseInitMsg>' -And "true".Equals($matches[1])) ? 1 : 0
 	$enabledCommands = ""
 	If ((Get-Content $Qfig_loc/config) -join "`n" -match '<enabledCommands>([\s\S]*)</enabledCommands>') {
 		$matches[1].Split("`n") | % {

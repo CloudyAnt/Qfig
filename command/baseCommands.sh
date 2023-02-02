@@ -1,22 +1,39 @@
 # This script only contain operations which only use system commands
 
-function qfig() { #? enter the Qfig project folder
+function qfig() { #? Qfig preserved command
 	case $1 in
 		help)
 			logInfo "Usage: qfig <command>\n\n  Available commands:\n"
 			printf "    %-10s%s\n" "help" "Print this help message"
 			printf "    %-10s%s\n" "update" "Update Qfig"
 			printf "    %-10s%s\n" "into" "Go into Qfig project folder"
+			printf "    %-10s%s\n" "config" "Edit config to enable commands, etc."
+			printf "\n  \033[90mTips:\n"
+			printf "    Command 'qcmds' perform operations about tool commands. Run 'qcmds -h' for more\n"
+			printf "    Command 'gct' perform gct-commit step by step(need to enable 'git' commands)\n"
+			printf "\033[0m"
 			echo ""
 			;;
 		update)
 			needToCommit=`git -C $Qfig_loc status | awk '/Changes to be committed/{print 1}'`
 			hasChanges=`git -C $Qfig_loc status | awk '/Changes not staged for commit/{print 1}'`
 			[[ $needToCommit || $hasChanges ]] && logError "Commit or stash your changes for Qfig first!" && return 1
-			git -C $Qfig_loc pull --rebase > /dev/null	
-			logSuccess "Latest changes has been pulled"
-			rezsh
-			logSuccess "Qfig updated!"
+			pullMessage=$(git -C $Qfig_loc pull --rebase)
+			if [[ "$pullMessage" = *"up to date"* ]]; then
+				logSuccess "Qfig is up to date"
+			else
+				logSuccess "Latest changes has been pulled"
+				rezsh
+				logSuccess "Qfig updated!"
+			fi
+			unset pullMessage
+			;;
+		config)
+			if [ ! -f $Qfig_loc/config ]; then
+				echo "# This config was copied from the 'configTemplate'\n$(tail -n +2 $Qfig_loc/configTemplate)" > $Qfig_loc/config
+				logInfo "Copied config from \033[1mconfigTemplate\033[0m"
+			fi
+			editfile $Qfig_loc/config
 			;;
 		into)
 			cd $Qfig_loc
@@ -36,7 +53,7 @@ function qread() { #? use vared like read
 function qcmds() { #? operate available commands. syntax: qcmds commandsPrefix subcommands. -h for more
 	[ -z "$1" ] && logInfo "Available Qfig tool commands(prefix): $(ls $Qfig_loc/command | perl -n -e'/(.+)Commands\.sh/ && print "$1 "')" && return
 	if [ "-h" = "$1" ]; then
-		logInfo "Basic syntax: qcmds toolCommandsPrefix subcommands"
+		logInfo "Basic syntax: qcmds toolCommandsPrefix subcommands(optional). e.g., 'qcmds base'"
 		qcmds
 		logInfo "Subcommands: explain(default), cat(or read), vim(or edit)"
 		return

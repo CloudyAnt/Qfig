@@ -7,11 +7,10 @@ Qfig_loc=$(dirname "$0")
 source $Qfig_loc/command/baseCommands.sh
 
 ## Custom configs 
-[[ "true" = $(sed -rn 's|<showVerboseInitMsg>(.+)</showVerboseInitMsg>|\1|p' $Qfig_loc/config) ]] && verbose=1
-
 preferTextEditor=vim
 if [ -f "$Qfig_loc/config" ]
 then
+	[[ "true" = $(sed -rn 's|<showVerboseInitMsg>(.+)</showVerboseInitMsg>|\1|p' $Qfig_loc/config) ]] && verbose=1
 	enabledCommands=""
     awk '/<enabledCommands>/{f = 1; next} /<\/enabledCommands>/{f = 0} f' $Qfig_loc/config | \
         while read -r cmds; do \
