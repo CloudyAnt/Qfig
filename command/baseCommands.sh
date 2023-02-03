@@ -149,6 +149,12 @@ function logDebug() { #x debug
 	echo "\033[;3m\033[34;100mDEBUG\033[0;0m \033[1;3m$1\033[0;0m"
 }
 
+function logSilence() {
+    [ -z $1 ] && return
+    #logColor "\033[30;42m" $1
+	echo "\033[90m● $1\033[0m"
+}
+
 function qfigLog() { #x log with a colored dot prefix
     [[ -z "$1" || -z "$2" ]] && return
 	[ -z "$3" ] && prefix="●" || prefix=$3

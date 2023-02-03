@@ -146,16 +146,24 @@ function ghttpproxy() {
 function gct() { #? git commit step by step
 	# READ flags
 	setPattern=""
-	while getopts "ph" opt; do
+	verbose=""
+	while getopts "phv" opt; do
 		case $opt in
 			h)
-				logInfo "A Command to git-commit step by step. specify pattern in .gctpattern or use -p to specify a local pattern
-Pattern hint: use '[a:b c d]' to define a step named as a with b, c, d options(the first is default value). Use '\\' to escape
-Pattern example: [name] \[[card]\] [type:a b c]: [msg:Default]"
+				logInfo "A command to git-commit step by step\n\n  Available flags:"
+				printf "    %-6s%s\n" "-h" "Print this help message and return"
+				printf "    %-6s%s\n" "-p" "Specify the pattern"
+				printf "    %-6s%s\n" "-v" "Show more verbose info"
+				echo
+				echo "  \033[34;1mPattern Hint\033[0m:\n  Use '[a:b c d]' to define a step named as a with b, c, d options(the first is default value), Use '\\' to escape. e.g, \033[34m[name] \[[card]\] [type:refactor fix feat]: [msg:Default]\033[m, the commit message may be \033[34mChai [001] feat: awesome feature\033[0m\n"
+				echo "  \033[34;1mCommit Hint\033[0m:\n  The fastest way to commit is continuely press the 'Enter' key after run 'gct'(if pattern set). \033[34mThe last-time value or default value will be appended\033[0m if no value specified for a step. You can also \033[34mchoose one value by number key\033[0m if there are multi values of current step\n"
 				return
 				;;
 			p) # specify pattern
 				setPattern=1
+				;;
+			v) # display verbose infos
+				verbose=1
 				;;
 			\?)
 				logError "Invalid option: -$OPTARG" && return 1
@@ -183,12 +191,12 @@ Pattern example: [name] \[[card]\] [type:a b c]: [msg:Default]"
 
 		# read from .gctpattern
 		pattern=$(cat $gctpattern_file)
-		logInfo "Using pattern in $boldRepoPattern"
+		[ $verbose ] && logSilence "Using $boldRepoPattern \033[90mpattern: $pattern"
 		[ -f "$pattern_tokens_file" ] && [ "?:$pattern" = "$(head -n 1 $pattern_tokens_file)" ] || setPattern=1
 	else
 		if [ $setPattern ]; then
 			# specify local pattern
-			logInfo "Please specify the pattern:"
+			logInfo "Please specify the pattern(Run with -h to get hint):"
 			qread pattern
 		elif [ ! -f "$pattern_tokens_file" ]; then
 			setPattern=1
@@ -201,6 +209,8 @@ Pattern example: [name] \[[card]\] [type:a b c]: [msg:Default]"
 				logInfo "Then please specify the pattern(Run with -p to change, -h to get hint):"
 				qread pattern
 			fi
+		elif [ $verbose ]; then
+			logSilence "Using local pattern: ${$(head -n 1 $pattern_tokens_file):2}"
 		fi
 		if [ $setPattern ]; then
 			# whether save to .gctpattern
