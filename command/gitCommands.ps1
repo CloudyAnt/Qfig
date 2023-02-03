@@ -5,7 +5,8 @@ function glo {
 }
 
 function glog {
-    git log --oneline --abbrev-commit --graph }
+    git log --oneline --abbrev-commit --graph
+}
 
 
 function gamd {
@@ -64,7 +65,6 @@ function gpr() { #? git pull --rebase
 }
 
 $gctCommitTypes = "refactor", "fix", "feat", "chore", "doc", "test", "style"
-$gctCommitTypeColors = "Red", "Green", "Yellow", "Blue", "Magenta", "Cyan", "Gray"
 $gctCommitTypesTip = "1:refactor 2:fix 3:feat 4:chore 5:doc 5:test 7:style"
 
 function gct() { #? commit in process
@@ -99,7 +99,7 @@ function gct() { #? commit in process
     $present_working_repository_cache = $git_commit_info_cache_folder + '/' +  $present_working_folder.replace("/", "_") + '.tmp'
 
     If (-Not(Test-Path $git_commit_info_cache_folder -PathType Container)) {
-       md $git_commit_info_cache_folder 
+       mkdir $git_commit_info_cache_folder
     }
     $info_separator = "!@#!@#!@#"
 
@@ -117,22 +117,22 @@ function gct() { #? commit in process
     $commit_desc0 = defaultV commit_desc0 Unknown
 
     # COMMIT step by step
-    echo "[1/4] Name? ($commit_name0)"
+    Write-Host "[1/4] Name? ($commit_name0)"
     $commit_name = Read-Host
-    echo "[2/4] Card? ($commit_card0)"
+    Write-Host "[2/4] Card? ($commit_card0)"
     $commit_card = Read-Host
-    echo "[3/4] Type? ($commit_type0) | $gctCommitTypesTip"
+    Write-Host "[3/4] Type? ($commit_type0) | $gctCommitTypesTip"
     $commit_type = Read-Host
 
     try {
         $commit_type_int = [int]$commit_type
         if ($commit_type_int -Gt 0 -And $commit_type_int -Le $gctCommitTypes.Length) {
             $commit_type = $gctCommitTypes[$commit_type - 1]
-            echo $commit_type
+            Write-Host $commit_type
         }
     } catch {}
 
-    echo "[4/4] Note? ($commit_desc0)"
+    Write-Host "[4/4] Note? ($commit_desc0)"
     $commit_desc = Read-Host
 
     $commit_name = defaultV commit_name $commit_name0 
@@ -141,7 +141,7 @@ function gct() { #? commit in process
     $commit_desc = defaultV commit_desc $commit_desc0
 
     # cache new info
-    echo "$commit_name$info_separator$commit_card$info_separator$commit_type$info_separator$commit_desc" > $present_working_repository_cache
+    "$commit_name$info_separator$commit_card$info_separator$commit_type$info_separator$commit_desc" > $present_working_repository_cache
 
     # commit
     $full_commit_message = "$commit_name [$commit_card] $commit_type`: $commit_desc"

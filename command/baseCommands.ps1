@@ -1,11 +1,44 @@
 # This script only contain operations which only use system commands
 
 function qfig { #? enter the Qfig project folder
-    cd $Qfig_loc
+    param([string]$command)
+    If ("help".Equals($command)) {
+        logInfo "Usage: qfig <command>`n`n  Available commands:`n"
+        Write-Host "    " "help$(' ' * 10)".SubString(0, 10) "Print this help message"
+        Write-Host "    " "update$(' ' * 10)".SubString(0, 10) "Update Qfig"
+        Write-Host "    " "into$(' ' * 10)".SubString(0, 10) "Go into Qfig project folder"
+        Write-Host "    " "config$(' ' * 10)".SubString(0, 10) "Edit config to enable commands, etc."
+    } ElseIf ("into".Equals($command)) {
+        Set-Location $Qfig_loc
+    } ElseIf ("update".Equals($command)) {
+        $needToCommit = $(git -C $Qfig_loc status | awk '/Changes to be committed/{print 1}')
+		$hasChanges = $(git -C $Qfig_loc status | awk '/Changes not staged for commit/{print 1}')
+
+        If ($needToCommit || $hasChanges) {
+            logError "Commit or stash your changes for Qfig first!"
+            Return
+        }
+
+        $pullMessage = $(git -C $Qfig_loc pull --rebase)
+        If ($pullMessage -match ".*up to date.*") {
+            logSuccess "Qfig is up to date"
+        } Else {
+            logSuccess "Latest changes has been pulled. Run '. `$profile' or open a new session to check"
+        }
+    } ElseIf ("config".Equals($command)) {
+        If (-Not $(Test-Path -Path "$Qfig_loc/config" -PathType Leaf)) {
+            "# This config was copied from the 'configTemplate'" > $Qfig_loc/config
+            Get-Content $Qfig_loc/configTemplate | Select-Object -Skip 1 >> $Qfig_loc/config
+            logInfo "Copied config from configTemplate"
+        }
+        editFile $Qfig_loc/config
+    } Else {
+        qfig -command help
+    }
 }
 
 function ..() {
-   cd ../ 
+   Set-Location ../
 }
 
 function editCmds() { #? edit Qfig commands
@@ -35,7 +68,7 @@ function editFile() {
 
 function defaultV() { #? return default value
     param([Parameter(Mandatory)]$name, [Parameter(Mandatory)]$default)
-    iex "`$cur_value = `$$name"
+    Invoke-Expression "`$cur_value = `$$name"
     If ($cur_value.Length -Eq 0) {
         Return $default
     }
@@ -44,10 +77,10 @@ function defaultV() { #? return default value
 
 function defaultGV() { #? set default global value for variable
     param([Parameter(Mandatory)]$name, [Parameter(Mandatory)]$default)
-    iex "`$cur_value = `$$name"
+    Invoke-Expression "`$cur_value = `$$name"
     If ($cur_value.Length -Eq 0) {
         $type = $value.GetType().Name
-        iex "[$type]`$global`:$name = '$default'"
+        Invoke-Expression "[$type]`$global`:$name = '$default'"
     } Else {
         $cur_value.Length
     }
