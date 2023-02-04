@@ -11,16 +11,10 @@ function qfig { #? enter the Qfig project folder
     } ElseIf ("into".Equals($command)) {
         Set-Location $Qfig_loc
     } ElseIf ("update".Equals($command)) {
-        $needToCommit = $(git -C $Qfig_loc status | awk '/Changes to be committed/{print 1}')
-		$hasChanges = $(git -C $Qfig_loc status | awk '/Changes not staged for commit/{print 1}')
-
-        If ($needToCommit || $hasChanges) {
-            logError "Commit or stash your changes for Qfig first!"
-            Return
-        }
-
-        $pullMessage = $(git -C $Qfig_loc pull --rebase)
-        If ($pullMessage -match ".*up to date.*") {
+        $pullMessage = $(git -C $Qfig_loc pull --rebase 2>&1) -join "`r`n"
+        If ($pullMessage -match ".*error.*") {
+            logError "Cannot update Qfig:`n$pullMessage"
+        } ElseIf ($pullMessage -match ".*up to date.*") {
             logSuccess "Qfig is up to date"
         } Else {
             logSuccess "Latest changes has been pulled. Run '. `$profile' or open a new session to check"
