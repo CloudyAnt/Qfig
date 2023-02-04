@@ -1,3 +1,5 @@
+#!/bin/bash
+
 [ -z "$1" ] && echo "Pattern must not be empty!" && exit 1
 pattern=$1
 # pattern='[name:]-[type:a b c]#[card:0 1]@@[message:Nothing]'

@@ -15,11 +15,10 @@ function qfig() { #? Qfig preserved command
 			echo ""
 			;;
 		update)
-			needToCommit=`git -C $Qfig_loc status | awk '/Changes to be committed/{print 1}'`
-			hasChanges=`git -C $Qfig_loc status | awk '/Changes not staged for commit/{print 1}'`
-			[[ $needToCommit || $hasChanges ]] && logError "Commit or stash your changes for Qfig first!" && return 1
 			pullMessage=$(git -C $Qfig_loc pull --rebase)
-			if [[ "$pullMessage" = *"up to date"* ]]; then
+            if [[ "$pullMessage" = *"error"* ]]; then
+                logError "Cannot update Qfig:\n$pullMessage"
+			elif [[ "$pullMessage" = *"up to date"* ]]; then
 				logSuccess "Qfig is up to date"
 			else
 				logSuccess "Latest changes has been pulled"
