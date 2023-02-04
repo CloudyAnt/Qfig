@@ -15,7 +15,7 @@ function qfig() { #? Qfig preserved command
 			echo ""
 			;;
 		update)
-			pullMessage=$(git -C $Qfig_loc pull --rebase)
+			pullMessage=$(git -C $Qfig_loc pull --rebase 2>&1)
             if [[ "$pullMessage" = *"error"* ]]; then
                 logError "Cannot update Qfig:\n$pullMessage"
 			elif [[ "$pullMessage" = *"up to date"* ]]; then
