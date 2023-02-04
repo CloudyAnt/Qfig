@@ -12,7 +12,7 @@ function qfig { #? enter the Qfig project folder
         Set-Location $Qfig_loc
     } ElseIf ("update".Equals($command)) {
         $pullMessage = $(git -C $Qfig_loc pull --rebase 2>&1) -join "`r`n"
-        If ($pullMessage -match ".*error.*") {
+        If ($pullMessage -match ".*error.*" -Or $pullMessage -match ".*fetal.*") {
             logError "Cannot update Qfig:`n$pullMessage"
         } ElseIf ($pullMessage -match ".*up to date.*") {
             logSuccess "Qfig is up to date"
