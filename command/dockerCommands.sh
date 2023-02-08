@@ -1,3 +1,6 @@
+# Docker related commands
+# Hint: install colima to get docker runtime if using mac or linux
+
 alias dstart='docker start'
 alias dstop='docker stop'
 alias dlog='docker logs --tail 200 --follow --timestamps'

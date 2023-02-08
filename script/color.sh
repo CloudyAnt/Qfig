@@ -71,3 +71,8 @@ for i in $is; do
     printf "\033[0m"
     echo
 done
+
+# Notes
+# \e \033 \x1B means the "Escape character"(often represented by "^[" or "<Esc>")
+printf '\e]8;;https://misc.flogisoft.com/bash/tip_colors_and_formatting\aSource\e]8;;\a\n'
+printf '\e]8;;https://en.wikipedia.org/wiki/ANSI_escape_code\aSource\e]8;;\a\n'

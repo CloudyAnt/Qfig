@@ -1,8 +1,11 @@
 # Qfig
 
-This's my libray of ***zsh/powershell*** scripts and also customizable tool commands provider.
+This's my libray of ***zsh/PowerShell*** scripts and also customizable tool commands provider.
 
-Run the script `activation.sh/ps1` to activate commands for zsh/powershell.
+Run the script `activation.sh/ps1` to activate commands for zsh/PowerShell.
+
+**Notes**
+The PowerShell scripts are compatible with PowerShell 7+
 
 **Theories**:
 - `baseCommands.sh/ps1` is the basic commands, always available.

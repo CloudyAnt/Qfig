@@ -8,15 +8,15 @@ function qfig() { #? Qfig preserved command
 			printf "    %-10s%s\n" "update" "Update Qfig"
 			printf "    %-10s%s\n" "into" "Go into Qfig project folder"
 			printf "    %-10s%s\n" "config" "Edit config to enable commands, etc."
-			printf "\n  \033[90mTips:\n"
+			printf "\n  \e[2mTips:\n"
 			printf "    Command 'qcmds' perform operations about tool commands. Run 'qcmds -h' for more\n"
 			printf "    Command 'gct' perform gct-commit step by step(need to enable 'git' commands)\n"
-			printf "\033[0m"
+			printf "\e[0m"
 			echo ""
 			;;
 		update)
 			pullMessage=$(git -C $Qfig_loc pull --rebase 2>&1)
-            if [[ "$pullMessage" = *"error"* || "$pullMessage" = *"fetal"* ]]; then
+            if [[ "$pullMessage" = *"error"* || "$pullMessage" = *"fatal"* ]]; then
                 logError "Cannot update Qfig:\n$pullMessage"
 			elif [[ "$pullMessage" = *"up to date"* ]]; then
 				logSuccess "Qfig is up to date"
@@ -30,7 +30,7 @@ function qfig() { #? Qfig preserved command
 		config)
 			if [ ! -f $Qfig_loc/config ]; then
 				echo "# This config was copied from the 'configTemplate'\n$(tail -n +2 $Qfig_loc/configTemplate)" > $Qfig_loc/config
-				logInfo "Copied config from \033[1mconfigTemplate\033[0m"
+				logInfo "Copied config from \e[1mconfigTemplate\e[0m"
 			fi
 			editfile $Qfig_loc/config
 			;;
@@ -121,43 +121,43 @@ function unsetFunctionsInFile() { #x unset functions in file
 function logInfo() {
     [ -z $1 ] && return
     #logColor "\033[30;46m" $1 
-	qfigLog "\033[38;05;123m" $1 $2
+	qfigLog "\e[38;05;123m" $1 $2
 }
 
 
 function logError() {
     [ -z $1 ] && return
     #logColor "\033[30;41m" $1 
-	qfigLog "\033[38;05;196m" $1 $2
+	qfigLog "\e[38;05;196m" $1 $2
 }
 
 function logWarn() {
     [ -z $1 ] && return
     #logColor "\033[30;103m" $1
-	qfigLog "\033[38;05;226m" $1 $2
+	qfigLog "\e[38;05;226m" $1 $2
 }
 
 function logSuccess() {
     [ -z $1 ] && return
     #logColor "\033[30;42m" $1
-	qfigLog "\033[38;05;118m" $1 $2
+	qfigLog "\e[38;05;118m" $1 $2
 }
 
 function logDebug() { #x debug
     [ -z $1 ] && return
-	echo "\033[;3m\033[34;100mDEBUG\033[0;0m \033[1;3m$1\033[0;0m"
+	printf "\e[;3m\e[34;100mDEBUG\e[0;0m \e[1;3m$1\e[0;0m\n"
 }
 
 function logSilence() {
     [ -z $1 ] && return
     #logColor "\033[30;42m" $1
-	echo "\033[90m● $1\033[0m"
+	printf "\e[2m● $1\e[0m\n"
 }
 
 function qfigLog() { #x log with a colored dot prefix
     [[ -z "$1" || -z "$2" ]] && return
 	[ -z "$3" ] && prefix="●" || prefix=$3
-	echo "$1$prefix\033[0;0m $2"
+	printf "$1$prefix\e[0m $2\n"
 }
 
 function forbiddenAlias() { #x alert a alias is forbidden
@@ -226,4 +226,14 @@ function utargz() { #? decompress a tar.gz file using option -xvf
 	else
 		tar -xvf $1
 	fi
+}
+
+function ps2port() { #? get port which listening by process id
+	[ -z "$1" ] && logError "Which pid ?" && return 1
+	lsof -aPi -p $1
+}
+
+function port2ps() { #? get process which listening to port
+	[ -z "$1" ] && logError "Which port ?" && return 1
+	lsof -nP -iTCP -sTCP:LISTEN | grep $1
 }
