@@ -64,94 +64,6 @@ function gpr() { #? git pull --rebase
     git pull --rebase
 }
 
-$gctCommitTypes = "refactor", "fix", "feat", "chore", "doc", "test", "style"
-$gctCommitTypesTip = "1:refactor 2:fix 3:feat 4:chore 5:doc 5:test 7:style"
-
-function gct() { #? commit in process
-    # CHECK if this is a git repository
-    If (-Not(git rev-parse --is-inside-work-tree 2>&1)) {
-        Write-Warning "Not a git repository!"
-        Return	
-    }
-
-    # CHECK if it's need to commit
-    $nothingToCommit = $true
-    gst | % {
-        If ($_ -Match "Changes to be committed") {
-            $nothingToCommit = $false
-        }
-    } 
-
-    If ($nothingToCommit) {
-        Write-Warning "Nothing to commit!"
-        Return
-    }
-
-    # GET commit message cache, use default if it not exists
-    $git_commit_info_cache_folder = "$Qfig_loc/.gcache"
-
-    $present_working_folder = git rev-parse --show-toplevel
-    If ($present_working_folder -match "^[A-Z]:.+") {
-        $present_working_folder = $present_working_folder -replace ":", ""
-    }
-
-
-    $present_working_repository_cache = $git_commit_info_cache_folder + '/' +  $present_working_folder.replace("/", "_") + '.tmp'
-
-    If (-Not(Test-Path $git_commit_info_cache_folder -PathType Container)) {
-       mkdir $git_commit_info_cache_folder
-    }
-    $info_separator = "!@#!@#!@#"
-
-    If (Test-Path $present_working_repository_cache -PathType Leaf) {
-        $repo_cache_content = (cat $present_working_repository_cache) -split $info_separator
-        $commit_name0 = $repo_cache_content[0]
-        $commit_card0 = $repo_cache_content[1]
-        $commit_type0 = $repo_cache_content[2]
-        $commit_desc0 = $repo_cache_content[3]
-    }
-
-    $commit_name0 = defaultV commit_name0 Unknown
-    $commit_card0 = defaultV commit_card0 "N/A" 
-    $commit_type0 = defaultV commit_type0 other 
-    $commit_desc0 = defaultV commit_desc0 Unknown
-
-    # COMMIT step by step
-    Write-Host "[1/4] Name? ($commit_name0)"
-    $commit_name = Read-Host
-    Write-Host "[2/4] Card? ($commit_card0)"
-    $commit_card = Read-Host
-    Write-Host "[3/4] Type? ($commit_type0) | $gctCommitTypesTip"
-    $commit_type = Read-Host
-
-    try {
-        $commit_type_int = [int]$commit_type
-        if ($commit_type_int -Gt 0 -And $commit_type_int -Le $gctCommitTypes.Length) {
-            $commit_type = $gctCommitTypes[$commit_type - 1]
-            Write-Host $commit_type
-        }
-    } catch {}
-
-    Write-Host "[4/4] Note? ($commit_desc0)"
-    $commit_desc = Read-Host
-
-    $commit_name = defaultV commit_name $commit_name0 
-    $commit_card = defaultV commit_card $commit_card0
-    $commit_type = defaultV commit_type $commit_type0
-    $commit_desc = defaultV commit_desc $commit_desc0
-
-    # cache new info
-    "$commit_name$info_separator$commit_card$info_separator$commit_type$info_separator$commit_desc" > $present_working_repository_cache
-
-    # commit
-    $full_commit_message = "$commit_name [$commit_card] $commit_type`: $commit_desc"
-    git commit -m "$full_commit_message"
-
-    # unset variables
-    clv commit_name0;clv commit_card0;clv commit_type0;clv commit_desc0;
-    clv commit_name;clv commit_card;clv commit_type;clv commit_desc;
-}
-
 $_git_stash_key = "_git_stash_:"
 
 function gstash() { #? git stash
@@ -204,4 +116,197 @@ function gpop() { #? git stash pop
             git stash pop $matchedStashes.split(":")[0] # apply with specific name
         }
     }
+}
+
+function ghttpproxy() {
+    param($proxy)
+    If ($proxy.Length -Eq 0) {
+        git config --global --unset http.proxy
+        git config --global --unset https.proxy
+        logSuccess "Clean git http/https proxy"
+    } else {
+        git config --global http.proxy $proxy
+        git config --global https.proxy $proxy
+        logSuccess "Set git http/https proxy as $proxy"
+    }
+}
+
+function gct() { #? git commit step by step
+    param([switch]$help = $false, [switch]$pattern_set = $false, [switch]$verbose = $false)
+    If ($help) {
+        logInfo "A command to git-commit step by step`n`n  Available flags:"
+        "    {0,-15}{1}" -f "-help", "Print this help message"
+        "    {0,-15}{1}" -f "-pattern_set", "Specify the pattern"
+        "    {0,-15}{1}" -f "-verbose", "Show more verbose info"
+        Return
+    }
+
+    # CHECK if this is a git repository
+    If (-Not "true".Equals((git rev-parse --is-inside-work-tree 2>&1) -join "`r`n")) {
+        logError "Not a git repository!"
+        Return
+    }
+
+    # GET pattern & cache, use default if it not exists
+	$git_toplevel = git rev-parse --show-toplevel
+    $working_directory = $git_toplevel
+    If ($working_directory -match "^[A-Z]:.+") {
+        $working_directory = $git_toplevel.replace(":", "_")
+    }
+    $git_commit_info_cache_folder = "$Qfig_loc/.gcache"
+    $null = New-Item -Path $git_commit_info_cache_folder -Force -ItemType Container
+
+    $pattern_tokens_file = "$git_commit_info_cache_folder/$($working_directory.replace("/", "_")).ptk"
+	$step_values_cache_file="$git_commit_info_cache_folder/$($working_directory.replace("/", "_")).svc"
+
+	# SET pattern
+	$repoPattern=".gctpattern"
+	$boldRepoPattern="`e[1m$repoPattern`e[0m"
+	$gctpattern_file="$git_toplevel/$repoPattern"
+	$saveToRepo=0
+
+    IF (Test-Path $gctpattern_file -PathType Leaf) {
+        If ($pattern_set) {
+            logError "Can not specify pattern cause $boldRepoPattern exists, modify it to achieve this"
+            Return
+        }
+        $pattern = Get-Content $gctpattern_file
+        If ($verbose) {
+            logSilence "Using $boldRepoPattern `e[2mpattern: $pattern"
+        }
+        If (-Not ((Test-Path $pattern_tokens_file -PathType Leaf) -And ("?:$pattern".Equals($(Get-Content $pattern_tokens_file -TotalCount 1))))) {
+            $pattern_set = $true
+        }
+    } Else {
+        If ($pattern_set) {
+            logInfo "Please specify the pattern(Rerun with -h to get hint):"
+            $pattern = Read-Host
+        } ElseIf (-Not (Test-Path $pattern_tokens_file -PathType Leaf)) {
+            $pattern_set = $true
+            logInfo "Use default pattern `e[34;3;38m$(Get-Content $Qfig_loc/staff/defaultPattern)`e[0m ? `e[emY for Yes, others for No.`e[0m" "?"
+            $yn = Read-Host
+            If ("y".Equals($yn) -Or "Y".Equals($yn)) {
+                logInfo "Using default pattern"
+                $pattern = Get-Content "$Qfig_loc/staff/defaultPattern"
+            } Else {
+                logInfo "Then please specify the pattern(Rerun with -p to change, -h to get hint):"
+				$pattern = Read-Host
+            }
+        } ElseIf ($verbose) {
+            logSilence "Using local pattern: $((Get-Content $pattern_tokens_file -TotalCount 1).subString(2))"
+        }
+        If ($pattern_set) {
+            logInfo "Save it in $boldRepoPattern(It may be shared through your git repo) ? `e[2mY for Yes, others for No.`e[0m" "?"
+			$saveToRepo = Read-Host
+        }
+    }
+
+    # RESOLVE pattern
+    If ($pattern_set) {
+        $resolveResult = . $Qfig_loc/staff/resolveGctPattern.ps1 $pattern
+        If ($?) {
+            Write-Output "?:$pattern" > $pattern_tokens_file
+            Write-Output $($resolveResult -join "`r`n") >> $pattern_tokens_file
+            If (Test-Path $step_values_cache_file -PathType Leaf) {
+                Remove-Item $step_values_cache_file
+            }
+            If ("y".Equals($saveToRepo) -Or "Y".Equals($saveToRepo)) {
+                Write-Output $pattern > $gctpattern_file
+                logInfo "Pattern saved in $boldRepoPattern"
+            }
+            logSuccess "New pattern resolved!"
+        } Else {
+            logError "Invalid pattern: $resovleResult"
+            Return
+        }
+    }
+
+    # CHECK if it's need to commit
+    $needToCommit = $false
+    gst | % {
+        If ($_ -match "Changes to be committed.+") {
+            $needToCommit = $true
+            Return
+        }
+    }
+    If (-Not $needToCommit) {
+        logWarn "Nothing to commit!"
+        Return
+    }
+
+	# GET pattern tokens
+    $tokens = (Get-Content $pattern_tokens_file).split("`n")
+	$stepsCount=0
+    Foreach ($t in $tokens) {
+        if ($t.startsWith("1:")) {
+            $stepsCount += 1
+        }
+    }
+	
+	# APPEND message step by step
+	$message=""
+    If (Test-Path $step_values_cache_file -PathType Leaf) {
+        $stepValues = (Get-Content $step_values_cache_file).split("`n")
+    } Else {
+        $stepValues = @()
+    }
+	$newStepValues=""
+    $curStepNum=-1	
+    Foreach ($t In $tokens) {
+        If ($t.startsWith("1:")) {
+            $curStepNum += 1
+            $stepPrompt = "`e[1;33m[$($curStepNum + 1)/$stepsCount]`e[0m "
+            If ($stepValues[$curStepNum]) {
+                $stepDefValue = $stepValues[$curStepNum].subString(1)
+            } Else {
+                $stepDefValue = ""
+            }
+
+            $keyAndOptions = $t.subString(2).split(":")
+            $stepKey = $keyAndOptions[0]
+            If ($keyAndOptions[1]) {
+                $stepOptions = $keyAndOptions[1].split(" ")
+            } Else {
+                $stepOptions = @()
+            }
+
+            $stepPrompt += "$stepKey`?"
+            If (-Not [string]::isNullOrEmpty($stepOptions)) {
+                if ([string]::isNullOrEmpty($stepDefValue)) {
+                    $stepDefValue = $stepOptions[$curStepNum]
+                }
+                $stepPrompt += " ($stepDefValue)"
+                If (1 -Lt $stepOptions.Length) {
+                    $stepPrompt += " | "
+                    $i = 1
+                    $stepOptions | % {
+                        $stepPrompt += "`e[1;3${i}m${i}:$_ "
+                        $i += 1
+                    }
+                    $stepPrompt += "`e[0m"
+                }
+            } ElseIf (-Not [string]::isNullOrEmpty($stepDefValue)) {
+                $stepPrompt += " ($stepDefValue)"
+            }
+            Write-Host $stepPrompt
+
+            $partial = Read-Host
+            If (1 -Lt $stepOptions.Length -And $partial -match "^[1-9]+$" -And $partial -Le $stepOptions.Length) {
+                $partial = [int32]$partial
+                Write-Host "Selected: `e[1;3${partial}m$($stepOptions[$partial  - 1])`e[0m"
+                $partial = $stepOptions[$partial - 1]
+            }
+            If ([string]::isNullOrEmpty($partial)) {
+                $partial = $stepDefValue
+            }
+            $message += $partial
+            $newStepValues += ">$partial`n"
+        } ElseIf ($t.startsWith("0:")) {
+            $message += $t.subString(2)
+        }
+    }
+
+    Write-Output $newStepValues > $step_values_cache_file
+
+    git commit -m "$message"
 }

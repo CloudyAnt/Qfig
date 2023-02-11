@@ -4,10 +4,10 @@ function qfig { #? enter the Qfig project folder
     param([string]$command)
     If ("help".Equals($command)) {
         logInfo "Usage: qfig <command>`n`n  Available commands:`n"
-        Write-Host "    " "help$(' ' * 10)".SubString(0, 10) "Print this help message"
-        Write-Host "    " "update$(' ' * 10)".SubString(0, 10) "Update Qfig"
-        Write-Host "    " "into$(' ' * 10)".SubString(0, 10) "Go into Qfig project folder"
-        Write-Host "    " "config$(' ' * 10)".SubString(0, 10) "Edit config to enable commands, etc."
+        "    {0,-10}{1}" -f "help", "Print this help message"
+        "    {0,-10}{1}" -f "update", "Update Qfig"
+        "    {0,-10}{1}" -f "into", "Go into Qfig project folder"
+        "    {0,-10}{1}" -f "config", "Edit config to enable commands, etc."
     } ElseIf ("into".Equals($command)) {
         Set-Location $Qfig_loc
     } ElseIf ("update".Equals($command)) {

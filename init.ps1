@@ -13,9 +13,10 @@ If (-Not $IsWindows) {
 }
 
 If (Test-Path $Qfig_loc/config) {
-	$verbose = ((Get-Content $Qfig_loc/config) -join "`n" -match '<showVerboseInitMsg>(.+)</showVerboseInitMsg>' -And "true".Equals($matches[1])) ? 1 : 0
+	$content = $(Get-Content "$Qfig_loc/config") -join "`n"
+	$verbose = $($content -match '<showVerboseInitMsg>(.+)</showVerboseInitMsg>' -And "true".Equals($matches[1])) ? 1 : 0
 	$enabledCommands = ""
-	If ((Get-Content $Qfig_loc/config) -join "`n" -match '<enabledCommands>([\s\S]*)</enabledCommands>') {
+	If ($content -match '<enabledCommands>([\s\S]*)</enabledCommands>') {
 		$matches[1].Split("`n") | % {
 			If ([string]::IsNullOrEmpty($_)) {
 				Return
@@ -36,7 +37,7 @@ If (Test-Path $Qfig_loc/config) {
 	}
 
 	$_preferTextEditor = ""
-	If ((Get-Content $Qfig_loc/config) -join "`n" -match '<preferTextEditor>(.+)</preferTextEditor>') {
+	If ($content -match '<preferTextEditor>(.+)</preferTextEditor>') {
 		$_preferTextEditor = $matches[1].trim()
 		If (-Not [string]::IsNullOrEmpty($_preferTextEditor)) {
 			$preferTextEditor = $_preferTextEditor

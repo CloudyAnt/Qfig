@@ -196,7 +196,7 @@ function gct() { #? git commit step by step
 	else
 		if [ $setPattern ]; then
 			# specify local pattern
-			logInfo "Please specify the pattern(Run with -h to get hint):"
+			logInfo "Please specify the pattern(Rerun with -h to get hint):"
 			qread pattern
 		elif [ ! -f "$pattern_tokens_file" ]; then
 			setPattern=1
@@ -206,7 +206,7 @@ function gct() { #? git commit step by step
 				logInfo "Using default pattern"
 				pattern=$(cat $Qfig_loc/staff/defaultPattern)
 			else
-				logInfo "Then please specify the pattern(Run with -p to change, -h to get hint):"
+				logInfo "Then please specify the pattern(Rerun with -p to change, -h to get hint):"
 				qread pattern
 			fi
 		elif [ $verbose ]; then
@@ -255,7 +255,7 @@ function gct() { #? git commit step by step
 	for t in ${tokens[@]}; do
 		if [[ "$t" = 1:* ]]; then
 			curStepNum=$((curStepNum + 1))
-			stepPrompt="\033[33;1;38m[$curStepNum/$stepsCount]\033[0m "
+			stepPrompt="\033[1;33m[$curStepNum/$stepsCount]\033[0m "
 			stepDefValue="${stepValues[$curStepNum]:1}" # caced value start with '>'
 			keyAndOptions=(${(@s/:/)${t:2}})
 			stepKey=${keyAndOptions[1]}
@@ -279,7 +279,7 @@ function gct() { #? git commit step by step
 			qread partial
 			if [ 1 -lt "${#stepOptions[@]}" ]; then
 				# select by option id
-				if echo $partial | egrep -q '^[0-9]+$' && [ $partial -gt 0 ] && [ $partial -le ${#stepOptions} ]
+				if echo $partial | egrep -q '^[0-9]+$' && [ $partial -le ${#stepOptions} ]
 				then
 					echo "Selected: \033[1;3${partial}m$stepOptions[$partial]\033[0m"
 					partial=$stepOptions[$partial]
