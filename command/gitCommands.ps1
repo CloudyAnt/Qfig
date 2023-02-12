@@ -273,7 +273,7 @@ function gct() { #? git commit step by step
             $stepPrompt += "$stepKey`?"
             If (-Not [string]::isNullOrEmpty($stepOptions)) {
                 if ([string]::isNullOrEmpty($stepDefValue)) {
-                    $stepDefValue = $stepOptions[$curStepNum]
+                    $stepDefValue = $stepOptions[0]
                 }
                 $stepPrompt += " ($stepDefValue)"
                 If (1 -Lt $stepOptions.Length) {
