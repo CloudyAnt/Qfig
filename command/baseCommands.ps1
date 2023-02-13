@@ -1,6 +1,6 @@
 # This script only contain operations which only use system commands
 
-function qfig { #? enter the Qfig project folder
+function qfig { #? Qfig preserved command
     param([string]$command)
     If ("help".Equals($command)) {
         logInfo "Usage: qfig <command>`n`n  Available commands:`n"
@@ -31,8 +31,75 @@ function qfig { #? enter the Qfig project folder
     }
 }
 
-function ..() {
+function ..() { #？go to upper level folder
    Set-Location ../
+}
+
+function qcmds() { #? operate available commands. syntax: qcmds commandsPrefix subcommands. -h for more
+    param([string]$prefix, [string]$subCommand)
+    If (-Not $prefix) {
+        $availabeCommandsNotice = "Available Qfig tool commands(prefix):"
+        Get-ChildItem $Qfig_loc/command | ForEach-Object {
+            $itemName = $_.name
+            If ($itemName -match "(.+)Commands`.ps1") {
+                $availabeCommandsNotice += " $($Matches[1])"
+            }
+        }
+        logInfo $availabeCommandsNotice
+        Return
+    }
+
+    If ("-h".Equals($prefix)) {
+        logInfo "Basic syntax: qcmds toolCommandsPrefix subcommands(optional). e.g., 'qcmds base'"
+		qcmds
+		logInfo "Subcommands: explain(default), cat(or read, gc), vim(or edit)"
+        Return
+    }
+
+    $targetFile = "$Qfig_loc/command/${prefix}Commands.ps1"
+    If (-Not (Test-Path $targetFile -PathType Leaf)) {
+        logError "$targetFile doesn't exist"
+        qcmds
+        Return
+    }
+
+    Switch ($subCommand) {
+        {"gc", "cat", "read" -contains $_} {
+            Get-Content $targetFile
+            Return
+        }
+        {"vim", "edit" -contains $_} {
+            editFile $targetFile
+            Return
+        }
+        {"", "explain" -contains $_} {
+            Get-Content $targetFile | ForEach-Object {
+                If ($_.StartsWith("function")) {
+                    $parts = $_.Split(" ")
+                    If ("#x".Equals($parts[3])) {
+                        Return
+                    }
+                    If ("#?".Equals($parts[3])) {
+                        $exp = "`e[0m:`e[0;36m"
+                    } ElseIf ("#!".Equals($parts[3])){
+                        $exp = "`e[0m:`e[1;31m"
+                    } Else {
+                        Return
+                    }
+                    For($i = 4; $i -lt $parts.Length; $i++) {
+                        $exp += " $($parts[$i])"
+                    }
+                    $line = $("{0,-30}{1}" -f "`e[1;34m$($parts[1])`e[0m", $exp).Replace("`(`)", "`e[1;37m()`e[0m")
+                    "$line`e[0m"
+                }
+            }
+        }
+        Default {
+            logError "Unknown subcomand: $subCommand"
+            qcmds "-h"
+            Return
+        }
+    }
 }
 
 function editCmds() { #? edit Qfig commands
@@ -45,20 +112,6 @@ function editCmds() { #? edit Qfig commands
         logError "$targetFile doesn't exist" 
     }
 }
-
-function editFile() {
-    param([Parameter(Mandatory)]$path)
-    If (Test-Path $path) {
-        If (Test-Path $path -PathType Leaf) {
-            # set prefer text editor in config <perferTextEditor> label
-            Invoke-Expression "$preferTextEditor $path"
-        } Else {
-            logError "'$path' is a directory!"
-        }
-    } Else {
-        logError "'$path' is NOT a file!"
-    }
-} 
 
 function defaultV() { #? return default value
     param([Parameter(Mandatory)]$name, [Parameter(Mandatory)]$default)

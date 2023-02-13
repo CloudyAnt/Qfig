@@ -69,15 +69,15 @@ function qcmds() { #? operate available commands. syntax: qcmds commandsPrefix s
 			editfile $targetFile && return
 			;;	
 		""|explain)
-			cat $targetFile | awk '/^function /{if ($4 == "#x") next; command = "\033[1;34m" $2 "\033[0m"; printf("%-30s", command); if ($4 == "#?") printf "\033[1;36m:\033[0;36m "; if ($4 == "#!") printf "\033[0;31m:\033[1;31m ";  \
+			cat $targetFile | awk '/^function /{if ($4 == "#x") next; command = "\033[1;34m" $2 "\033[0m"; printf("%-30s", command); if ($4 == "#?") printf "\033[0m:\033[0;36m "; if ($4 == "#!") printf "\033[0m:\033[1;31m ";  \
 				for (i = 5; i <= NF; i++) \
 					printf $i " "; \
 					printf "\n";}' \
-					| awk '{sub("\\(\\)", "\033[1;37m()\033[0m")} 1'  | awk '{sub(":", "\033[0;" c "m:\033[1;" c "m")} 1'
+					| awk '{sub("\\(\\)", "\033[1;37m()\033[0m")} 1'
 			return
 			;;
 		*)
-			logError "Unknown subcommands: $2"
+			logError "Unknown subcommand: $2"
 			qcmds -h
 			return 1
 			;;

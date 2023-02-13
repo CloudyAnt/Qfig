@@ -4,8 +4,7 @@ This's my libray of ***zsh/PowerShell*** scripts and also customizable tool comm
 
 Run the script `activation.sh/ps1` to activate commands for zsh/PowerShell.
 
-**Notes**
-The PowerShell scripts are compatible with PowerShell 7+
+**Note** that the PowerShell scripts are compatible with PowerShell 7+
 
 **Theories**:
 - `baseCommands.sh/ps1` is the basic commands, always available.
