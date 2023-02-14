@@ -59,7 +59,13 @@ function qcmds() { #? operate available commands. syntax: qcmds commandsPrefix s
 	fi
 
     targetFile=$Qfig_loc/command/$1Commands.sh
-    [ ! -f "$targetFile" ]  && logError "$targetFile dosen't exist" && qcmds && return 1
+	if [ ! -f "$targetFile" ]; then
+		if [ "temp" = $1 ]; then
+			echo "# Write your only-in-this-device commands below. This file will be ignored by .gitignore" > $targetFile
+		else
+			logError "$targetFile dosen't exist" && qcmds && return 1
+		fi
+	fi
 	
 	case $2 in
 		cat|read)

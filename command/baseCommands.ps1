@@ -58,9 +58,13 @@ function qcmds() { #? operate available commands. syntax: qcmds commandsPrefix s
 
     $targetFile = "$Qfig_loc/command/${prefix}Commands.ps1"
     If (-Not (Test-Path $targetFile -PathType Leaf)) {
-        logError "$targetFile doesn't exist"
-        qcmds
-        Return
+		If ("temp".Equals($prefix)) {
+			Write-Output "# Write your only-in-this-device commands below. This file will be ignored by .gitignore" > $targetFile
+		} Else {
+			logError "$targetFile doesn't exist"
+			qcmds
+			Return
+		}
     }
 
     Switch ($subCommand) {
@@ -102,14 +106,17 @@ function qcmds() { #? operate available commands. syntax: qcmds commandsPrefix s
     }
 }
 
-function editCmds() { #? edit Qfig commands
-    param($prefix)
-
-    $targetFile = "$Qfig_loc/command/" + $prefix + "Commands.ps1"
-    If (Test-Path $targetFile) {
-        editFile $targetFile
+function editFile() { #? edit file using the prefer text editor
+    param([Parameter(Mandatory)]$path)
+    If (Test-Path $path) {
+        If (Test-Path $path -PathType Leaf) {
+            # set prefer text editor in config <perferTextEditor> label
+            Invoke-Expression "$preferTextEditor $path"
+        } Else {
+            logError "'$path' is a directory!"
+        }
     } Else {
-        logError "$targetFile doesn't exist" 
+        logError "'$path' is NOT a file!"
     }
 }
 

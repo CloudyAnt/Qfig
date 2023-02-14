@@ -80,7 +80,7 @@ for (( i=0; i<${#pattern}; i++ )); do
     esac
 done
 
-if [ $x -eq 0]; then
+if [ $x -eq 0 ]; then
     if [ "$s" ]; then
         tokens+="0:$s"
     fi

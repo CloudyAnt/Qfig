@@ -2,12 +2,15 @@
 
 This's my libray of ***zsh/PowerShell*** scripts and also customizable tool commands provider.
 
-Run the script `activation.sh/ps1` to activate commands for zsh/PowerShell.
+Run the script **activation.sh/ps1** to activate commands for zsh/PowerShell.
 
 **Note** that the PowerShell scripts are compatible with PowerShell 7+
 
-**Theories**:
-- `baseCommands.sh/ps1` is the basic commands, always available.
-- `tempCommands.sh/ps1` will be loaded if it exists. it will be ignored by `.gitignore`.
-- Other commands under `commands` folder can be enabled by adding it's prefix to `<enabledCommands>` label in `config`.
-- Modifications on `tempCommands.sh/ps1` and `config` will be effective in new session, or make it effective immidiately by running command `rezsh` in zsh or `. $profile` in powershell.
+## Basic Support
+- Commands in **baseCommands.sh/ps1** are always availabe. Run `qcmds base` to check.
+- Run `qcmds -h` to check available commands(prefixes) and operations to those commands.
+## Customization
+- Run `qfig config` to configure extra enabled commands, prefer text editor, etc. 
+- Run `qcmds temp edit` to write only-in-this-device commands.
+
+*Any changes will be effective in new sessions. To make it effective immidiately by running command `rezsh` in zsh or `. $profile` in powershell.*
