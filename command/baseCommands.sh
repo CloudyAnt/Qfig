@@ -50,11 +50,20 @@ function qread() { #? use vared like read
 }
 
 function qcmds() { #? operate available commands. syntax: qcmds commandsPrefix subcommands. -h for more
-	[ -z "$1" ] && logInfo "Available Qfig tool commands(prefix): $(ls $Qfig_loc/command | perl -n -e'/(.+)Commands\.sh/ && print "$1 "')" && return
-	if [ "-h" = "$1" ]; then
+	while getopts "h" opt; do
+        case $opt in
+            h)
+				help=1
+                ;;
+            \?)
+                echo "Invalid option: -$OPTARG" && return
+                ;;
+        esac
+    done
+	if [[ "help" || -z "$1" ]]; then
 		logInfo "Basic syntax: qcmds toolCommandsPrefix subcommands(optional). e.g., 'qcmds base'"
-		qcmds
-		logInfo "Subcommands: explain(default), cat(or read), vim(or edit)"
+		echo "  Available Qfig tool commands(prefix): $(ls $Qfig_loc/command | perl -n -e'/(.+)Commands\.sh/ && print "$1 "')"
+		echo "  Subcommands: explain(default), cat(or read), vim(or edit)"
 		return
 	fi
 
@@ -151,7 +160,7 @@ function logSuccess() {
 
 function logDebug() { #x debug
     [ -z $1 ] && return
-	printf "\e[;3m\e[34;100mDEBUG\e[0;0m \e[1;3m$1\e[0;0m\n"
+	printf "\e[3m\e[34;100mDEBUG\e[0m \e[1;3m$1\e[0;0m\n"
 }
 
 function logSilence() {
@@ -170,9 +179,9 @@ function forbiddenAlias() { #x alert a alias is forbidden
 	[ -z "$1" ] && return
 	if [ -z "$2" ]
 	then
-		logWarn "Forbidden Alias. Use \033[92;38m$1\033[0;0m Instead"
+		logWarn "Forbidden Alias. Use \e[92m$1\e[0m Instead"
 	else
-		logWarn "Forbidden Alias: \033[31;38m$1\033[0;0m. Use \033[92;38m$2\033[0;0m Instead"
+		logWarn "Forbidden Alias: \e[31m$1\e[0m. Use \e[92m$2\e[0m Instead"
 	fi
 }
 

@@ -36,23 +36,18 @@ function ..() { #？go to upper level folder
 }
 
 function qcmds() { #? operate available commands. syntax: qcmds commandsPrefix subcommands. -h for more
-    param([string]$prefix, [string]$subCommand)
-    If (-Not $prefix) {
-        $availabeCommandsNotice = "Available Qfig tool commands(prefix):"
+    param([string]$prefix, [string]$subCommand, [switch]$help = $false)
+    If ($help -Or (-Not $prefix)) {
+        logInfo "Basic syntax: qcmds toolCommandsPrefix subcommands(optional). e.g., 'qcmds base'"
+        $availabeCommandsNotice = "  Available Qfig tool commands(prefix):"
         Get-ChildItem $Qfig_loc/command | ForEach-Object {
             $itemName = $_.name
             If ($itemName -match "(.+)Commands`.ps1") {
                 $availabeCommandsNotice += " $($Matches[1])"
             }
         }
-        logInfo $availabeCommandsNotice
-        Return
-    }
-
-    If ("-h".Equals($prefix)) {
-        logInfo "Basic syntax: qcmds toolCommandsPrefix subcommands(optional). e.g., 'qcmds base'"
-		qcmds
-		logInfo "Subcommands: explain(default), cat(or read, gc), vim(or edit)"
+        $availabeCommandsNotice
+        "  Subcommands: explain(default), cat(or read, gc), vim(or edit)"
         Return
     }
 
@@ -171,4 +166,13 @@ function qfigLog() {
 		$prefix = "●"
 	}
 	Write-Host "$color$prefix`e[0m $text"
+}
+
+function forbiddenAlias() { #x alert a alias is forbidden
+    param([Parameter(Mandatory)]$alias, [string]$substitute)
+	If ($substitute) {
+        logWarn "Forbidden Alias: `e[[31m$1`e[0m. Use `e[92m$2`e[0m Instead"
+    } Else {
+        logWarn "Forbidden Alias. Use `e[92m$1`e[0m Instead"
+    }
 }
