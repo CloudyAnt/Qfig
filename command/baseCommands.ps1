@@ -53,7 +53,7 @@ function qcmds() { #? operate available commands. syntax: qcmds commandsPrefix s
 
     $targetFile = "$Qfig_loc/command/${prefix}Commands.ps1"
     If (-Not (Test-Path $targetFile -PathType Leaf)) {
-		If ("temp".Equals($prefix)) {
+		If ("local".Equals($prefix)) {
 			Write-Output "# Write your only-in-this-device commands below. This file will be ignored by .gitignore" > $targetFile
 		} Else {
 			logError "$targetFile doesn't exist"
@@ -171,8 +171,8 @@ function qfigLog() {
 function forbiddenAlias() { #x alert a alias is forbidden
     param([Parameter(Mandatory)]$alias, [string]$substitute)
 	If ($substitute) {
-        logWarn "Forbidden Alias: `e[[31m$1`e[0m. Use `e[92m$2`e[0m Instead"
+        logWarn "Forbidden Alias: `e[31m$alias`e[0m. Use `e[92m$substitute`e[0m Instead"
     } Else {
-        logWarn "Forbidden Alias. Use `e[92m$1`e[0m Instead"
+        logWarn "Forbidden Alias. Use `e[92m$alias`e[0m Instead"
     }
 }

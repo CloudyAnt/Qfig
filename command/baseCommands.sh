@@ -50,6 +50,7 @@ function qread() { #? use vared like read
 }
 
 function qcmds() { #? operate available commands. syntax: qcmds commandsPrefix subcommands. -h for more
+	unset help
 	while getopts "h" opt; do
         case $opt in
             h)
@@ -60,7 +61,7 @@ function qcmds() { #? operate available commands. syntax: qcmds commandsPrefix s
                 ;;
         esac
     done
-	if [[ "help" || -z "$1" ]]; then
+	if [[ "$help" || -z "$1" ]]; then
 		logInfo "Basic syntax: qcmds toolCommandsPrefix subcommands(optional). e.g., 'qcmds base'"
 		echo "  Available Qfig tool commands(prefix): $(ls $Qfig_loc/command | perl -n -e'/(.+)Commands\.sh/ && print "$1 "')"
 		echo "  Subcommands: explain(default), cat(or read), vim(or edit)"
@@ -69,7 +70,7 @@ function qcmds() { #? operate available commands. syntax: qcmds commandsPrefix s
 
     targetFile=$Qfig_loc/command/$1Commands.sh
 	if [ ! -f "$targetFile" ]; then
-		if [ "temp" = $1 ]; then
+		if [[ "local" = $1 ]]; then
 			echo "# Write your only-in-this-device commands below. This file will be ignored by .gitignore" > $targetFile
 		else
 			logError "$targetFile dosen't exist" && qcmds && return 1

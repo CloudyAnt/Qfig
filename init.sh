@@ -42,5 +42,5 @@ then
 	unset _preferTextEditor
 fi
 
-## For functions only works on current computer, add them to the tempCommands.sh/tempCommands.ps1. The file is ignored by git
-[ -f "$Qfig_loc/command/tempCommands.sh" ] && source $Qfig_loc/command/tempCommands.sh
+## Load functions that only works on current computer
+[ -f "$Qfig_loc/command/localCommands.sh" ] && source $Qfig_loc/command/localCommands.sh

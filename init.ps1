@@ -53,7 +53,7 @@ If (Test-Path $Qfig_loc/config) {
 	Clear-Variable _preferTextEditor
 }
 
-## For functions only works on current computer, add them to the tempCommands.sh/tempCommands.ps1. The file is ignored by git
-If (Test-Path $Qfig_loc/command/tempCommands.ps1) {
-	. $Qfig_loc/command/tempCommands.ps1
+## Load functions that only works on current computer
+If (Test-Path $Qfig_loc/command/localCommands.ps1) {
+	. $Qfig_loc/command/localCommands.ps1
 }
