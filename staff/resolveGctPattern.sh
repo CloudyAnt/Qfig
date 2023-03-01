@@ -1,12 +1,14 @@
-#!/bin/bash
+#!/bin/zsh
 
 [ -z "$1" ] && echo "Pattern must not be empty!" && exit 1
 pattern=$1
-# pattern='[name:]-[type:a b c]#[card:0 1]@@[message:Nothing]'
+# pattern='[name@abc@]-[type:a b c]#[card:0 1]@[message:Nothing]'
 
 # token types:
-# 0:
-# 1:abc:d e f
+# 0 String
+# 1 Step
+# 11 Step regex
+# 12 Step options
 tokens=""
 escaping=""
 
@@ -14,9 +16,12 @@ escaping=""
 # 0 append string
 # 1 append key
 # 2 append option
+# 3 append regex
 x=0
 stepsCount=0
-for (( i=0; i<${#pattern}; i++ )); do
+stepRegex=""
+lastStepKey=""
+for (( i=0 ; i<${#pattern}; i++ )); do
     c=${pattern:$i:1}
     [ '\' = "$c" ] && escaping=1 && continue
 
@@ -27,27 +32,37 @@ for (( i=0; i<${#pattern}; i++ )); do
     fi
 
     case $x in
-        0)
+        0) # appending string
             if [[ ']' = "$c" ]]; then
                 echo "Bad ending '$c' at index $i. No corrosponding beginning" && exit 1
             elif [ '[' = "$c" ]; then
 				[ "$s" ] && tokens+="0:$s\n" && s=""
                 x=1
+				stepRegex=""
             else
                 s=$s$c
             fi
             ;;
-        1)
+        1) # appending key
             if [ ':' = "$c" ]; then
                 if [ "$s" ]; then
-                    k=$s
+                    tokens+="1:$s\n"
+					lastStepKey=$s
                     s=""
                     x=2
                 else
                     echo "Bad options beginning '$c' at index $i. Key name must not be empty" && exit 1
                 fi
+			elif [ '@' = "$c" ]; then
+                if [ "$s" ]; then
+                    tokens+="1:$s\n"
+                    s=""
+                    x=3
+                else
+                    echo "Bad regex beginning '$c' at index $i. Key name must not be empty" && exit 1
+				fi
 			elif [ '[' = "$c" ]; then
-				echo "Bad key beginning '$c' at index $i. Specifying key \"$k\" content"  && exit 1
+				echo "Bad key beginning '$c' at index $i. Specifying key \"$lastStepKey\" content"  && exit 1
 			elif [ ']' = "$c" ]; then
 				if [ "$s" ]; then
 					tokens+="1:$s\n"
@@ -61,15 +76,23 @@ for (( i=0; i<${#pattern}; i++ )); do
                 s=$s$c
             fi
             ;;
-        2)
+        2) # appending options
 			if [ '[' = "$c" ]; then
-				echo "Bad key beginning '$c' at index $i. Specifying key \"$k\" options"  && exit 1
+				echo "Bad key beginning '$c' at index $i. Specifying key \"$lastStepKey\" options"  && exit 1
 			elif [ ']' = "$c" ]; then
 				if [ "$s" ]; then
-					tokens+="1:$k:$s\n"
+					if [ $stepRegex ]; then
+						ops=(${(@s/ /)${s}})
+						for option in $ops; do
+							if ! [[ $option =~ $stepRegex ]]; then
+								echo "Option \e[1m$option\e[0m is not matching \e[3m$stepRegex\e[0m" && exit 1
+							fi
+						done
+					fi
+					tokens+="12:$s\n"
                     stepsCount=$(($stepsCount + 1))
 				else
-					echo "No options specified for key \"$k\"" && exit 1
+					echo "Please specify options for key \"$lastStepKey\" or remove the ':'" && exit 1
 				fi
 				s=""
 				x=0
@@ -77,6 +100,31 @@ for (( i=0; i<${#pattern}; i++ )); do
 				s=$s$c
 			fi
             ;;
+		3) # appending regex
+			if [ '[' = "$c" ]; then
+				echo "Bad key beginning '$c' at index $i. Specifying key \"$lastStepKey\" regex"  && exit 1
+			elif [ ']' = "$c" ]; then
+				if [ "$s" ]; then
+					tokens+="11:$s\n"
+                    stepsCount=$(($stepsCount + 1))
+				else
+					echo "Please specify regex for key \"$lastStepKey\" or remove the '@'" && exit 1
+				fi
+				s=""
+				x=0
+			elif [ ':' = "$c" ]; then
+				if [ "$s" ]; then
+					tokens+="11:$s\n"
+					stepRegex=$s
+					s=""
+					x=2
+				else
+					echo "Please specify regex for key \"$lastStepKey\" or remove the '@'" && exit 1
+				fi
+			else
+				s=$s$c
+			fi
+			;;
     esac
 done
 
@@ -84,12 +132,12 @@ if [ $x -eq 0 ]; then
     if [ "$s" ]; then
         tokens+="0:$s"
     fi
-elif [[ $x -eq 1 || $x -eq 2 ]]; then
+else
 	echo "Bad ending! Step specification not ended" && exit 1
 fi
 
 if [ $stepsCount -eq 0 ]; then
-    echo "No steps specified!" && exit 1
+    echo "Please specify any steps!" && exit 1
 fi
 
 echo $tokens

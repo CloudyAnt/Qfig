@@ -124,10 +124,10 @@ function gcst() { #! [DEPRECATED] check multi folder commit status
 
 function gcst0() { #! [DEPRECATED] check single folder commit status
     [[ ! -d "$1" || ! -d "$1/.git" ]] && return
-    [ "-p" = "$2" ] && echo $file | awk -F '/' '{print "\033[1;34m" $NF ":\033[0m" }'
+    [ "-p" = "$2" ] && echo $file | awk -F '/' '{print "\e[1;34m" $NF ":\e[0m" }'
     git -C $1 status | awk '/Your branch is/{print}' | awk '{sub("Your branch is ", "")} 1' \
-        | awk '{sub("up to date", "\033[1;32mUP TO DATE\033[0m")} 1' \
-        | awk '{sub("ahead", "\033[1;31mAHEAD\033[0m")} 1' 
+        | awk '{sub("up to date", "\e[1;32mUP TO DATE\e[0m")} 1' \
+        | awk '{sub("ahead", "\e[1;31mAHEAD\e[0m")} 1' 
 }
 
 function ghttpproxy() {
@@ -155,8 +155,8 @@ function gct() { #? git commit step by step
 				printf "    %-6s%s\n" "-p" "Specify the pattern"
 				printf "    %-6s%s\n" "-v" "Show more verbose info"
 				echo
-				echo "  \033[34;1mPattern Hint\033[0m:\n  Use '[a:b c d]' to define a step named as a with b, c, d options(the first is default value), Use '\\' to escape. e.g, \033[34m[name] \[[card]\] [type:refactor fix feat]: [msg:Default]\033[m, the commit message may be \033[34mChai [001] feat: awesome feature\033[0m\n"
-				echo "  \033[34;1mCommit Hint\033[0m:\n  The fastest way to commit is continuely press the 'Enter' key after run 'gct'(if pattern set). \033[34mThe last-time value or default value will be appended\033[0m if no value specified for a step. You can also \033[34mchoose one value by number key\033[0m if there are multi values of current step\n"
+				echo "  \e[34;1mPattern Hint\e[0m:\n  Example: \e[34m[step1:default] \[[step2:default option2 option3]\]: [step3@\\[^:\\]+]\e[0m. The \e[1m\[^:\]+\e[0m in step3 behind char \e[1m@\e[0m sepcify the regex this step value must match. \e[1m\ \e[0mescape the character behind it.\n"
+				echo "  \e[34;1mCommit Hint\e[0m:\n  Press 'Enter' key to set value for a step,  \e[34mthe last-time value or default value will be appended\e[0m if no value specified. You can \e[34mchoose one value by number key\e[0m if there are multi values of current step\n"
 				return
 				;;
 			p) # specify pattern
@@ -178,12 +178,12 @@ function gct() { #? git commit step by step
 	git_toplevel=$(git rev-parse --show-toplevel)
     git_commit_info_cache_folder=$Qfig_loc/.gcache
 	[ ! -d "$git_commit_info_cache_folder" ] && mkdir $git_commit_info_cache_folder
-	pattern_tokens_file=$git_commit_info_cache_folder/$(echo $git_toplevel | sed 's|/|_|g').ptk
+	pattern_tokens_file=$git_commit_info_cache_folder/$(echo $git_toplevel | sed 's|/|_|g').pts
 	step_values_cache_file=$git_commit_info_cache_folder/$(echo $git_toplevel | sed 's|/|_|g').svc
 
 	# SET pattern
 	repoPattern=".gctpattern"
-	boldRepoPattern="\033[1m$repoPattern\033[0m"
+	boldRepoPattern="\e[1m$repoPattern\e[0m"
 	gctpattern_file=$git_toplevel/$repoPattern
 	saveToRepo=""
 	if [ -f "$gctpattern_file" ]; then
@@ -191,7 +191,7 @@ function gct() { #? git commit step by step
 
 		# read from .gctpattern
 		pattern=$(cat $gctpattern_file)
-		[ $verbose ] && logSilence "Using $boldRepoPattern \033[90mpattern: $pattern"
+		[ $verbose ] && logSilence "Using $boldRepoPattern \e[90mpattern: $pattern"
 		[ -f "$pattern_tokens_file" ] && [ "?:$pattern" = "$(head -n 1 $pattern_tokens_file)" ] || setPattern=1
 	else
 		if [ $setPattern ]; then
@@ -200,7 +200,7 @@ function gct() { #? git commit step by step
 			qread pattern
 		elif [ ! -f "$pattern_tokens_file" ]; then
 			setPattern=1
-			logInfo "Use default pattern \033[34;3;38m$(cat $Qfig_loc/staff/defaultPattern)\033[0m ? \033[90mY for Yes, others for No.\033[0m" "?"
+			logInfo "Use default pattern \e[34;3;38m$(cat $Qfig_loc/staff/defaultPattern)\e[0m ? \e[90mY for Yes, others for No.\e[0m" "?"
 			qread yn
 			if [[ 'y' = "$yn" || 'Y' = "$yn" ]]; then
 				logInfo "Using default pattern"
@@ -214,7 +214,7 @@ function gct() { #? git commit step by step
 		fi
 		if [ $setPattern ]; then
 			# whether save to .gctpattern
-			logInfo "Save it in $boldRepoPattern(It may be shared through your git repo) ? \033[90mY for Yes, others for No.\033[0m" "?"
+			logInfo "Save it in $boldRepoPattern(It may be shared through your git repo) ? \e[90mY for Yes, others for No.\e[0m" "?"
 			qread saveToRepo
 		fi
 	fi
@@ -252,17 +252,46 @@ function gct() { #? git commit step by step
 	curStepNum=0	
 	[ -f $step_values_cache_file ] && IFS=$'\n' stepValues=($(cat $step_values_cache_file)) IFS=' ' || stepValues=()
 	newStepValues=""
-	for t in ${tokens[@]}; do
-		if [[ "$t" = 1:* ]]; then
+	stepKey=""
+	stepRegex=""
+	stepOptions=""
+	proceedStep=""
+	for ((i=1; i<=${#tokens[@]}; i++)); do
+		t=$tokens[$i]
+		case $t in
+			0:*)
+				message+=${t:2}
+				stepKey=""
+			;;
+			1:*)
+				stepKey=${t:2}
+				if ! [[ $tokens[$((i + 1))] =~ 11:* || $tokens[$((i + 1))] =~ 12:* ]]; then
+					proceedStep=1
+				fi
+			;;
+			11:*)
+				if [ $stepKey ]; then
+					stepRegex=${t:3}
+					if ! [[ $tokens[$((i + 1))] =~ 12* ]]; then
+						proceedStep=1
+					fi
+				fi
+			;;
+			12:*)
+				if [ $stepKey ]; then
+					stepOptions=(${(@s/ /)${t:3}})
+					proceedStep=1
+				fi
+			;;
+		esac
+
+		if [[ $proceedStep && ! -z $stepKey ]]; then
 			curStepNum=$((curStepNum + 1))
-			stepPrompt="\033[1;33m[$curStepNum/$stepsCount]\033[0m "
-			stepDefValue="${stepValues[$curStepNum]:1}" # caced value start with '>'
-			keyAndOptions=(${(@s/:/)${t:2}})
-			stepKey=${keyAndOptions[1]}
-			stepOptions=(${(@s/ /)${keyAndOptions[2]}})
+			stepPrompt="\e[1;33m[$curStepNum/$stepsCount]\e[0m "
+			stepDefValue="${stepValues[$curStepNum]:1}" # cached value start with '>'
 
 			# APPEND and show prompt
-			stepPrompt+="$stepKey? "
+			stepPrompt+="$stepKey?\e[2m$stepRegex\e[22m "
 			if [ ! -z "$stepOptions" ]; then
 				[ -z "$stepDefValue" ] && stepDefValue=${stepOptions[1]}
 				stepPrompt+="($stepDefValue) " 
@@ -276,20 +305,34 @@ function gct() { #? git commit step by step
 			echo "$stepPrompt"
 
 			# READ and record value
-			qread partial
-			if [ 1 -lt "${#stepOptions[@]}" ]; then
-				# select by option id
-				if echo $partial | egrep -q '^[0-9]+$' && [ $partial -le ${#stepOptions} ]
-				then
-					echo "Selected: \033[1;3${partial}m$stepOptions[$partial]\033[0m"
-					partial=$stepOptions[$partial]
+			while
+				qread partial
+				if [ -z $partial ]; then
+					partial=$stepDefValue
+				elif [ 1 -lt "${#stepOptions[@]}" ]; then
+					# select by option id
+					if echo $partial | egrep -q '^[0-9]+$' && [ $partial -le ${#stepOptions} ]
+					then
+						echo "Selected: \e[1;3${partial}m$stepOptions[$partial]\e[0m"
+						partial=$stepOptions[$partial]
+					fi
 				fi
-			fi
-			[ -z "$partial" ] && partial=$stepDefValue
+				if [[ $partial && $stepRegex && ! $partial =~ $stepRegex ]]; then
+					logWarn "Value not matching \e[1;31m$stepRegex\e[0m. Please re-enter:" "!"
+					true
+				else
+					false
+				fi
+			do :; done
+
 			message+=$partial
 			newStepValues+=">$partial\n" # start width '>' to avoid empty line
-		elif [[ "$t" = 0:* ]]; then
-			message+=${t:2}
+
+			# RESET step metas
+			stepKey=""
+			stepRegex=""
+			stepOptions=""
+			proceedStep=""
 		fi
 	done
 

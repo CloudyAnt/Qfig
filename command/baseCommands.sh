@@ -16,7 +16,7 @@ function qfig() { #? Qfig preserved command
 			;;
 		update)
 			pullMessage=$(git -C $Qfig_loc pull --rebase 2>&1)
-            if [[ "$pullMessage" = *"error"* || "$pullMessage" = *"fatal"* ]]; then
+            if [[ $? != 0 ]]; then
                 logError "Cannot update Qfig:\n$pullMessage"
 			elif [[ "$pullMessage" = *"up to date"* ]]; then
 				logSuccess "Qfig is up to date"
@@ -252,4 +252,31 @@ function ps2port() { #? get port which listening by process id
 function port2ps() { #? get process which listening to port
 	[ -z "$1" ] && logError "Which port ?" && return 1
 	lsof -nP -iTCP -sTCP:LISTEN | grep $1
+}
+
+function findindex() { #? find 1st target index in provider. syntax: findindex provider target
+	[[ -z $1 || -z $2 ]] && logError "Syntax: findindex provider target" && return 1
+	s1len=${#1}
+	s2len=${#2}
+	[ $s2len -gt $s1len ] && logError "Target is longer than provider!" && return 1
+	j=0
+	c2=${2:$j:1}
+	c2_0=$c2
+	for (( i=0 ; i<$s1len; i++ )); do
+		c1=${1:$i:1}	
+		if [ "$c1" = "$c2" ]; then
+			[ $j = 0 ] && k=$i
+			j=$(($j + 1))	
+			if [ $j = $s2len ]; then
+				echo $k
+				return
+			else
+				c2=${2:$j:1}
+			fi
+		else
+			j=0
+			c2=$c2_0
+		fi	
+	done
+	return 1
 }

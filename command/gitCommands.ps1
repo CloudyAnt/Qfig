@@ -216,7 +216,7 @@ function gct() { #? git commit step by step
             }
             logSuccess "New pattern resolved!"
         } Else {
-            logError "Invalid pattern: $resovleResult"
+            logError "Invalid pattern: $resolveResult"
             Return
         }
     }
@@ -250,11 +250,43 @@ function gct() { #? git commit step by step
     } Else {
         $stepValues = @()
     }
-	$newStepValues=""
-    $curStepNum=-1	
-    Foreach ($t In $tokens) {
-        If ($t.startsWith("1:")) {
-            $curStepNum += 1
+	$newStepValues = ""
+    $curStepNum = -1
+    $stepKey = ""
+    $stepRegex = ""
+    $stepOptions = @()	
+    $proceedStep = $false
+    For ($i = 0; $i -lt $tokens.Length; $i++) {
+        $t = $tokens[$i]
+        Switch -Wildcard ($t) {
+            0:* {
+                $message += $t.SubString(2)
+                $stepKey = ""
+            }
+            1:* {
+                $stepKey = $t.Substring(2)
+                If (-Not ($tokens[$i + 1] -match "11:*" -Or $tokens[$i + 1] -match "12:*")) {
+                    $proceedStep = $true
+                }
+            }
+            11:* {
+                If ($stepKey) {
+                    $stepRegex = $t.Substring(3)
+                    If (-Not $tokens[$i + 1] -match "12:*") {
+                        $proceedStep = $true
+                    }
+                }
+            }
+            12:* {
+                If ($stepKey) {
+                    $stepOptions = $t.Substring(3).Split(" ")
+                    $proceedStep = $true
+                }
+            }
+        }
+
+        If ($proceedStep -And -Not [string]::IsNullOrEmpty($stepKey)) {
+            $curStepNum++
             $stepPrompt = "`e[1;33m[$($curStepNum + 1)/$stepsCount]`e[0m "
             If ($stepValues[$curStepNum]) {
                 $stepDefValue = $stepValues[$curStepNum].subString(1)
@@ -262,20 +294,13 @@ function gct() { #? git commit step by step
                 $stepDefValue = ""
             }
 
-            $keyAndOptions = $t.subString(2).split(":")
-            $stepKey = $keyAndOptions[0]
-            If ($keyAndOptions[1]) {
-                $stepOptions = $keyAndOptions[1].split(" ")
-            } Else {
-                $stepOptions = @()
-            }
-
-            $stepPrompt += "$stepKey`?"
-            If (-Not [string]::isNullOrEmpty($stepOptions)) {
+            # APPEND and show prompt
+            $stepPrompt += "$stepKey`?`e[2m$stepRegex`e[22m "
+            If ($stepOptions.Length -Gt 0) {
                 if ([string]::isNullOrEmpty($stepDefValue)) {
                     $stepDefValue = $stepOptions[0]
                 }
-                $stepPrompt += " ($stepDefValue)"
+                $stepPrompt += "($stepDefValue)"
                 If (1 -Lt $stepOptions.Length) {
                     $stepPrompt += " | "
                     $i = 1
@@ -286,23 +311,36 @@ function gct() { #? git commit step by step
                     $stepPrompt += "`e[0m"
                 }
             } ElseIf (-Not [string]::isNullOrEmpty($stepDefValue)) {
-                $stepPrompt += " ($stepDefValue)"
+                $stepPrompt += "($stepDefValue)"
             }
             Write-Host $stepPrompt
 
-            $partial = Read-Host
-            If (1 -Lt $stepOptions.Length -And $partial -match "^[1-9]+$" -And $partial -Le $stepOptions.Length) {
-                $partial = [int32]$partial
-                Write-Host "Selected: `e[1;3${partial}m$($stepOptions[$partial  - 1])`e[0m"
-                $partial = $stepOptions[$partial - 1]
-            }
-            If ([string]::isNullOrEmpty($partial)) {
-                $partial = $stepDefValue
-            }
+            # READ and record value
+            Do {
+                $partial = Read-Host
+                If ([string]::isNullOrEmpty($partial)) {
+                    $partial = $stepDefValue
+                } ElseIf (1 -Lt $stepOptions.Length -And $partial -match "^[1-9]+$" -And $partial -Le $stepOptions.Length) {
+                    $partial = [int32]$partial
+                    Write-Host "Selected: `e[1;3${partial}m$($stepOptions[$partial  - 1])`e[0m"
+                    $partial = $stepOptions[$partial - 1]
+                }
+                If ($partial -And $stepRegex -And -Not ($partial -match $stepRegex)) {
+                    logWarn "Value not matching `e[1;31m$stepRegex`e[0m. Please re-enter:" "!"
+                    $continue = $true
+                } Else {
+                    $continue = $false
+                }
+            } While ($continue)
+
             $message += $partial
             $newStepValues += ">$partial`n"
-        } ElseIf ($t.startsWith("0:")) {
-            $message += $t.subString(2)
+
+            # RESET step metas
+            $stepKey = ""
+            $stepRegex = ""
+            $stepOptions = @()	
+            $proceedStep = $false
         }
     }
 
