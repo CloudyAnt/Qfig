@@ -8,9 +8,8 @@ source $Qfig_loc/command/baseCommands.sh
 
 ## Custom configs 
 preferTextEditor=vim
-if [ -f "$Qfig_loc/config" ]
-then
-	[[ "true" = $(sed -rn 's|<showVerboseInitMsg>(.+)</showVerboseInitMsg>|\1|p' $Qfig_loc/config) ]] && verbose=1
+if [ -f "$Qfig_loc/config" ]; then
+	[[ "true" = $(sed -rn 's|<showVerboseInitMsg>(.+)</showVerboseInitMsg>|\1|p' $Qfig_loc/config) ]] && verbose=1 || verbose=""
 	enabledCommands=""
     awk '/<enabledCommands>/{f = 1; next} /<\/enabledCommands>/{f = 0} f' $Qfig_loc/config | \
         while read -r cmds; do \
@@ -43,4 +42,6 @@ then
 fi
 
 ## Load functions that only works on current computer
-[ -f "$Qfig_loc/command/localCommands.sh" ] && source $Qfig_loc/command/localCommands.sh
+if [ -f "$Qfig_loc/command/localCommands.sh" ]; then
+	source $Qfig_loc/command/localCommands.sh
+fi

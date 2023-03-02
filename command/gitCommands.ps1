@@ -295,7 +295,10 @@ function gct() { #? git commit step by step
             }
 
             # APPEND and show prompt
-            $stepPrompt += "$stepKey`?`e[2m$stepRegex`e[22m "
+            $stepPrompt += "$stepKey`? "
+			if ($stepRgex) {
+				$stepPrompt += "`e[2m$stepRegex`e[22m "
+			}
             If ($stepOptions.Length -Gt 0) {
                 if ([string]::isNullOrEmpty($stepDefValue)) {
                     $stepDefValue = $stepOptions[0]

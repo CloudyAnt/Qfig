@@ -155,8 +155,8 @@ function gct() { #? git commit step by step
 				printf "    %-6s%s\n" "-p" "Specify the pattern"
 				printf "    %-6s%s\n" "-v" "Show more verbose info"
 				echo
-				echo "  \e[34;1mPattern Hint\e[0m:\n  Example: \e[34m[step1:default] \[[step2:default option2 option3]\]: [step3@\\[^:\\]+]\e[0m. The \e[1m\[^:\]+\e[0m in step3 behind char \e[1m@\e[0m sepcify the regex this step value must match. \e[1m\ \e[0mescape the character behind it.\n"
-				echo "  \e[34;1mCommit Hint\e[0m:\n  Press 'Enter' key to set value for a step,  \e[34mthe last-time value or default value will be appended\e[0m if no value specified. You can \e[34mchoose one value by number key\e[0m if there are multi values of current step\n"
+				echo "  \e[34;1mPattern Hint\e[0m:\n  Example: \e[34m[step1:default] \[[step2:default option2 option3]\]: [step3@\\[^\\:\\]+]\e[0m. The \e[1m\[^\\:\]+\e[0m in step3 behind char \e[1m@\e[0m sepcify the regex this step value must match. \e[1m\ \e[0mescape the character behind it.\n"
+				echo "  \e[34;1mCommit Hint\e[0m:\n  Input then press 'Enter' key to set value for a step, \e[34mthe last-time value or default value will be appended\e[0m if no value specified. You can \e[34mchoose one value by number key\e[0m if there are multi values of current step\n"
 				return
 				;;
 			p) # specify pattern
@@ -291,7 +291,10 @@ function gct() { #? git commit step by step
 			stepDefValue="${stepValues[$curStepNum]:1}" # cached value start with '>'
 
 			# APPEND and show prompt
-			stepPrompt+="$stepKey?\e[2m$stepRegex\e[22m "
+			stepPrompt+="$stepKey? "
+			if [ $stepRegex ]; then
+				stepPrompt+="\e[2m$stepRegex\e[22m "
+			fi
 			if [ ! -z "$stepOptions" ]; then
 				[ -z "$stepDefValue" ] && stepDefValue=${stepOptions[1]}
 				stepPrompt+="($stepDefValue) " 
