@@ -137,6 +137,30 @@ function ghttpproxy() {
     }
 }
 
+function gpush() {
+    If (-Not "true".Equals((git rev-parse --is-inside-work-tree 2>&1) -join "`r`n")) {
+        logError "Not a git repository!"
+        Return
+    }
+	$message = git push 2>&1
+    If (-Not $?) {
+        If ($message -match ".*has no upstream branch.*") {
+            $branch = git rev-parse --abbrev-ref HEAD
+			$message = git push -u origin 
+            If (-Not $?) {
+                logError "Failed to create upstream branch `e[1m$branch`e[0m:`n$message"
+            } Else {
+                logSuccess "Upstream branch just created`n$message"
+            }
+        } Else {
+            logError "$message"
+        }
+    } Else {
+        logSuccess "$message"
+    }
+}
+
+
 function gct() { #? git commit step by step
     param([switch]$help = $false, [switch]$pattern_set = $false, [switch]$verbose = $false)
     If ($help) {
