@@ -2,7 +2,7 @@
 
 This's my libray of ***zsh/PowerShell*** scripts and also customizable tool commands provider.
 
-**Activate** Qfig by running the script **activation.sh/ps1**.
+Activate Qfig by running the script **activation.sh/ps1**.
 **Note** that the PowerShell scripts are compatible with PowerShell 7+.
 
 ## Basic Support

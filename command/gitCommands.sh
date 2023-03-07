@@ -143,6 +143,26 @@ function ghttpproxy() {
     fi
 }
 
+function gpush() {
+    [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
+	message=$(git push 2>&1)
+	if [ ! $? = 0 ]; then
+		if [[ $message = *"has no upstream branch"* ]]; then
+			branch=$(git rev-parse --abbrev-ref HEAD)
+			message=$(git push -u origin )
+			if [ ! $? = 0 ]; then
+				logError "Failed to create upstream branch \e[1m$branch\e[0m:\n$message"
+			else
+				logSuccess "Upstream branch just created\n$message"
+			fi
+		else
+			logError "$message"
+		fi
+	else
+		logSuccess "$message"
+	fi
+}
+
 function gct() { #? git commit step by step
 	# READ flags
 	setPattern=""
@@ -156,7 +176,7 @@ function gct() { #? git commit step by step
 				printf "    %-6s%s\n" "-v" "Show more verbose info"
 				echo
 				echo "  \e[34;1mPattern Hint\e[0m:\n  Example: \e[34m[step1:default] \[[step2:default option2 option3]\]: [step3@\\[^\\:\\]+]\e[0m. The \e[1m\[^\\:\]+\e[0m in step3 behind char \e[1m@\e[0m sepcify the regex this step value must match. \e[1m\ \e[0mescape the character behind it.\n"
-				echo "  \e[34;1mCommit Hint\e[0m:\n  Input then press 'Enter' key to set value for a step, \e[34mthe last-time value or default value will be appended\e[0m if no value specified. You can \e[34mchoose one value by number key\e[0m if there are multi values of current step\n"
+				echo "  \e[34;1mCommit Hint\e[0m:\n  Input then press \e[1mEnter\e[0m to set value for a step, \e[34mthe last-time value or default value will be appended\e[0m if the input is empty. You can also \e[34mchoose one option by number key\e[0m if there are multi options specified for current step.\n"
 				return
 				;;
 			p) # specify pattern
@@ -321,7 +341,7 @@ function gct() { #? git commit step by step
 					fi
 				fi
 				if [[ $partial && $stepRegex && ! $partial =~ $stepRegex ]]; then
-					logWarn "Value not matching \e[1;31m$stepRegex\e[0m. Please re-enter:" "!"
+					logWarn "Value not matching \e[1;31m$stepRegex\e[0m. Please re-enter:"
 					true
 				else
 					false
