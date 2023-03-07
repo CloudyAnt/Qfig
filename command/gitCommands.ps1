@@ -1,5 +1,11 @@
 # Git related commands
 
+function gbco() {
+    param([Parameter(Mandatory)]$name)
+    git branch $name
+    git checkout $name
+}
+
 function glo {
     git log --oneline
 }
