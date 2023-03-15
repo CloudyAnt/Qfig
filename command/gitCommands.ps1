@@ -143,20 +143,21 @@ function gpush() {
         Return
     }
 	$message = git push 2>&1
-    If (-Not $?) {
+    If ($?) {
+        logSuccess "$message"
+    } Else {
         If ($message -match ".*has no upstream branch.*") {
+			logInfo "Creating upstream branch"
             $branch = git rev-parse --abbrev-ref HEAD
 			$message = git push -u origin 
-            If (-Not $?) {
-                logError "Failed to create upstream branch `e[1m$branch`e[0m:`n$message"
-            } Else {
+            If ($?) {
                 logSuccess "Upstream branch just created`n$message"
+            } Else {
+                logError "Failed to create upstream branch `e[1m$branch`e[0m:`n$message"
             }
         } Else {
             logError "$message"
         }
-    } Else {
-        logSuccess "$message"
     }
 }
 

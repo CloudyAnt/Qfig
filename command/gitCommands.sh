@@ -6,7 +6,7 @@ alias gamdn='git commit --amend --no-edit'
 alias gaap='git add -p'
 alias glist='git stash list --date=local'
 alias glistp='git stash list --pretty=format:"%C(red)%h%C(reset) - %C(dim yellow)(%C(bold magenta)%gd%C(dim yellow))%C(reset) %<(70,trunc)%s %C(green)(%cr) %C(bold blue)<%an>%C(reset)"'
-alias gp='forbiddenAlias gp "git push"'
+alias gp='forbiddenAlias gp "gpush"'
 alias gl='forbiddenAlias gl "git pull"'
 
 ## offical
@@ -148,12 +148,13 @@ function gpush() {
 	message=$(git push 2>&1)
 	if [ ! $? = 0 ]; then
 		if [[ $message = *"has no upstream branch"* ]]; then
+			logInfo "Creating upstream branch"
 			branch=$(git rev-parse --abbrev-ref HEAD)
-			message=$(git push -u origin )
-			if [ ! $? = 0 ]; then
-				logError "Failed to create upstream branch \e[1m$branch\e[0m:\n$message"
-			else
+			message=$(git push -u origin $branch)
+			if [ $? = 0 ]; then
 				logSuccess "Upstream branch just created\n$message"
+			else
+				logError "Failed to create upstream branch \e[1m$branch\e[0m:\n$message"
 			fi
 		else
 			logError "$message"
