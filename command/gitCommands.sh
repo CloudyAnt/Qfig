@@ -6,8 +6,9 @@ alias gamdn='git commit --amend --no-edit'
 alias gaap='git add -p'
 alias glist='git stash list --date=local'
 alias glistp='git stash list --pretty=format:"%C(red)%h%C(reset) - %C(dim yellow)(%C(bold magenta)%gd%C(dim yellow))%C(reset) %<(70,trunc)%s %C(green)(%cr) %C(bold blue)<%an>%C(reset)"'
-alias gp='forbiddenAlias gp "gpush"'
-alias gl='forbiddenAlias gl "git pull"'
+forbidAlias gp gpush "git push"
+forbidAlias gl "git pull"
+forbidAlias gc gct "git commit"
 
 ## offical
 # gaa = git add --A
@@ -176,8 +177,11 @@ function gct() { #? git commit step by step
 				printf "    %-6s%s\n" "-p" "Specify the pattern"
 				printf "    %-6s%s\n" "-v" "Show more verbose info"
 				echo
-				echo "  \e[34;1mPattern Hint\e[0m:\n  Example: \e[34m[step1:default] \[[step2:default option2 option3]\]: [step3@\\[^\\:\\]+]\e[0m. The \e[1m\[^\\:\]+\e[0m in step3 behind char \e[1m@\e[0m sepcify the regex this step value must match. \e[1m\ \e[0mescape the character behind it.\n"
-				echo "  \e[34;1mCommit Hint\e[0m:\n  Input then press \e[1mEnter\e[0m to set value for a step, \e[34mthe last-time value or default value will be appended\e[0m if the input is empty. You can also \e[34mchoose one option by number key\e[0m if there are multi options specified for current step.\n"
+				echo "  \e[34;1mPattern Hint\e[0m:\n  Example: \e[34m<step1:default> <#step2:default option2 option3>: <step3@[^\\:]+>\e[0m. \
+The \e[1m#\e[0m in step2 behind char \e[1m<\e[0m indicate it's a branch-scope-step. \
+The \e[1m[^\\:]+\e[0m in step3 behind char \e[1m@\e[0m sepcify the regex this step value must match. \e[1m\ \e[0mescape the character behind it.\n"
+				echo "  \e[34;1mCommit Hint\e[0m:\n  Input then press \e[1mEnter\e[0m to set value for a step, \e[34mthe last-time value or default value will be appended\e[0m if the input is empty. \
+You can also \e[34mchoose one option by number key\e[0m if there are multi options specified for current step.\n"
 				return
 				;;
 			p) # specify pattern
@@ -194,13 +198,33 @@ function gct() { #? git commit step by step
 
     # CHECK if this is a git repository
     [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
+    # CHECK if merge, rebase or cherry-pick is in progress 
+	gitStatus=$(git status 2>&1)
+	obstacleProgress=""
+	if [[ "$gitStatus" = *"All conflicts fixed but you are still merging"* || "$gitStatus" = *"You have unmerged paths"* ]]; then
+		obstacleProgress = "Merge"
+	elif [[ "$gitStatus" = *"interactive rebase in progress;"* ]]; then
+		obstacleProgress = "Rebase"
+	elif [[ "$gitStatus" = *"You are currently cherry-picking"* ]]; then
+		obstacleProgress = "Cherry-pick"
+	elif [[ "$gitStatus" = *"You are currently reverting"* ]]; then
+		obstacleProgress = "Revert"
+	fi
+	if [ $obstacleProgress ]; then
+		logWarn "$obstacleProgress in progress, continue ? \e[90mY for Yes, others for No.\e[0m" "!"
+		qread yn
+		if ! [[ 'y' = "$yn" || 'Y' = "$yn" ]]; then
+			return 0	
+		fi
+	fi
 
     # GET pattern & cache, use default if it not exists
 	git_toplevel=$(git rev-parse --show-toplevel)
-    git_commit_info_cache_folder=$Qfig_loc/.gcache
-	[ ! -d "$git_commit_info_cache_folder" ] && mkdir $git_commit_info_cache_folder
-	pattern_tokens_file=$git_commit_info_cache_folder/$(echo $git_toplevel | sed 's|/|_|g').pts
-	step_values_cache_file=$git_commit_info_cache_folder/$(echo $git_toplevel | sed 's|/|_|g').svc
+    git_commit_info_cache_folder=$Qfig_loc/.gcache/$(echo $git_toplevel | sed 's|/|_|g')
+	[ ! -d "$git_commit_info_cache_folder" ] && mkdir -p $git_commit_info_cache_folder
+	pattern_tokens_file=$git_commit_info_cache_folder/pts
+	r_step_values_cache_file=$git_commit_info_cache_folder/rsvc # r = repository
+	b_step_values_cache_file=$git_commit_info_cache_folder/bsvc-$(git branch --show-current) # b = branch
 
 	# SET pattern
 	repoPattern=".gctpattern"
@@ -233,10 +257,9 @@ function gct() { #? git commit step by step
 		elif [ $verbose ]; then
 			logSilence "Using local pattern: ${$(head -n 1 $pattern_tokens_file):2}"
 		fi
-		if [ $setPattern ]; then
-			# whether save to .gctpattern
-			logInfo "Save it in $boldRepoPattern(It may be shared through your git repo) ? \e[90mY for Yes, others for No.\e[0m" "?"
-			qread saveToRepo
+		if [ $setPattern ]; then # whether save to .gctpattern
+			# logInfo "Save it in $boldRepoPattern(It may be shared through your git repo) ? \e[90mY for Yes, others for No.\e[0m" "?"
+			# qread saveToRepo
 		fi
 	fi
 
@@ -246,8 +269,9 @@ function gct() { #? git commit step by step
 		if [ $? -eq 0 ]; then
 			echo "?:$pattern" > $pattern_tokens_file
 			echo $resolveResult >> $pattern_tokens_file
-			[ -f "$step_values_cache_file" ] && rm $step_values_cache_file
-			[[ 'y' = "$saveToRepo" || 'Y' = "$saveToRepo" ]] && echo $pattern > $gctpattern_file && logInfo "Pattern saved in $boldRepoPattern"
+			[ -f "$r_step_values_cache_file" ] && rm $r_step_values_cache_file
+			[ -f "$b_step_values_cache_file" ] && rm $b_step_values_cache_file
+			# [[ 'y' = "$saveToRepo" || 'Y' = "$saveToRepo" ]] && echo $pattern > $gctpattern_file && logInfo "Pattern saved in $boldRepoPattern"
 			logSuccess "New pattern resolved!"
 		else
 			logError "Invalid pattern: $resolveResult" && return 1
@@ -270,13 +294,18 @@ function gct() { #? git commit step by step
 	
 	# APPEND message step by step
 	message=""
-	curStepNum=0	
-	[ -f $step_values_cache_file ] && IFS=$'\n' stepValues=($(cat $step_values_cache_file)) IFS=' ' || stepValues=()
-	newStepValues=""
+	curStepNum=0
+	rCurStepNum=0
+	bCurStepNum=0 # branch scope step count
+	[ -f $r_step_values_cache_file ] && IFS=$'\n' rStepValues=($(cat $r_step_values_cache_file)) IFS=' ' || rStepValues=()
+	[ -f $b_step_values_cache_file ] && IFS=$'\n' bStepValues=($(cat $b_step_values_cache_file)) IFS=' ' || bStepValues=()
+	newRStepValues=""
+	newBStepValues=""
 	stepKey=""
 	stepRegex=""
 	stepOptions=""
 	proceedStep=""
+	branchScope=0
 	for ((i=1; i<=${#tokens[@]}; i++)); do
 		t=$tokens[$i]
 		case $t in
@@ -289,6 +318,9 @@ function gct() { #? git commit step by step
 				if ! [[ $tokens[$((i + 1))] =~ 11:* || $tokens[$((i + 1))] =~ 12:* ]]; then
 					proceedStep=1
 				fi
+			;;
+			10:*)
+				branchScope=1
 			;;
 			11:*)
 				if [ $stepKey ]; then
@@ -309,10 +341,17 @@ function gct() { #? git commit step by step
 		if [[ $proceedStep && ! -z $stepKey ]]; then
 			curStepNum=$((curStepNum + 1))
 			stepPrompt="\e[1;33m[$curStepNum/$stepsCount]\e[0m "
-			stepDefValue="${stepValues[$curStepNum]:1}" # cached value start with '>'
 
-			# APPEND and show prompt
-			stepPrompt+="$stepKey? "
+			if [ $branchScope -eq 1 ]; then
+				bCurStepNum=$((bCurStepNum + 1))
+				stepDefValue="${bStepValues[$bCurStepNum]:1}" # cached value start with '>'
+				stepPrompt+="\e[37m$stepKey?\e[0m "
+			else
+				rCurStepNum=$((rCurStepNum + 1))
+				stepDefValue="${rStepValues[$rCurStepNum]:1}" # cached value start with '>'
+				stepPrompt+="$stepKey? "
+			fi
+
 			if [ $stepRegex ]; then
 				stepPrompt+="\e[2m$stepRegex\e[22m "
 			fi
@@ -337,7 +376,7 @@ function gct() { #? git commit step by step
 					# select by option id
 					if echo $partial | egrep -q '^[0-9]+$' && [ $partial -le ${#stepOptions} ]
 					then
-						echo "Selected: \e[1;3${partial}m$stepOptions[$partial]\e[0m"
+						echo "\e[2mChosen:\e[0m \e[1;3${partial}m$stepOptions[$partial]\e[0m"
 						partial=$stepOptions[$partial]
 					fi
 				fi
@@ -350,17 +389,23 @@ function gct() { #? git commit step by step
 			do :; done
 
 			message+=$partial
-			newStepValues+=">$partial\n" # start width '>' to avoid empty line
+			if [ $branchScope -eq 1 ]; then
+				newBStepValues+=">$partial\n" # start width '>' to avoid empty line
+			else
+				newRStepValues+=">$partial\n" # start width '>' to avoid empty line
+			fi
 
 			# RESET step metas
 			stepKey=""
 			stepRegex=""
 			stepOptions=""
 			proceedStep=""
+			branchScope=0
 		fi
 	done
 
-	echo $newStepValues > $step_values_cache_file
+	echo $newRStepValues > $r_step_values_cache_file
+	echo $newBStepValues > $b_step_values_cache_file
 
 	# COMMIT 
 	git commit -m "$message"

@@ -142,14 +142,14 @@ function gpush() {
         logError "Not a git repository!"
         Return
     }
-	$message = git push 2>&1
+	$message = git push 2>&1 | Out-String
     If ($?) {
         logSuccess "$message"
     } Else {
         If ($message -match ".*has no upstream branch.*") {
 			logInfo "Creating upstream branch"
             $branch = git rev-parse --abbrev-ref HEAD
-			$message = git push -u origin 
+			$message = git push -u origin | Out-String
             If ($?) {
                 logSuccess "Upstream branch just created`n$message"
             } Else {
@@ -356,7 +356,7 @@ function gct() { #? git commit step by step
                     $partial = $stepDefValue
                 } ElseIf (1 -Lt $stepOptions.Length -And $partial -match "^[1-9]+$" -And $partial -Le $stepOptions.Length) {
                     $partial = [int32]$partial
-                    Write-Host "Selected: `e[1;3${partial}m$($stepOptions[$partial  - 1])`e[0m"
+                    Write-Host "`e[2mChosen:`e[0m `e[1;3${partial}m$($stepOptions[$partial  - 1])`e[0m"
                     $partial = $stepOptions[$partial - 1]
                 }
                 If ($partial -And $stepRegex -And -Not ($partial -match $stepRegex)) {

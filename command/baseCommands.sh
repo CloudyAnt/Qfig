@@ -176,13 +176,16 @@ function qfigLog() { #x log with a colored dot prefix
 	printf "$1$prefix\e[0m $2\n"
 }
 
-function forbiddenAlias() { #x alert a alias is forbidden
+function forbidAlias() { #x forbid alias 
 	[ -z "$1" ] && return
 	if [ -z "$2" ]
 	then
-		logWarn "Forbidden Alias. Use \e[92m$1\e[0m Instead"
+		eval "alias $1='logWarn \"Forbidden alias \\\\e[31m$1\\\\e[0m.\"'"
+	elif [ -z "$3" ]
+	then
+		eval "alias $1='logWarn \"Forbidden alias \\\\e[31m$1\\\\e[0m, user \\\\e[92m$2\\\\e[0m instead.\"'"
 	else
-		logWarn "Forbidden Alias: \e[31m$1\e[0m. Use \e[92m$2\e[0m Instead"
+		eval "alias $1='logWarn \"Forbidden alias \\\\e[31m$1\\\\e[0m, user \\\\e[92m$2\\\\e[0m or \\\\e[92m$3\\\\e[0m instead.\"'"
 	fi
 }
 
