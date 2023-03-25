@@ -187,7 +187,7 @@ function gct() { #? git commit step by step
     $git_commit_info_cache_folder = "$Qfig_loc/.gcache"
     $null = New-Item -Path $git_commit_info_cache_folder -Force -ItemType Container
 
-    $pattern_tokens_file = "$git_commit_info_cache_folder/$($working_directory.replace("/", "_")).ptk"
+    $pattern_tokens_file = "$git_commit_info_cache_folder/$($working_directory.replace("/", "_")).pts"
 	$step_values_cache_file="$git_commit_info_cache_folder/$($working_directory.replace("/", "_")).svc"
 
 	# SET pattern
@@ -214,7 +214,7 @@ function gct() { #? git commit step by step
             $pattern = Read-Host
         } ElseIf (-Not (Test-Path $pattern_tokens_file -PathType Leaf)) {
             $pattern_set = $true
-            logInfo "Use default pattern `e[34;3;38m$(Get-Content $Qfig_loc/staff/defaultPattern)`e[0m ? `e[emY for Yes, others for No.`e[0m" "?"
+            logInfo "Use default pattern `e[34;3;38m$(Get-Content $Qfig_loc/staff/defaultPattern)`e[0m ? `e[2mY for Yes, others for No.`e[0m" "?"
             $yn = Read-Host
             If ("y".Equals($yn) -Or "Y".Equals($yn)) {
                 logInfo "Using default pattern"
