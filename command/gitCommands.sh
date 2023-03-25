@@ -198,7 +198,7 @@ You can also \e[34mchoose one option by number key\e[0m if there are multi optio
 
     # CHECK if this is a git repository
     [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
-    # CHECK if merge, rebase or cherry-pick is in progress 
+    # CHECK if merge, rebase, cherry-pick or revert is in progress 
 	gitStatus=$(git status 2>&1)
 	obstacleProgress=""
 	if [[ "$gitStatus" = *"All conflicts fixed but you are still merging"* || "$gitStatus" = *"You have unmerged paths"* ]]; then
@@ -304,7 +304,7 @@ You can also \e[34mchoose one option by number key\e[0m if there are multi optio
 	stepKey=""
 	stepRegex=""
 	stepOptions=""
-	proceedStep=""
+	proceedStep=0
 	branchScope=0
 	for ((i=1; i<=${#tokens[@]}; i++)); do
 		t=$tokens[$i]
@@ -338,9 +338,9 @@ You can also \e[34mchoose one option by number key\e[0m if there are multi optio
 			;;
 		esac
 
-		if [[ $proceedStep && ! -z $stepKey ]]; then
+		if [[ $proceedStep -eq 1 && ! -z $stepKey ]]; then
 			curStepNum=$((curStepNum + 1))
-			stepPrompt="\e[1;33m[$curStepNum/$stepsCount]\e[0m "
+			stepPrompt="\e[4m[$curStepNum/$stepsCount]\e[0m "
 
 			if [ $branchScope -eq 1 ]; then
 				bCurStepNum=$((bCurStepNum + 1))
@@ -399,7 +399,7 @@ You can also \e[34mchoose one option by number key\e[0m if there are multi optio
 			stepKey=""
 			stepRegex=""
 			stepOptions=""
-			proceedStep=""
+			proceedStep=0
 			branchScope=0
 		fi
 	done

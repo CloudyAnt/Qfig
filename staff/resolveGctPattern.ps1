@@ -18,8 +18,17 @@ $s = "" # current appended string
 $stepsCount = 0
 $stepRegex = ""
 $lastStepKey = ""
+$recordingStepType = $false
 Foreach($c In $pattern.toCharArray()) {
     $i += 1
+
+    if ($recordingStepType) {
+        $recordingStepType = $false
+        if (([char]'#').Equals($c)) {
+            $tokens += "10`:"
+            Continue
+        }  
+    }
     If (([char]'\').Equals($c)) {
         $escaping = 1
         Continue
@@ -32,16 +41,17 @@ Foreach($c In $pattern.toCharArray()) {
 
     Switch($x) {
         0 {
-            If (([char]']').Equals($c)) {
+            If (([char]'>').Equals($c)) {
                 Write-Host "Bad ending '$c' at index $i"
                 Exit 1
-            } ElseIf (([char]'[').Equals($c)) {
+            } ElseIf (([char]'<').Equals($c)) {
                 If ($s) {
                     $tokens += "0`:$s"
                     $s = ""
                 }
                 $x = 1
                 $stepRegex = ""
+                $recordingStepType = $true
             } Else {
                 $s = "$s$c"
             }
@@ -66,10 +76,10 @@ Foreach($c In $pattern.toCharArray()) {
                     Write-Output "Bad regex begining '$c' at index $i. Key name must not be empty"
                     Exit 1
                 }
-            } ElseIf (([char]'[').Equals($c)) {
+            } ElseIf (([char]'<').Equals($c)) {
                 Write-Output "Bad key beiginning '$c' at index $i. Specifiying key `"$lastStepKey`" content"
                 Exit 1
-            } ElseIf (([char]']').Equals($c)) {
+            } ElseIf (([char]'>').Equals($c)) {
                 If ($s) {
                     $tokens += "1`:$s"
                     $stepsCount += 1
@@ -84,10 +94,10 @@ Foreach($c In $pattern.toCharArray()) {
             }
         }
         2 { # appending options
-            If (([char]'[').Equals($c)) {
+            If (([char]'<').Equals($c)) {
                 Write-Output "Bad key beginning '$c' at index $i. Specifying key `"$lastStepKey`" options"
                 Exit 1
-            } ElseIf (([char]']').Equals($c)) {
+            } ElseIf (([char]'>').Equals($c)) {
                 If ($s) {
                     If ($stepRegex) {
                         $ops = $s.Split(" ")
@@ -111,10 +121,10 @@ Foreach($c In $pattern.toCharArray()) {
             }
         }
         3 { # appending regex
-            If (([char]'[').Equals($c)) {
+            If (([char]'<').Equals($c)) {
                 Write-Output "Bad key beginning '$c' at index $i. Specifying key `"$lastStepKey`" options"
                 Exit 1
-            } ElseIf (([char]']').Equals($c)) {
+            } ElseIf (([char]'>').Equals($c)) {
                 if ($s) {
                     $tokens += "11`:$s"
                     $stepsCount += 1
@@ -146,11 +156,11 @@ If ($x -Eq 0) {
         $tokens += "0`:$s"
     }
 } ElseIf ($x -Eq 1 -Or $x -Eq 2) {
-    Write-Output "Bad ending! Step specification not ended"
+    Write-Output "Bad ending! Step specification not ended. (status $x)"
     Exit 1
 }
 If ($stepsCount -Eq 0) {
-    Write-Output "No steps specified!"
+    Write-Output "Please specify any steps!"
     Exit 1
 }
 
