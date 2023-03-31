@@ -251,11 +251,11 @@ function gct() {
         }
         ElseIf (-Not (Test-Path $pattern_tokens_file -PathType Leaf)) {
             $pattern_set = $true
-            logInfo "Use default pattern `e[34;3;38m$(Get-Content $Qfig_loc/staff/defaultPattern)`e[0m ? `e[2mY for Yes, others for No.`e[0m" "?"
+            logInfo "Use default pattern `e[34;3;38m$(Get-Content $Qfig_loc/staff/defGctPattern)`e[0m ? `e[2mY for Yes, others for No.`e[0m" "?"
             $yn = Read-Host
             If ("y".Equals($yn) -Or "Y".Equals($yn)) {
                 logInfo "Using default pattern"
-                $pattern = Get-Content "$Qfig_loc/staff/defaultPattern"
+                $pattern = Get-Content "$Qfig_loc/staff/defGctPattern"
             }
             Else {
                 logInfo "Then please specify the pattern(Rerun with -p to change, -h to get hint):"

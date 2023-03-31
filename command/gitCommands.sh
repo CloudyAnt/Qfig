@@ -202,13 +202,13 @@ You can also \e[34mchoose one option by number key\e[0m if there are multi optio
 	gitStatus=$(git status 2>&1)
 	obstacleProgress=""
 	if [[ "$gitStatus" = *"All conflicts fixed but you are still merging"* || "$gitStatus" = *"You have unmerged paths"* ]]; then
-		obstacleProgress = "Merge"
+		obstacleProgress=Merge
 	elif [[ "$gitStatus" = *"interactive rebase in progress;"* ]]; then
-		obstacleProgress = "Rebase"
+		obstacleProgress=Rebase
 	elif [[ "$gitStatus" = *"You are currently cherry-picking"* ]]; then
-		obstacleProgress = "Cherry-pick"
+		obstacleProgress=Cherry-pick
 	elif [[ "$gitStatus" = *"You are currently reverting"* ]]; then
-		obstacleProgress = "Revert"
+		obstacleProgress=Revert
 	fi
 	if [ $obstacleProgress ]; then
 		logWarn "$obstacleProgress in progress, continue ? \e[90mY for Yes, others for No.\e[0m" "!"
@@ -245,11 +245,11 @@ You can also \e[34mchoose one option by number key\e[0m if there are multi optio
 			qread pattern
 		elif [ ! -f "$pattern_tokens_file" ]; then
 			setPattern=1
-			logInfo "Use default pattern \e[34;3;38m$(cat $Qfig_loc/staff/defaultPattern)\e[0m ? \e[90mY for Yes, others for No.\e[0m" "?"
+			logInfo "Use default pattern \e[34;3;38m$(cat $Qfig_loc/staff/defGctPattern)\e[0m ? \e[90mY for Yes, others for No.\e[0m" "?"
 			qread yn
 			if [[ 'y' = "$yn" || 'Y' = "$yn" ]]; then
 				logInfo "Using default pattern"
-				pattern=$(cat $Qfig_loc/staff/defaultPattern)
+				pattern=$(cat $Qfig_loc/staff/defGctPattern)
 			else
 				logInfo "Then please specify the pattern(Rerun with -p to change, -h to get hint):"
 				qread pattern
@@ -340,12 +340,12 @@ You can also \e[34mchoose one option by number key\e[0m if there are multi optio
 
 		if [[ $proceedStep -eq 1 && ! -z $stepKey ]]; then
 			curStepNum=$((curStepNum + 1))
-			stepPrompt="\e[4m[$curStepNum/$stepsCount]\e[0m "
+			stepPrompt="\e[33m[$curStepNum/$stepsCount]\e[0m "
 
 			if [ $branchScope -eq 1 ]; then
 				bCurStepNum=$((bCurStepNum + 1))
 				stepDefValue="${bStepValues[$bCurStepNum]:1}" # cached value start with '>'
-				stepPrompt+="\e[37m$stepKey?\e[0m "
+				stepPrompt+="\e[4m$stepKey?\e[0m "
 			else
 				rCurStepNum=$((rCurStepNum + 1))
 				stepDefValue="${rStepValues[$rCurStepNum]:1}" # cached value start with '>'

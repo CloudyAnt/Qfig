@@ -21,7 +21,7 @@ function qfig() { #? Qfig preserved command
 			elif [[ "$pullMessage" = *"up to date"* ]]; then
 				logSuccess "Qfig is up to date"
 			else
-				logSuccess "Latest changes has been pulled"
+				logInfo "Latest changes has been pulled"
 				rezsh
 				logSuccess "Qfig updated!"
 			fi
