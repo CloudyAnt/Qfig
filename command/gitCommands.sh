@@ -165,6 +165,14 @@ function gpush() {
 	fi
 }
 
+function gtop() {
+    # CHECK if this is a git repository
+    [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
+	gitTopLevel=$(git rev-parse --show-toplevel)
+	logInfo "Go to:\n$gitTopLevel"
+	cd $gitTopLevel
+}
+
 function gct() { #? git commit step by step
 	# READ flags
 	setPattern=""
