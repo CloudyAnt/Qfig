@@ -283,3 +283,8 @@ function findindex() { #? find 1st target index in provider. syntax: findindex p
 	done
 	return 1
 }
+
+function qmap() {
+	[ -z "$1" ] && logError "Which map ?" && return 1
+	vim "$Qfig_loc/$1MappingFile"
+}

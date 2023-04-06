@@ -1,6 +1,7 @@
 # This is a config example, you may need to cp this as 'config'
 
 ## Add needed commands in this label. Available commands are under commands folder
+## Some commands need corresponding program.
 <enabledCommands>
 git
 </enabledCommands>

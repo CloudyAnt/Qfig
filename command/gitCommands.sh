@@ -23,7 +23,12 @@ function grmc() { #? git rm --cached xx
     git rm --cached $1
 }
 
-function gmergec() { #? git merge --continue
+function gcpc() { #? git cherry-pick --continue
+	gaa
+	git cherry-pick --continue
+}
+
+function gmgc() { #? git merge --continue
     gaa
     git merge --continue
 }
@@ -34,7 +39,7 @@ function grbt() { #? git rebase $branch && git tag $branch
 	git tag $1	
 }
 
-function grebasec() { #? git rebase --continue
+function grbc() { #? git rebase --continue
     gaa
     git rebase --continue
 }
@@ -171,6 +176,10 @@ function gtop() {
 	gitTopLevel=$(git rev-parse --show-toplevel)
 	logInfo "Go to:\n$gitTopLevel"
 	cd $gitTopLevel
+}
+
+function g-() { #  go to previous branch
+	gco -
 }
 
 function gct() { #? git commit step by step
