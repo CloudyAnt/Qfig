@@ -188,6 +188,7 @@ function gct() {
         "    {0,-15}{1}" -f "-help", "Print this help message"
         "    {0,-15}{1}" -f "-pattern_set", "Specify the pattern"
         "    {0,-15}{1}" -f "-verbose", "Show more verbose info"
+        "`n  Recommend pattern: $(Get-Content $Qfig_loc/staff/defGctPattern)"
         Return
     }
 

@@ -168,11 +168,7 @@ function qfigLog() {
 	Write-Host "$color$prefix`e[0m $text"
 }
 
-function forbiddenAlias() { #x alert a alias is forbidden
-    param([Parameter(Mandatory)]$alias, [string]$substitute)
-	If ($substitute) {
-        logWarn "Forbidden Alias: `e[31m$alias`e[0m. Use `e[92m$substitute`e[0m Instead"
-    } Else {
-        logWarn "Forbidden Alias. Use `e[92m$alias`e[0m Instead"
-    }
+function qmap() {
+    param([Parameter(Mandatory)]$prefix)
+    editFile "$Qfig_loc/$prefix`MappingFile"
 }
