@@ -17,35 +17,26 @@ forbidAlias gc gct "git commit"
 # gco = git checkout
 # glo = git log --oneline
 # gcm = git checkout $(git_main_branch)
+# grmc = git rm --cached
+# grpc = git cherry-pick --continue
+# grbc = git rebase --continue
+# grba = git rebase --abort
+# gpr = git pull --rebase
 
-function grmc() { #? git rm --cached xx
-    [ -z $1 ] && return
-    git rm --cached $1
-}
-
-function gcpc() { #? git cherry-pick --continue
-	gaa
-	git cherry-pick --continue
+function grb-() { #? git rebase -
+	git rebase -
 }
 
 function gmgc() { #? git merge --continue
-    gaa
     git merge --continue
 }
 
-function grbt() { #? git rebase $branch && git tag $branch
-    [ -z $1 ] && return
-	git rebase $1
-	git tag $1	
+function gmga() {
+	git merge --abort
 }
 
-function grbc() { #? git rebase --continue
-    gaa
-    git rebase --continue
-}
-
-function gpr() { #? git pull --rebase
-    git pull --rebase
+function gmg-() { #? git merge -
+    git merge -
 }
 
 function gaaf() { #? git add files in pattern
