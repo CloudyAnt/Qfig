@@ -157,6 +157,7 @@ function gpush() {
 			logError "$message"
 		fi
 	else
+		echo $message # TODO This line was used to debug, remove it in next commit
 		logSuccess "$message"
 	fi
 }
