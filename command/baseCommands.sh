@@ -24,6 +24,22 @@ function qfig() { #? Qfig preserved command
 				logInfo "Latest changes has been pulled"
 				rezsh
 				logSuccess "Qfig updated!"
+
+				currentHeadFile=$Qfig_loc/.gcache/currentHead
+				[ -f "$currentHeadFile" ] && mktouch $currentHeadFile && echo "!!!" > $currentHeadFile
+
+				currentHead=$(cat $currentHeadFile)
+				glo -10 | awk -v ch=$currentHead '{
+					if($0 ~ ch) {
+						exit;
+					} else {
+						n = split($0, parts, ":");
+						n1 = split(parts[1], parts1, " ");
+						printf "%10s:%s\n", parts1[n1], parts[2];
+					}
+				}'
+				parts=(${(@s/ /)$(glo -1)})
+				echo $parts[1] > $currentHeadFile
 			fi
 			unset pullMessage
 			;;
