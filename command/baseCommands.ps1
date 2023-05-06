@@ -172,3 +172,19 @@ function qmap() {
     param([Parameter(Mandatory)]$prefix)
     editFile "$Qfig_loc/$prefix`MappingFile"
 }
+
+function md5() {
+	param([Parameter(Mandatory, ValueFromPipeline)]$text)
+	process {
+		#converts string to MD5 hash in hyphenated and uppercase format
+
+		$md5 = new-object -TypeName System.Security.Cryptography.MD5CryptoServiceProvider
+		$utf8 = new-object -TypeName System.Text.UTF8Encoding
+		$hash = [System.BitConverter]::ToString($md5.ComputeHash($utf8.GetBytes($text)))
+
+		#to remove hyphens and downcase letters add:
+		$hash = $hash.ToLower() -replace '-', ''
+		Return $hash
+		$null = $sapi.Speak($Text)
+	}
+}
