@@ -148,7 +148,9 @@ function gpush() {
 			logInfo "Creating upstream branch"
 			branch=$(git rev-parse --abbrev-ref HEAD)
 			message=$(git push -u origin $branch)
+			echo "message1: $message"
 			message=${message/\%/percent}
+			echo "message2: $message"
 			if [ $? = 0 ]; then
 				logSuccess "Upstream branch just created\n$message"
 			else
