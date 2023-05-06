@@ -193,12 +193,14 @@ function logSilence() {
 
 function qfigLog() { #x log with a colored dot prefix
 	sgr=$1 # Select graphic rendition
-	log=$(echo $2)
+	log=$2
 	prefix=$3
     [[ -z "$sgr" || -z "$log" ]] && return
 	[ -z "$prefix" ] && prefix="●" || prefix=$3
 	
 	log=${log/\%/ percent}
+	log=${log//\\\r/}
+	log=$(echo $log)
 
 	echo -E "Log A: $log"
 	log="$sgr$prefix\e[0m $log\n"
