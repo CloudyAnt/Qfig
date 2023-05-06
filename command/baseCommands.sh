@@ -197,6 +197,10 @@ function qfigLog() { #x log with a colored dot prefix
 	log="$1$prefix\e[0m $2\n"
 	log=${log/\%/ percent}
 	echo "log: $log"
+	for (( i=0 ; i<${#log}; i++ )); do
+    	c=${log:$i:1}
+		printf '%d ' "'$c"
+	done
 	printf $log
 }
 
