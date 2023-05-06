@@ -211,7 +211,11 @@ function qfigLog() { #x log with a colored dot prefix
 		printf '%d ' "'$c"
 	done
 
+	echo "A"
+	echo "$log"
+	echo "B"
 	log=${log//\\\r/}
+
 	printf $log
 }
 
