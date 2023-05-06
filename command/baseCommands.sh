@@ -191,7 +191,9 @@ function logSilence() {
 function qfigLog() { #x log with a colored dot prefix
     [[ -z "$1" || -z "$2" ]] && return
 	[ -z "$3" ] && prefix="●" || prefix=$3
-	printf "$1$prefix\e[0m $2\n"
+	log="$1$prefix\e[0m $2\n"
+	log=${log/\%/ percent}
+	printf $log
 }
 
 function forbidAlias() { #x forbid alias 
