@@ -197,7 +197,7 @@ function qfigLog() { #x log with a colored dot prefix
 	echo "PREFIX: $prefix"
 	echo "Before deco"
 	echo "Before deco: $2" 
-	log="BEGIN $1$prefix\e[0m $2\n END"
+	log="BEGIN $1$prefix\e[0m $2\n END "
 	echo "After deco"
 	echo "After deco: $log"
 	log=${log/\%/ percent}
