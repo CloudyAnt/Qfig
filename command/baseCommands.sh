@@ -25,7 +25,10 @@ function qfig() { #? Qfig preserved command
 				rezsh "Qfig updated!"
 
 				currentHeadFile=$Qfig_loc/.gcache/currentHead
-				[ -f "$currentHeadFile" ] && mktouch $currentHeadFile && echo "!!!" > $currentHeadFile
+				if [ ! -f "$currentHeadFile" ]; then
+					mktouch $currentHeadFile
+					echo "!!!" > $currentHeadFile
+				fi
 
 				currentHead=$(cat $currentHeadFile)
 				glo -10 | awk -v ch=$currentHead '{
