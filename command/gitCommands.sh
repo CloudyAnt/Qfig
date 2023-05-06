@@ -277,10 +277,10 @@ You can also \e[34mchoose one option by number key\e[0m if there are multi optio
 		elif [ $verbose ]; then
 			logSilence "Using local pattern: ${$(head -n 1 $pattern_tokens_file):2}"
 		fi
-		if [ $setPattern ]; then # whether save to .gctpattern
+		#if [ $setPattern ]; then # whether save to .gctpattern
 			# logInfo "Save it in $boldRepoPattern(It may be shared through your git repo) ? \e[90mY for Yes, others for No.\e[0m" "?"
 			# qread saveToRepo
-		fi
+		#fi
 	fi
 
 	# RESOLVE pattern
