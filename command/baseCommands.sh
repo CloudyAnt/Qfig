@@ -210,7 +210,8 @@ function qfigLog() { #x log with a colored dot prefix
     	c=${log:$i:1}
 		printf '%d ' "'$c"
 	done
-	printf '%s\n' "$log"
+	log=${log//\\\r/}
+	printf $log
 }
 
 function forbidAlias() { #x forbid alias 
