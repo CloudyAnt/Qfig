@@ -151,17 +151,21 @@ function gpush() {
 			branch=$(git rev-parse --abbrev-ref HEAD)
 			message=$(git push -u origin $branch)
 			if [ $? = 0 ]; then
+				echo "Before A"
 				echo "A: $message"
 				logSuccess "Upstream branch just created\n$message"
 			else
+				echo "Before B"
 				echo "B: $message"
 				logError "Failed to create upstream branch \e[1m$branch\e[0m:\n$message"
 			fi
 		else
+			echo "Before C"
 			echo "C: $message"
 			logError "$message"
 		fi
 	else
+		echo "Before D"
 		echo "D: $message"
 		logSuccess "$message"
 	fi
