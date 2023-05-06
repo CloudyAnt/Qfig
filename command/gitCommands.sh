@@ -142,34 +142,23 @@ function ghttpproxy() {
 
 function gpush() {
     [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
-	echo "Before push"
 	message=$(git push 2>&1)
-	echo "After push"
 	if [ ! $? = 0 ]; then
 		if [[ $message = *"has no upstream branch"* ]]; then
 			logInfo "Creating upstream branch"
 			branch=$(git rev-parse --abbrev-ref HEAD)
 			message=$(git push -u origin $branch)
 			if [ $? = 0 ]; then
-				echo "Before A"
-				echo "A: $message"
 				logSuccess "Upstream branch just created\n$message"
 			else
-				echo "Before B "
-				echo "B: $message"
 				logError "Failed to create upstream branch \e[1m$branch\e[0m:\n$message"
 			fi
 		else
-			echo "Before C"
-			echo "C: $message"
 			logError "$message"
 		fi
 	else
-		echo "Before D"
-		echo "D: $message"
 		logSuccess "$message"
 	fi
-	echo "Finished"
 }
 
 function gtop() {

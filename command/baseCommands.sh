@@ -153,7 +153,6 @@ function unsetFunctionsInFile() { #x unset functions in file
 ### Log
 
 function logInfo() {
-	echo "logInfo"
     [ -z $1 ] && return
     #logColor "\033[30;46m" $1 
 	qfigLog "\e[38;05;123m" $1 $2
@@ -161,7 +160,6 @@ function logInfo() {
 
 
 function logError() {
-	echo "logError"
     [ -z $1 ] && return
     #logColor "\033[30;41m" $1 
 	qfigLog "\e[38;05;196m" $1 $2
@@ -174,7 +172,6 @@ function logWarn() {
 }
 
 function logSuccess() {
-	echo "logSuccess"
     [ -z $1 ] && return
     #logColor "\033[30;42m" $1
 	qfigLog "\e[38;05;118m" $1 $2
@@ -199,17 +196,10 @@ function qfigLog() { #x log with a colored dot prefix
 	[ -z "$prefix" ] && prefix="●" || prefix=$3
 	
 	log=${log//\%/ percent}
-	log=${log//$'\r'/}
+	log=${log//$'\r'/} # TODO It's seem that $'\r'(ascii code 13) != \r, \r can be printed by 'echo -E' but the former is not. Github push message contiains lots of ascii code 13.
 	log=${log//\\\r/}
 	log=$(echo $log)
-
-	for (( i=0 ; i<${#log}; i++ )); do
-		c=${log:$i:1}
-		printf '%d ' "'$c"
-	done
-	echo -E "Log A: $log"
 	log="$sgr$prefix\e[0m $log\n"
-	echo -E "Log B: $log"
 
 	printf $log
 }
