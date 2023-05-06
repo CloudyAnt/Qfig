@@ -198,7 +198,8 @@ function qfigLog() { #x log with a colored dot prefix
     [[ -z "$sgr" || -z "$log" ]] && return
 	[ -z "$prefix" ] && prefix="●" || prefix=$3
 	
-	log=${log/\%/ percent}
+	log=${log//\%/ percent}
+	log=${log//$'\r'/}
 	log=${log//\\\r/}
 	log=$(echo $log)
 
