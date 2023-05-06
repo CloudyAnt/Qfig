@@ -22,8 +22,7 @@ function qfig() { #? Qfig preserved command
 				logSuccess "Qfig is up to date"
 			else
 				logInfo "Latest changes has been pulled"
-				rezsh
-				logSuccess "Qfig updated!"
+				rezsh "Qfig updated!"
 
 				currentHeadFile=$Qfig_loc/.gcache/currentHead
 				[ -f "$currentHeadFile" ] && mktouch $currentHeadFile && echo "!!!" > $currentHeadFile
@@ -245,7 +244,7 @@ function assertExist() { #? check file existence
 function rezsh() { #? source .zshrc
     logInfo "Refreshing zsh..."
     source ~/.zshrc
-    logSuccess "Refreshed zsh"
+	[ -z "$1" ] && logSuccess "Refreshed zsh" || logSuccess "$1"
 }
 
 function targz() { #? compress folder to tar.gz using option -czvf
