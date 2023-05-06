@@ -204,7 +204,7 @@ function qfigLog() { #x log with a colored dot prefix
 
 	for (( i=0 ; i<${#log}; i++ )); do
 		c=${log:$i:1}
-		printf '%d' "'$c"
+		printf '%d ' "'$c"
 	done
 	echo -E "Log A: $log"
 	log="$sgr$prefix\e[0m $log\n"
