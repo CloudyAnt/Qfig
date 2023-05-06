@@ -153,6 +153,7 @@ function unsetFunctionsInFile() { #x unset functions in file
 ### Log
 
 function logInfo() {
+	echo "logInfo"
     [ -z $1 ] && return
     #logColor "\033[30;46m" $1 
 	qfigLog "\e[38;05;123m" $1 $2
@@ -160,6 +161,7 @@ function logInfo() {
 
 
 function logError() {
+	echo "logError"
     [ -z $1 ] && return
     #logColor "\033[30;41m" $1 
 	qfigLog "\e[38;05;196m" $1 $2
@@ -172,6 +174,7 @@ function logWarn() {
 }
 
 function logSuccess() {
+	echo "logSuccess"
     [ -z $1 ] && return
     #logColor "\033[30;42m" $1
 	qfigLog "\e[38;05;118m" $1 $2
@@ -193,6 +196,7 @@ function qfigLog() { #x log with a colored dot prefix
 	[ -z "$3" ] && prefix="●" || prefix=$3
 	log="$1$prefix\e[0m $2\n"
 	log=${log/\%/ percent}
+	echo "log: $log"
 	printf $log
 }
 
