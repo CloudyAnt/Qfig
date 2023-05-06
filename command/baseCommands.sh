@@ -192,29 +192,14 @@ function logSilence() {
 }
 
 function qfigLog() { #x log with a colored dot prefix
-	echo -E "Begin $2 End"
-	printf '%s\n' $2
-    [[ -z "$1" || -z "$2" ]] && return
-	[ -z "$3" ] && prefix="●" || prefix=$3
-	echo "PREFIX: $prefix"
-	echo "Before deco"
-	echo "Before deco: $2" 
-	log="BEGIN $1$prefix\e[0m $2\n END "
-	echo "After deco"
-	echo "After deco: $log"
+	sgr=$1 # Select graphic rendition
+	log=$(echo $2)
+	prefix=$3
+    [[ -z "$sgr" || -z "$log" ]] && return
+	[ -z "$prefix" ] && prefix="●" || prefix=$3
+	
 	log=${log/\%/ percent}
-	echo "After deco1"
-	echo "After deco1: $log"
-	echo "log: $log"
-	for (( i=0 ; i<${#log}; i++ )); do
-    	c=${log:$i:1}
-		printf '%d ' "'$c"
-	done
-
-	echo "A"
-	echo "$log"
-	echo "B"
-	log=${log//\\\r/}
+	log="$1$prefix\e[0m $2\n"
 
 	printf $log
 }
