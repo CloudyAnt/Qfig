@@ -192,6 +192,7 @@ function logSilence() {
 }
 
 function qfigLog() { #x log with a colored dot prefix
+	echo -E "Begin $2 End"
 	printf '%s\n' $2
     [[ -z "$1" || -z "$2" ]] && return
 	[ -z "$3" ] && prefix="●" || prefix=$3
