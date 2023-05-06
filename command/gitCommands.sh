@@ -155,7 +155,7 @@ function gpush() {
 				echo "A: $message"
 				logSuccess "Upstream branch just created\n$message"
 			else
-				echo "Before B"
+				echo "Before B "
 				echo "B: $message"
 				logError "Failed to create upstream branch \e[1m$branch\e[0m:\n$message"
 			fi
