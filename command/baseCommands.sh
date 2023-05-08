@@ -1,3 +1,4 @@
+#!/usr/bin/env zsh
 # This script only contain operations which only use system commands
 
 function qfig() { #? Qfig preserved command
@@ -196,7 +197,7 @@ function qfigLog() { #x log with a colored dot prefix
 	[ -z "$prefix" ] && prefix="●" || prefix=$3
 	
 	log=${log//\%/ percent}
-	log=${log//$'\r'/} # TODO It's seem that $'\r'(ascii code 13) != \r, \r can be printed by 'echo -E' but the former is not. Github push message contiains lots of ascii code 13.
+	log=${log//$'\r'/} # It's seem that $'\r'(ascii code 13) != \r, \r can be printed by 'zsh echo -E' but the former can not. Github push message may contiains lots of ascii code 13 in order to update state.
 	log=${log//\\\r/}
 	log=$(echo $log)
 	log="$sgr$prefix\e[0m $log\n"
@@ -312,7 +313,26 @@ function findindex() { #? find 1st target index in provider. syntax: findindex p
 	return 1
 }
 
-function qmap() {
+function qmap() { #? view or edit a map(which may be recognized by Qfig commands)
 	[ -z "$1" ] && logError "Which map ?" && return 1
 	vim "$Qfig_loc/$1MappingFile"
+}
+
+function chr() { #? convert number[s] to ASCII character[s]
+	awk '{
+		split($0, chars, " ");
+		for (i=1; i <= length($0); i++) {
+			printf("%c", chars[i]);
+		}
+		printf("\n");
+	}' <<< $@
+}
+
+function int() { #? convert ASCII character[s] to number[s]
+	all=$@
+	for (( i=0 ; i<${#all}; i++ )); do
+		c=${all:$i:1}
+		printf "%d " "'$c"
+	done
+	printf "\n"
 }
