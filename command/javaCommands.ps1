@@ -1,4 +1,4 @@
-# These are commands about java, make sure it's available before activation.
+#? These are commands about java, make sure it's available before activation.
 
 function jrun() { #? java compile hello.java && java hello
     param(

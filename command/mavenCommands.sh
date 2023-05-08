@@ -1,4 +1,4 @@
-# These are commands about maven, make sure maven is available before activation. 
+#? These are commands about maven, make sure maven is available before activation.
 
 alias mfresh='mvn clean && mvn compile'
 alias minst='mvn clean && mvn install'

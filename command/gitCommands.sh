@@ -1,4 +1,4 @@
-# Git related
+#? Git related
 
 alias glog='git log --oneline --abbrev-commit --graph'
 alias gamd='git commit --amend'

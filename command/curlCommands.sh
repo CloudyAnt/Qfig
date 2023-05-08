@@ -1,4 +1,4 @@
-# Curl commands
+#? Curl commands
 
 function cpost() {
     [ -z "$1" ] && return

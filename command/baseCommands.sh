@@ -1,5 +1,5 @@
 #!/usr/bin/env zsh
-# This script only contains commands which only requires zsh built-in commands
+#? These commands only requires zsh built-in commands
 
 function qfig() { #? Qfig preserved command
 	case $1 in
@@ -32,7 +32,6 @@ function qfig() { #? Qfig preserved command
 				fi
 
 				currentHead=$(cat $currentHeadFile)
-				declare -A ctTypeColors;
 				git -C $Qfig_loc log --oneline --decorate -10 | awk -v ch=$currentHead 'BEGIN{first = 1;
 					tc["refactor"] = 31; tc["fix"] = 32; tc["feat"] = 33; tc["chore"] = 34; tc["doc"] = 35; tc["test"] = 36;
 				} {
@@ -110,11 +109,28 @@ function qcmds() { #? operate available commands. syntax: qcmds commandsPrefix s
 			editfile $targetFile && return
 			;;	
 		""|explain)
-			cat $targetFile | awk '/^function /{if ($4 == "#x") next; command = "\033[1;34m" $2 "\033[0m"; printf("%-30s", command); if ($4 == "#?") printf "\033[0m:\033[0;36m "; if ($4 == "#!") printf "\033[0m:\033[1;31m ";  \
-				for (i = 5; i <= NF; i++) \
-					printf $i " "; \
-					printf "\n";}' \
-					| awk '{sub("\\(\\)", "\033[1;37m()\033[0m")} 1'
+			cat $targetFile | awk '{
+					if (/^\#\? /) {
+						printf "\033[37m";
+						for (i = 2; i <= NF; i++) {
+							printf $i " ";
+						}
+						printf "\033[0m\n";
+					} else if (/^function /) {
+						if ($4 == "#x") next;
+						command = "\033[1;34m" $2 "\033[0m";
+						printf("%-30s", command);
+						if ($4 == "#?") {
+							printf "\033[0m:\033[0;36m ";
+						} else if ($4 == "#!") {
+							printf "\033[0m:\033[1;31m ";
+						}
+						for (i = 5; i <= NF; i++) {
+							printf $i " ";
+						}
+						printf "\033[0m\n";
+					}
+				}' | awk '{sub("\\(\\)", "\033[1;37m()\033[0m")} 1'
 			return
 			;;
 		*)

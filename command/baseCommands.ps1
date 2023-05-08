@@ -1,4 +1,4 @@
-# This script only contain operations which only use system commands
+# These commands which only use system commands
 
 function qfig { #? Qfig preserved command
     param([string]$command)
