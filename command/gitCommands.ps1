@@ -406,7 +406,11 @@ function gct() {
                     $stepPrompt += " | "
                     $j = 1
                     $stepOptions | % {
-                        $stepPrompt += "`e[1;3${j}m${j}:$_ "
+						If ($j < 7) {
+							$stepPrompt += "`e[1;3${j}m${j}:$_ "
+						} Else {
+							$stepPrompt += "`e[1;37m${j}:$_ "
+						}
                         $j += 1
                     }
                     $stepPrompt += "`e[0m"

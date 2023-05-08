@@ -1,5 +1,5 @@
 #!/usr/bin/env zsh
-# This script only contain operations which only use system commands
+# This script only contains commands which only requires zsh built-in commands
 
 function qfig() { #? Qfig preserved command
 	case $1 in
@@ -32,15 +32,21 @@ function qfig() { #? Qfig preserved command
 				fi
 
 				currentHead=$(cat $currentHeadFile)
-				glo -10 | awk -v ch=$currentHead '{
+				declare -A ctTypeColors;
+				glo -10 | awk -v ch=$currentHead 'BEGIN{first = 1;
+					tc["refactor"] = 31; tc["fix"] = 32; tc["feat"] = 33; tc["chore"] = 34; tc["doc"] = 35; tc["test"] = 36;
+				} {
 					if($0 ~ ch) {
 						exit;
 					} else {
+						if (first) { print "\nUpdates:"; first = 0}
 						n = split($0, parts, ":");
 						n1 = split(parts[1], parts1, " ");
-						printf "%10s:%s\n", parts1[n1], parts[2];
+						type = parts1[n1];
+						c = tc[type]; if(!c) c = 37;
+						printf "\033[1;" c "m%8s" "\033[0m:%s\n", parts1[n1], parts[2];
 					}
-				}'
+				} END{ print ""}'
 				parts=(${(@s/ /)$(glo -1)})
 				echo $parts[1] > $currentHeadFile
 			fi

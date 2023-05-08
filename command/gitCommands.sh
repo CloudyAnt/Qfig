@@ -369,7 +369,8 @@ You can also \e[34mchoose one option by number key\e[0m if there are multi optio
 				stepPrompt+="($stepDefValue) " 
 				if [ 1 -lt "${#stepOptions[@]}" ]; then
 					# append option id
-					stepPrompt+="|$(echo $stepOptions | awk '{for (i = 1; i <= NF; i++) { printf " \033[1;3" i "m" i ":" $i }} END{printf "\033[0m"}')"
+					stepPrompt+="|$(echo $stepOptions | awk '{for (i = 1; i <= NF; i++) { if (i < 7) printf " \033[1;3" i "m" i ":" $i;
+				else printf " \033[1;37m" i ":" $i;}} END{printf "\033[0m"}')"
 				fi
 			else
 				[ ! -z "$stepDefValue" ] && stepPrompt+="($stepDefValue) " 
