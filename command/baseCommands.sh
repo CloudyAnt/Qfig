@@ -46,7 +46,7 @@ function qfig() { #? Qfig preserved command
 						printf "\033[1;" c "m%8s" "\033[0m:%s\n", parts1[n1], parts[2];
 					}
 				} END{ print ""}'
-				parts=(${(@s/ /)$(glo -1)})
+				parts=(${(@s/ /)$(git -C $Qfig_loc log --oneline --decorate -1)})
 				echo $parts[1] > $currentHeadFile
 			fi
 			unset pullMessage
