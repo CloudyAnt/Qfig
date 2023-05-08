@@ -33,7 +33,7 @@ function qfig() { #? Qfig preserved command
 
 				currentHead=$(cat $currentHeadFile)
 				declare -A ctTypeColors;
-				glo -10 | awk -v ch=$currentHead 'BEGIN{first = 1;
+				git -C $Qfig_loc log --oneline --decorate -10 | awk -v ch=$currentHead 'BEGIN{first = 1;
 					tc["refactor"] = 31; tc["fix"] = 32; tc["feat"] = 33; tc["chore"] = 34; tc["doc"] = 35; tc["test"] = 36;
 				} {
 					if($0 ~ ch) {
