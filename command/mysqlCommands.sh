@@ -1,3 +1,4 @@
+#!/usr/bin/env zsh
 #? These are commands about Mysql, make sure it's available before activation.
 #? You need to edit the mysql mapping file by execute 'qmap mysql'. A ssh mapping like: key=server:port#username#userpass
 
@@ -19,8 +20,8 @@ function mysqlc() { #? Connect mysql by mapping defined in mysqlMappingFile
     unset mapping
     eval "mapping=($_MYSQL_MAPPING[$1])"
     hostPort="$mapping[1]:"
-    host=`cut -d":" -f1 <<< $hostPort`
-    port=`cut -d":" -f2 <<< $hostPort`
+    host=$(cut -d":" -f1 <<< $hostPort)
+    port=$(cut -d":" -f2 <<< $hostPort)
     if [ -z "$port" ]
     then
         mysql -u $mapping[2] -p$mapping[3] -h $host
