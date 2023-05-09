@@ -30,14 +30,18 @@ function qfig() { #? Qfig preserved command
 					echo "!!!" > $currentHeadFile
 				fi
 
-				currentHead=$(cat $currentHeadFile)
-				git -C $Qfig_loc log --oneline --decorate -10 | awk -v ch=$currentHead 'BEGIN{first = 1;
+				lastHead=$(cat $currentHeadFile)
+				parts=(${(@s/ /)$(git -C $Qfig_loc log --oneline --decorate -1)})
+				newHead=$parts[1]
+				echo $newHead > $currentHeadFile
+				echo "Head: \e[1m$lastHead\e[0m -> \e[1m$newHead\e[0m"
+				git -C $Qfig_loc log --oneline --decorate -10 | awk -v ch=$lastHead 'BEGIN{first = 1;
 					tc["refactor"] = 31; tc["fix"] = 32; tc["feat"] = 33; tc["chore"] = 34; tc["doc"] = 35; tc["test"] = 36;
 				} {
 					if($0 ~ ch) {
 						exit;
 					} else {
-						if (first) { print "\nUpdates:"; first = 0}
+						if (first) { first = 0}
 						n = split($0, parts, ":");
 						n1 = split(parts[1], parts1, " ");
 						type = parts1[n1];
@@ -45,8 +49,6 @@ function qfig() { #? Qfig preserved command
 						printf "\033[1;" c "m%8s" "\033[0m:%s\n", parts1[n1], parts[2];
 					}
 				} END{ print ""}'
-				parts=(${(@s/ /)$(git -C $Qfig_loc log --oneline --decorate -1)})
-				echo $parts[1] > $currentHeadFile
 			fi
 			unset pullMessage
 			;;

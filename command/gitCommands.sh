@@ -157,7 +157,7 @@ function gpush() {
 			logError "Push failed cause some error occurred"
 		fi
 	else
-		logSuccess "Push succeeded"
+		logSuccess "Done"
 	fi
 }
 

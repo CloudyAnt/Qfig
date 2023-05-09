@@ -185,6 +185,5 @@ function md5() {
 		#to remove hyphens and downcase letters add:
 		$hash = $hash.ToLower() -replace '-', ''
 		Return $hash
-		$null = $sapi.Speak($Text)
 	}
 }
