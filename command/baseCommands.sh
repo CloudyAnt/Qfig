@@ -22,8 +22,7 @@ function qfig() { #? Qfig preserved command
 			elif [[ "$pullMessage" = *"up to date"* ]]; then
 				logSuccess "Qfig is up to date"
 			else
-				rezsh "Latest changes has been pulled" "Qfig updated!"
-
+				logInfo "Updating Qfig.."
 				currentHeadFile=$Qfig_loc/.gcache/currentHead
 				if [ ! -f "$currentHeadFile" ]; then
 					mktouch $currentHeadFile
@@ -34,7 +33,7 @@ function qfig() { #? Qfig preserved command
 				parts=(${(@s/ /)$(git -C $Qfig_loc log --oneline --decorate -1)})
 				newHead=$parts[1]
 				echo $newHead > $currentHeadFile
-				echo "Update head \e[1m$lastHead\e[0m -> \e[1m$newHead\e[0m:"
+				echo "\nUpdate head \e[1m$lastHead\e[0m -> \e[1m$newHead\e[0m:\n"
 				git -C $Qfig_loc log --oneline --decorate -10 | awk -v ch=$lastHead 'BEGIN{first = 1;
 					tc["refactor"] = 31; tc["fix"] = 32; tc["feat"] = 33; tc["chore"] = 34; tc["doc"] = 35; tc["test"] = 36;
 				} {
@@ -46,10 +45,11 @@ function qfig() { #? Qfig preserved command
 						n1 = split(parts[1], parts1, " ");
 						type = parts1[n1];
 						c = tc[type]; if(!c) c = 37;
-						printf "\033[1;" c "m%10s" "\033[0m:%s\n", parts1[n1], parts[2];
+						printf "- [\033[1;" c "m%9s" "\033[0m]%s\n", parts1[n1], parts[2];
 					}
-				} END{ print ""}'
+				}'
 			fi
+			rezsh "" "Qfig updated!"
 			unset pullMessage
 			;;
 		config)

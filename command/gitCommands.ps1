@@ -108,7 +108,7 @@ function gapply() {
         git stash apply
     }
     Else {
-        $matchedStashes = (git stash list | ? { $_.contains("$git_stash_Key$key") })
+        $matchedStashes = (git stash list | Where-Object { $_.contains("$git_stash_Key$key") })
         If ($matchedStashes.Length -Eq 0) {
             Write-Warning "Stash with key '$key' doesn't exist!";
             Return
@@ -127,7 +127,7 @@ function gpop() {
         git stash pop
     }
     Else {
-        $matchedStashes = (git stash list | ? { $_.contains("$git_stash_Key$key") })
+        $matchedStashes = (git stash list | Where-Object { $_.contains("$git_stash_Key$key") })
         If ($matchedStashes.Length -Eq 0) {
             Write-Warning "Stash with key '$key' doesn't exist!";
             Return
@@ -298,7 +298,7 @@ function gct() {
 
     # CHECK if it's need to commit
     $needToCommit = $false
-    gst | % {
+    gst | ForEach-Object {
         If ($_ -match "Changes to be committed.+") {
             $needToCommit = $true
             Return
@@ -405,8 +405,8 @@ function gct() {
                 If (1 -Lt $stepOptions.Length) {
                     $stepPrompt += " | "
                     $j = 1
-                    $stepOptions | % {
-						If ($j < 7) {
+                    $stepOptions | ForEach-Object {
+						If ($j -lt 7) {
 							$stepPrompt += "`e[1;3${j}m${j}:$_ "
 						} Else {
 							$stepPrompt += "`e[1;37m${j}:$_ "

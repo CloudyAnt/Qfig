@@ -22,7 +22,7 @@ if [ -f "$Qfig_loc/config" ]; then
 			fi
         done
 	if [ $verbose ]; then
-		[ $enabledCommands ] && logInfo "Enabled commands:$enabledCommands" || logInfo "None enabled commands"
+		[ $enabledCommands ] && vbMsg+="Enabled commands:$enabledCommands. " || vbMsg+="None enabled commands. "
 	fi
     
     _preferTextEditor=$(sed -rn 's|<preferTextEditor>(.+)</preferTextEditor>|\1|p' $Qfig_loc/config)
@@ -31,8 +31,12 @@ if [ -f "$Qfig_loc/config" ]; then
         preferTextEditor=$_preferTextEditor
     fi
 	if [ $verbose ]; then
-		[ $_preferTextEditor ] && logInfo "Using prefer text editor: $preferTextEditor" \
-			|| logInfo "Using default text editor: $preferTextEditor"
+		[ $_preferTextEditor ] && vbMsg+="Using prefer text editor: $preferTextEditor. " \
+			|| vbMsg+="Using default text editor: $preferTextEditor. "
+	fi
+	if [ $verbose ]; then
+		logInfo $vbMsg
+		unset vbMsg
 	fi
 
 	unset cmdsFile

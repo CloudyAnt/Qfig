@@ -17,7 +17,7 @@ If (Test-Path $Qfig_loc/config) {
 	$verbose = $($content -match '<showVerboseInitMsg>(.+)</showVerboseInitMsg>' -And "true".Equals($matches[1])) ? 1 : 0
 	$enabledCommands = ""
 	If ($content -match '<enabledCommands>([\s\S]*)</enabledCommands>') {
-		$matches[1].Split("`n") | % {
+		$matches[1].Split("`n") | ForEach-Object {
 			If ([string]::IsNullOrEmpty($_)) {
 				Return
 			} Else {
@@ -33,7 +33,7 @@ If (Test-Path $Qfig_loc/config) {
 		}
 	}
     If ($verbose) {
-		$enabledCommands ? (logInfo "Enabled commands:$enabledCommands") : (logInfo "None Enabled commands")
+		$enabledCommands ? ($vbMsg += "Enabled commands:$enabledCommands. ") : ($vbMsg += "None Enabled commands. ")
 	}
 
 	$_preferTextEditor = ""
@@ -44,9 +44,12 @@ If (Test-Path $Qfig_loc/config) {
 		}
 	}
 	If ($verbose) {
-		$_preferTextEditor ? (logInfo "Using prefer text editor: $preferTextEditor") : (logInfo "Using default text editor: $preferTextEditor")
+		$_preferTextEditor ? ($vbMsg += "Using prefer text editor: $preferTextEditor. ") : ($vbMsg += "Using default text editor: $preferTextEditor. ")
 	}
-	
+	if ($verbose) {
+		logInfo $vbMsg
+		Clear-Variable vbMsg
+	}
 	Clear-Variable verbose
 	Clear-Variable matches
 	Clear-Variable enabledCommands 
