@@ -9,6 +9,7 @@ function qfig() { #? Qfig preserved command
 			printf "    %-10s%s\n" "update" "Update Qfig"
 			printf "    %-10s%s\n" "into" "Go into Qfig project folder"
 			printf "    %-10s%s\n" "config" "Edit config to enable commands, etc."
+			printf "    %-10s%s\n" "im" "Show initiation message again"
 			printf "\n  \e[2mTips:\n"
 			printf "    Command 'qcmds' perform operations about tool commands. Run 'qcmds -h' for more\n"
 			printf "    Command 'gct' perform gct-commit step by step(need to enable 'git' commands)\n"
@@ -61,6 +62,9 @@ function qfig() { #? Qfig preserved command
 			;;
 		into)
 			cd $Qfig_loc
+			;;
+		im)
+			logInfo $initMsg
 			;;
 		*)
 			qfig help

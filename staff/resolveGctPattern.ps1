@@ -1,9 +1,12 @@
 param([Parameter(Mandatory)]$pattern)
-# pattern='[name:]-[type:a b c]#[card:0 1]@@[message:Nothing]'
+# parrtern example:<name@^[^\:]+$:Unknown> <#type@^[^\:]+$:refactor fix feat chore doc test style>: <#message@^[^\:]+$:Unknown>
 
 # token types:
-# 0:
-# 1:abc:d e f
+# 0 String
+# 1 Step
+# 10 Branch-scope-step mark
+# 11 Step regex
+# 12 Step options
 [string[]]$tokens = @()
 $escaping = 0
 

@@ -1,4 +1,4 @@
-#? These are command about gradle, make sure gradle is available before activation.
+#? These are command about gradle, make sure gradle is available before use.
 
 function gpkg() { #? gradle package & tell the size of jar
     logInfo "Packaging.."

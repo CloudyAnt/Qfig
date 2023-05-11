@@ -1,5 +1,5 @@
 #!/usr/bin/env zsh
-#? These are commands about Mysql, make sure it's available before activation.
+#? These are commands about Mysql, make sure it's available before ues.
 #? You need to edit the mysql mapping file by execute 'qmap mysql'. A ssh mapping like: key=server:port#username#userpass
 
 alias mysqll='mysql -uroot -p' # Connect local mysql

@@ -2,12 +2,12 @@
 
 [ -z "$1" ] && echo "Pattern must not be empty!" && exit 1
 pattern=$1
-# pattern='{name@abc@}-{#type:a b c}#{card:0 1}@{message:Nothing}'
+# parrtern example:<name@^[^\:]+$:Unknown> <#type@^[^\:]+$:refactor fix feat chore doc test style>: <#message@^[^\:]+$:Unknown>
 
 # token types:
 # 0 String
 # 1 Step
-# 10 Branch-scope-step mark 
+# 10 Branch-scope-step mark
 # 11 Step regex
 # 12 Step options
 tokens=""

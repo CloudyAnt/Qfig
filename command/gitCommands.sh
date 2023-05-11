@@ -188,7 +188,7 @@ function gct() { #? git commit step by step
 The \e[1m#\e[0m in step2 behind char \e[1m<\e[0m indicate it's a branch-scope-step. \
 The \e[1m[^\\:]+\e[0m in step3 behind char \e[1m@\e[0m sepcify the regex this step value must match. \e[1m\ \e[0mescape the character behind it.\n"
 				echo "  \e[34;1mCommit Hint\e[0m:\n  Input then press \e[1mEnter\e[0m to set value for a step, \e[34mthe last-time value or default value will be appended\e[0m if the input is empty. \
-You can also \e[34mchoose one option by number key\e[0m if there are multi options specified for current step.\n"
+You can also \e[34mchoose one option by input number\e[0m if there are multi options specified for current step.\n"
 				echo "  Recommend pattern: $(cat $Qfig_loc/staff/defGctPattern)"
 				return
 				;;

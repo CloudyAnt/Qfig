@@ -8,6 +8,7 @@ function qfig { #? Qfig preserved command
         "    {0,-10}{1}" -f "update", "Update Qfig"
         "    {0,-10}{1}" -f "into", "Go into Qfig project folder"
         "    {0,-10}{1}" -f "config", "Edit config to enable commands, etc."
+        "    {0,-10}{1}" -f "im", "Show initiation message again"
     } ElseIf ("into".Equals($command)) {
         Set-Location $Qfig_loc
     } ElseIf ("update".Equals($command)) {
@@ -26,6 +27,8 @@ function qfig { #? Qfig preserved command
             logInfo "Copied config from configTemplate"
         }
         editFile $Qfig_loc/config
+    } ElseIf ("im".Equals($command)) {
+        logInfo $initMsg
     } Else {
         qfig -command help
     }
