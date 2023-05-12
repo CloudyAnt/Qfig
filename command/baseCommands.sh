@@ -46,9 +46,9 @@ function qfig() { #? Qfig preserved command
 						n1 = split(parts[1], parts1, " ");
 						type = parts1[n1];
 						c = tc[type]; if(!c) c = 37;
-						printf "\n- [\033[1;" c "m%9s" "\033[0m]%s", parts1[n1], parts[2];
+						printf "\n- [\033[1;" c "m%s\033[0m]%s", parts1[n1], parts[2];
 					}
-				}'
+				} END {print ""}'
 			fi
 			rezsh "" "Qfig updated!"
 			unset pullMessage
@@ -179,27 +179,28 @@ function unsetFunctionsInFile() { #x unset functions in file
 }
 
 ### Log
+#? About colorful output, refer to https://en.wikipedia.org/wiki/ANSI_escape_code#SGR
 
-function logInfo() {
+function logInfo() { #? log info
     [ -z $1 ] && return
     #logColor "\033[30;46m" $1 
 	qfigLog "\e[38;05;123m" $1 $2
 }
 
 
-function logError() {
+function logError() { #? log error
     [ -z $1 ] && return
     #logColor "\033[30;41m" $1 
 	qfigLog "\e[38;05;196m" $1 $2
 }
 
-function logWarn() {
+function logWarn() { #? log warn
     [ -z $1 ] && return
     #logColor "\033[30;103m" $1
 	qfigLog "\e[38;05;226m" $1 $2
 }
 
-function logSuccess() {
+function logSuccess() { #? log success
     [ -z $1 ] && return
     #logColor "\033[30;42m" $1
 	qfigLog "\e[38;05;118m" $1 $2
