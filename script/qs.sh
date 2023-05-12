@@ -1,5 +1,7 @@
 #!/bin/bash
 # Quick Sort
+# Since there are no 'local variable' in shell scripts, recursion became quiet tricky.
+# My solution is to use a variable 'loopId' to achieve 'local variable' equivalently:
 
 function partition {
     arr=$1
@@ -27,27 +29,27 @@ function partition {
 }
 
 function qs {
-    recursion=`expr $recursion + 1`
+    loopId=`expr $loopId + 1`
     arr=$1
     l=$2
     r=$3
 
     if [ $l -lt $r ]
     then
-        eval "l$recursion=$l"
-        eval "r$recursion=$r"
+        eval "l$loopId=$l"
+        eval "r$loopId=$r"
         partition $arr $l $r
-        eval "partitionIndex$recursion=$partitionIndex"
+        eval "partitionIndex$loopId=$partitionIndex"
         qs $arr $l `expr $partitionIndex - 1`
 
-        partitionIndexx="echo \$partitionIndex$recursion"
+        partitionIndexx="echo \$partitionIndex$loopId"
         partitionIndex=`eval $partitionIndexx`
-        rx="echo \$r$recursion"
+        rx="echo \$r$loopId"
         r=`eval $rx`
         qs $arr `expr $partitionIndex + 1` $r 
     fi
 
-    recursion=`expr $recursion - 1`
+    loopId=`expr $loopId - 1`
 }
 
 arr=($@)

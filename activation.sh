@@ -29,3 +29,6 @@ unset currentLoc
 unset baseConfig 
 unset activationSegment 
 unset sysConfigFile
+
+# Init
+source ~/.zshrc

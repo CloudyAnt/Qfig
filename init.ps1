@@ -1,5 +1,3 @@
-# You can add custom configs in the 'config' file 
-
 ## The location of Qfig project
 $Qfig_loc = $PSScriptRoot
 

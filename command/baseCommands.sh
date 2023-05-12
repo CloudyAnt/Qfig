@@ -46,7 +46,7 @@ function qfig() { #? Qfig preserved command
 						n1 = split(parts[1], parts1, " ");
 						type = parts1[n1];
 						c = tc[type]; if(!c) c = 37;
-						printf "- [\033[1;" c "m%9s" "\033[0m]%s\n", parts1[n1], parts[2];
+						printf "\n- [\033[1;" c "m%9s" "\033[0m]%s", parts1[n1], parts[2];
 					}
 				}'
 			fi

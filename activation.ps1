@@ -30,3 +30,6 @@ Set-Content -Path $profile -Value (Get-Content -Path $profile | Select-String -P
 
 Clear-Variable activationSegment
 Clear-Variable activated
+
+# Init
+. $profile
