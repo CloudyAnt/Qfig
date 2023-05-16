@@ -218,8 +218,7 @@ function gct() {
 
     # GET pattern & cache, use default if it not exists
     $git_toplevel = git rev-parse --show-toplevel
-    $working_directory = $git_toplevel.replace("/", "_").replace(":", "__") | md5
-    $git_commit_info_cache_folder = "$Qfig_loc/.gcache/$working_directory"
+    $git_commit_info_cache_folder = "$Qfig_loc/.gcache/$($git_toplevel.replace("/", "_").replace(":", "__") | md5)"
     $null = New-Item -Path $git_commit_info_cache_folder -Force -ItemType Container
 
     $pattern_tokens_file = "$git_commit_info_cache_folder/pts"

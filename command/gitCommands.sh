@@ -227,8 +227,8 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 	fi
 
     # GET pattern & cache, use default if it not exists
-	git_toplevel=$(git rev-parse --show-toplevel | md5)
-    git_commit_info_cache_folder=$Qfig_loc/.gcache/$(echo $git_toplevel | sed 's|/|_|g')
+	git_toplevel=$(git rev-parse --show-toplevel)
+    git_commit_info_cache_folder=$Qfig_loc/.gcache/$(echo $git_toplevel | sed 's|/|_|g' | sed 's|:|__|' | md5)
 	[ ! -d "$git_commit_info_cache_folder" ] && mkdir -p $git_commit_info_cache_folder
 	pattern_tokens_file=$git_commit_info_cache_folder/pts
 	r_step_values_cache_file=$git_commit_info_cache_folder/rsvc # r = repository
