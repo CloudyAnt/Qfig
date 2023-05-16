@@ -137,7 +137,6 @@ for (( i=0 ; i<${#pattern}; i++ )); do
 				s=$s$c
 			fi
 			;;
-		4) # appeding branch step
     esac
 done
 

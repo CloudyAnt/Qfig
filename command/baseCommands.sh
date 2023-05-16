@@ -116,26 +116,38 @@ function qcmds() { #? operate available commands. syntax: qcmds commandsPrefix s
 		""|explain)
 			cat $targetFile | awk '{
 					if (/^\#\? /) {
-						printf "\033[37m";
+						printf "\033[1;33m>\033[37m>\033[0m ";
 						for (i = 2; i <= NF; i++) {
 							printf $i " ";
 						}
-						printf "\033[0m\n";
+						# printf "\033[0m\n";
+						printf "\n";
 					} else if (/^function /) {
 						if ($4 == "#x") next;
-						command = "\033[1;34m" $2 "\033[0m";
-						printf("%-30s", command);
+						command = "\033[34m" $2 "\033[0m";
+						printf("%-30s\033[0m:", command); # %-30s contains escape sequence
 						if ($4 == "#?") {
-							printf "\033[0m:\033[0;36m ";
+							printf "\033[36m ";
 						} else if ($4 == "#!") {
-							printf "\033[0m:\033[1;31m ";
+							printf "\033[31m ";
+						} else {
+							printf " ";
 						}
 						for (i = 5; i <= NF; i++) {
 							printf $i " ";
 						}
 						printf "\033[0m\n";
+					} else if (/^alias /) {
+						# gsub("'\''", "", $2);
+						split($2, parts, "=");
+						printf "\033[32m" $1 " \033[34m" parts[1] "\033[0m > \033[36m" parts[2];
+						for (i = 3; i <= NF; i++) {
+							# gsub("'\''", "", $i);
+							printf(" %s", $i);
+						}
+						printf "\033[0m\n";
 					}
-				}' | awk '{sub("\\(\\)", "\033[1;37m()\033[0m")} 1'
+				}' | awk '{sub("\\(\\)", "\033[37m()\033[0m")} 1'
 			return
 			;;
 		*)
@@ -151,12 +163,10 @@ function editfile() { #? edit a file using preferedTextEditor
     eval "$preferTextEditor $1"
 }
 
-function editmap() { #? edit mappingFile
-    targetFile=$Qfig_loc/$1MappingFile
-    [ ! -f "$targetFile" ] && logWarn "$targetFile dosen't exist" && return
-    editfile $targetFile
+function qmap() { #? view or edit a map(which may be recognized by Qfig commands)
+	[ -z "$1" ] && logError "Which map ?" && return 1
+	editfile "$Qfig_loc/$1MappingFile"
 }
-
 
 function defaultV() { #? set default value for variable
     value_name=$1
@@ -341,11 +351,6 @@ function findindex() { #? find 1st target index in provider. syntax: findindex p
 	return 1
 }
 
-function qmap() { #? view or edit a map(which may be recognized by Qfig commands)
-	[ -z "$1" ] && logError "Which map ?" && return 1
-	vim "$Qfig_loc/$1MappingFile"
-}
-
 function chr() { #? convert number[s] to ASCII character[s]
 	awk '{
 		split($0, chars, " ");
@@ -363,4 +368,14 @@ function int() { #? convert ASCII character[s] to number[s]
 		printf "%d " "'$c"
 	done
 	printf "\n"
+}
+
+function dec2hex() { #? convert decimal to hexadecimal
+	[ -z $1 ] && return
+	printf "%x\n" $1
+}
+
+function hex2dec() { #? convert hexadecimal to decimal
+	[ -z $1 ] && return
+	echo $((0x$1))
 }

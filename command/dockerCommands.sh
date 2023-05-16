@@ -8,10 +8,10 @@ alias dps='docker ps'
 alias dpsa='docker ps -a'
 #alias dps="docker ps | awk 'BEGIN{lines=-1;} {lines++; print $0} END{print \"Total \" lines \" containers\";}'"
 #alias dpsa="docker ps -a | awk 'BEGIN{lines=-1;} {lines++; print $0} END{print \"Total \" lines \" containers\";}'"
-alias dis="docker images"
-alias dcs="docker container ls"
-alias dcsa="docker container ls -a"
-alias drun="docker run"
+alias dis='docker images'
+alias dcs='docker container ls'
+alias dcsa='docker container ls -a'
+alias drun='docker run'
 
 function dbash() { #? enter docker bash
 	[ -z "$1" ] && logError "Which one?" && return

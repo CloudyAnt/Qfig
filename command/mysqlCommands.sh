@@ -15,7 +15,7 @@ eval `cat $_MYSQL_MAPPING_FILE | awk -F '=' 'BEGIN{ s0 = "";s = "declare -A _MYS
     }} \
     END { s = s ")"; print s0; print s; print s1}'`
 
-function mysqlc() { #? Connect mysql by mapping defined in mysqlMappingFile
+function mysqlc() { #? Connect mysql by mapping
     [ -z $1 ] || [ -z $_MYSQL_MAPPING[$1] ] && logError "Which mapping?" && return
     unset mapping
     eval "mapping=($_MYSQL_MAPPING[$1])"
@@ -30,7 +30,7 @@ function mysqlc() { #? Connect mysql by mapping defined in mysqlMappingFile
     fi
 }
 
-function mysqlo() { #? Connect mysql by mapping defined in mysqlMappingFile THEN pass command and output result to files
+function mysqlo() { #? Connect mysql by mapping THEN pass command and output result to files
     [ -z $1 ] || [ -z $_MYSQL_MAPPING[$1] ] && logError "Which mapping?" && return
     [ -z $2 ] && logError "Need Command" && return
     [ -z $3 ] && logError "Need Output File" && return

@@ -168,7 +168,7 @@ function gtop() {
 	cd $gitTopLevel
 }
 
-function g-() { #  go to previous branch
+function g-() { #? go to previous branch
 	gco -
 }
 
