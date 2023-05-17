@@ -116,12 +116,11 @@ function qcmds() { #? operate available commands. syntax: qcmds commandsPrefix s
 		""|explain)
 			cat $targetFile | awk '{
 					if (/^\#\? /) {
-						printf "\033[1;33m>\033[37m>\033[0m ";
+						printf "\033[1;33m▍\033[0m";
 						for (i = 2; i <= NF; i++) {
 							printf $i " ";
 						}
-						# printf "\033[0m\n";
-						printf "\n";
+						printf "\033[0m\n";
 					} else if (/^function /) {
 						if ($4 == "#x") next;
 						command = "\033[34m" $2 "\033[0m";
@@ -378,4 +377,41 @@ function dec2hex() { #? convert decimal to hexadecimal
 function hex2dec() { #? convert hexadecimal to decimal
 	[ -z $1 ] && return
 	echo $((0x$1))
+}
+
+function uni2sp() { #? convert unicode (10000 - 10FFFF) to surrogate pair (D800-DBFF and DC00-DFFF)
+	[ -z $1 ] && return
+	if ! [[ $1 =~ '^[0-9a-fA-F]+$' ]]; then
+		logWarn "$1 is not hexdecimal" && return
+	fi
+
+	if [[ 0x$1 -lt 0x10000 || 0x$1 -gt 0x10FFFF ]]; then
+		logWarn "$1 is out of range (10000 - 10FFFF)"
+	else
+		offset=$((0x$1 - 0x10000))
+		row=$(($offset / 0x400))
+		column=$(($offset % 0x400))
+		high=$((0xD800 + $row))
+		low=$((0xDC00 + $column))
+		echo "$(dec2hex $high) $(dec2hex $low)"
+	fi
+}
+
+function sp2uni() { #? convert surrogate pair (D800-DBFF and DC00-DFFF) to unicode (10000 - 10FFFF)
+	[[ -z $1 || -z $2 ]] && logWarn "A surrogate pair needs 2 units" && return
+	if ! [[ $1 =~ '^[0-9a-fA-F]+$' && $2 =~ '^[0-9a-fA-F]+$' ]]; then
+		logWarn "$1 or $2 is not hexdecimal" && return
+	fi
+
+	if [[ 0x$1 -lt 0xD800 || 0x$1 -gt 0xDBFF ]]; then
+		logWarn "1st (high-surrogate) unit $1 is out of range (D800-DBFF)" && return
+	fi
+	if [[ 0x$2 -lt 0xDC00 || 0x$2 -gt 0xDFFF ]]; then
+		logWarn "2nd (low-surrogate) unit $2 is out of range (DC00-DFFF)" && return
+	fi
+
+	highOffset=$((0x$1 - 0xD800))
+	lowOffset=$((0x$2 - 0xDC00))
+	uni=$(($highOffset * 1024 + $lowOffset + 0x10000))
+	echo $(dec2hex $uni)
 }
