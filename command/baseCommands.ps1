@@ -106,16 +106,12 @@ function qcmds() { #? operate available commands. syntax: qcmds commandsPrefix s
 
 function editFile() { #? edit file using the prefer text editor
     param([Parameter(Mandatory)]$path)
-    If (Test-Path $path) {
-        If (Test-Path $path -PathType Leaf) {
-            # set prefer text editor in config <perferTextEditor> label
-            Invoke-Expression "$preferTextEditor $path"
-        } Else {
-            logError "'$path' is a directory!"
-        }
-    } Else {
-        logError "'$path' is NOT a file!"
+    If (Test-Path $path -And Test-Path $path -PathType Container) {
+        logError "'$path' is a directory!"
+        Return
     }
+    # set prefer text editor in config <perferTextEditor> label
+    Invoke-Expression "$preferTextEditor $path"
 }
 
 function defaultV() { #? return default value

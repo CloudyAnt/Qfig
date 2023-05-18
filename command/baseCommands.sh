@@ -19,9 +19,9 @@ function qfig() { #? Qfig preserved command
 		update)
 			pullMessage=$(git -C $Qfig_loc pull --rebase 2>&1)
             if [[ $? != 0 || "$pullMessage" = *"error"* || "$pullMessage" = *"fatal"* ]]; then
-                logError "Cannot update Qfig:\n$pullMessage"
+                logError "Cannot update Qfig:\n$pullMessage" && return
 			elif [[ "$pullMessage" = *"up to date"* ]]; then
-				logSuccess "Qfig is up to date"
+				logSuccess "Qfig is up to date" && return
 			else
 				logInfo "Updating Qfig.."
 				currentHeadFile=$Qfig_loc/.gcache/currentHead
@@ -46,7 +46,7 @@ function qfig() { #? Qfig preserved command
 						n1 = split(parts[1], parts1, " ");
 						type = parts1[n1];
 						c = tc[type]; if(!c) c = 37;
-						printf "\n- [\033[1;" c "m%s\033[0m]%s", parts1[n1], parts[2];
+						printf "- [\033[1;" c "m%s\033[0m]%s\n", parts1[n1], parts[2];
 					}
 				} END {print ""}'
 			fi
@@ -116,15 +116,18 @@ function qcmds() { #? operate available commands. syntax: qcmds commandsPrefix s
 		""|explain)
 			cat $targetFile | awk '{
 					if (/^\#\? /) {
-						printf "\033[1;33m▍\033[0m";
+						printf "\033[1;34m▍\033[39m";
 						for (i = 2; i <= NF; i++) {
 							printf $i " ";
 						}
 						printf "\033[0m\n";
 					} else if (/^function /) {
 						if ($4 == "#x") next;
-						command = "\033[34m" $2 "\033[0m";
-						printf("%-30s\033[0m:", command); # %-30s contains escape sequence
+						command = "\033[34m" $2 "\033[2m ";
+						while(length(command) < 29) {
+							command = command "-";
+						}
+						printf("%s\033[0m", command);
 						if ($4 == "#?") {
 							printf "\033[36m ";
 						} else if ($4 == "#!") {
@@ -139,9 +142,15 @@ function qcmds() { #? operate available commands. syntax: qcmds commandsPrefix s
 					} else if (/^alias /) {
 						# gsub("'\''", "", $2);
 						split($2, parts, "=");
-						printf "\033[32m" $1 " \033[34m" parts[1] "\033[0m > \033[36m" parts[2];
+						printf "\033[32malias \033[34m" parts[1] "\033[39m = \033[36m" parts[2];
 						for (i = 3; i <= NF; i++) {
 							# gsub("'\''", "", $i);
+							printf(" %s", $i);
+						}
+						printf "\033[0m\n";
+					} else if (/^forbidAlias /) {
+						printf "\033[32malias \033[31m" $2 " \033[39m=>\033[34m";
+						for (i = 3; i <= NF; i++) {
 							printf(" %s", $i);
 						}
 						printf "\033[0m\n";
@@ -158,7 +167,8 @@ function qcmds() { #? operate available commands. syntax: qcmds commandsPrefix s
 }
 
 function editfile() { #? edit a file using preferedTextEditor
-    [ ! -f $1 ] && logError "File required!"
+	[ -z $1 ] && logError "Which file ?" && return
+	[ -d $1 ] && logError "Target is a directory !" && return
     eval "$preferTextEditor $1"
 }
 
@@ -379,14 +389,14 @@ function hex2dec() { #? convert hexadecimal to decimal
 	echo $((0x$1))
 }
 
-function uni2sp() { #? convert unicode (10000 - 10FFFF) to surrogate pair (D800-DBFF and DC00-DFFF)
+function uni2sp() { #? convert unicode (range [10000, 10FFFF]) to surrogate pair (range [D800, DBFF] and [DC00, DFFF])
 	[ -z $1 ] && return
 	if ! [[ $1 =~ '^[0-9a-fA-F]+$' ]]; then
 		logWarn "$1 is not hexdecimal" && return
 	fi
 
 	if [[ 0x$1 -lt 0x10000 || 0x$1 -gt 0x10FFFF ]]; then
-		logWarn "$1 is out of range (10000 - 10FFFF)"
+		logWarn "$1 is out of range [10000, 10FFFF]"
 	else
 		offset=$((0x$1 - 0x10000))
 		row=$(($offset / 0x400))
@@ -397,17 +407,17 @@ function uni2sp() { #? convert unicode (10000 - 10FFFF) to surrogate pair (D800-
 	fi
 }
 
-function sp2uni() { #? convert surrogate pair (D800-DBFF and DC00-DFFF) to unicode (10000 - 10FFFF)
+function sp2uni() { #? convert surrogate pair (range [D800, DBFF] and [DC00, DFFF]) to unicode (range [10000, 10FFFF])
 	[[ -z $1 || -z $2 ]] && logWarn "A surrogate pair needs 2 units" && return
 	if ! [[ $1 =~ '^[0-9a-fA-F]+$' && $2 =~ '^[0-9a-fA-F]+$' ]]; then
 		logWarn "$1 or $2 is not hexdecimal" && return
 	fi
 
 	if [[ 0x$1 -lt 0xD800 || 0x$1 -gt 0xDBFF ]]; then
-		logWarn "1st (high-surrogate) unit $1 is out of range (D800-DBFF)" && return
+		logWarn "1st (high-surrogate) unit $1 is out of range [D800, DBFF]" && return
 	fi
 	if [[ 0x$2 -lt 0xDC00 || 0x$2 -gt 0xDFFF ]]; then
-		logWarn "2nd (low-surrogate) unit $2 is out of range (DC00-DFFF)" && return
+		logWarn "2nd (low-surrogate) unit $2 is out of range [DC00, DFFF]" && return
 	fi
 
 	highOffset=$((0x$1 - 0xD800))

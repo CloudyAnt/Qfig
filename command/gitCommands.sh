@@ -142,7 +142,7 @@ function ghttpproxy() {
 
 function gpush() {
     [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
-	logInfo "Start pushing.."
+	logInfo "Push starting.."
 	message=$(git push 2>&1 | tee /dev/tty)
 	if [[ $message = *"has no upstream branch"* ]]; then
 		logInfo "Creating upstream branch"
@@ -154,9 +154,9 @@ function gpush() {
 			logError "Failed to create upstream branch \e[1m$branch\e[0m"
 		fi
 	elif [[ $message = *"fatal"* || $message = *"error"* ]]; then
-		logWarn "Push may failed, check the above message"
+		logWarn "Push seems failed, check the above message"
 	else
-		logSuccess "Done"
+		logSuccess "Push done"
 	fi
 }
 
