@@ -207,19 +207,19 @@ function logInfo() { #? log info
 }
 
 
-function logError() { #? log error
+function logError() { #? log error message
     [ -z $1 ] && return
     #logColor "\033[30;41m" $1 
 	qfigLog "\e[38;05;196m" $1 $2
 }
 
-function logWarn() { #? log warn
+function logWarn() { #? log warning message
     [ -z $1 ] && return
     #logColor "\033[30;103m" $1
 	qfigLog "\e[38;05;226m" $1 $2
 }
 
-function logSuccess() { #? log success
+function logSuccess() { #? log success message
     [ -z $1 ] && return
     #logColor "\033[30;42m" $1
 	qfigLog "\e[38;05;118m" $1 $2
@@ -230,7 +230,7 @@ function logDebug() { #x debug
 	printf "\e[3m\e[34;100mDEBUG\e[0m \e[1;3m$1\e[0;0m\n"
 }
 
-function logSilence() {
+function logSilence() { #? log unconspicuous message
     [ -z $1 ] && return
     #logColor "\033[30;42m" $1
 	printf "\e[2m● $1\e[0m\n"

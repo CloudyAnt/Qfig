@@ -25,13 +25,18 @@ If (Test-Path $Qfig_loc/config) {
 				If (Test-Path "$cmdsFile") {
 					. $cmdsFile
 					$enabledCommands += " $cmds"
-				} Else {
+				} ElseIf ($verbose) {
 					logWarn "$cmdsFile Not Exists!"
 				}
 			}
 		}
 	}
-	$enabledCommands ? ($initMsg += "Enabled commands:$enabledCommands. ") : ($initMsg += "None Enabled commands. ")
+
+	If ($enabledCommands) {
+		$initMsg += "Enabled commands:$enabledCommands. "
+	} Else {
+		$initMsg += "None Enabled commands. "
+	}
 
 	$_preferTextEditor = ""
 	If ($content -match '<preferTextEditor>(.+)</preferTextEditor>') {
@@ -40,8 +45,14 @@ If (Test-Path $Qfig_loc/config) {
 			$preferTextEditor = $_preferTextEditor
 		}
 	}
-	$_preferTextEditor ? ($initMsg += "Using prefer text editor: $preferTextEditor. ") : ($initMsg += "Using default text editor: $preferTextEditor. ")
-	if ($verbose) {
+
+	If ($_preferTextEditor) {
+		$initMsg += "Using prefer text editor: $preferTextEditor. "
+	} Else {
+		$initMsg += "Using default text editor: $preferTextEditor. "
+	}
+
+	If ($verbose) {
 		logInfo $initMsg
 	}
 	Clear-Variable verbose

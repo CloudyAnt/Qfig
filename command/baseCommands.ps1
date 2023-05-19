@@ -1,4 +1,4 @@
-# These commands which only use system commands
+#? These commands only requires Powershell built-in commands
 
 function qfig { #? Qfig preserved command
     param([string]$command)
@@ -34,7 +34,7 @@ function qfig { #? Qfig preserved command
     }
 }
 
-function ..() { #？go to upper level folder
+function ..() { #? go to upper level folder
    Set-Location ../
 }
 
@@ -76,23 +76,40 @@ function qcmds() { #? operate available commands. syntax: qcmds commandsPrefix s
         }
         {"", "explain" -contains $_} {
             Get-Content $targetFile | ForEach-Object {
-                If ($_.StartsWith("function")) {
+                If ($_.StartsWith("#? ")) {
+                    $exp = "`e[1;34m▍`e[39m"
+                    $parts = $_.Split(" ")
+                    for ($i = 1; $i -lt $parts.Count; $i++) {
+                        $exp += "$($parts[$i]) "
+                    }
+                    "$exp`e[0m"
+                } ElseIf ($_.StartsWith("function ")) {
                     $parts = $_.Split(" ")
                     If ("#x".Equals($parts[3])) {
                         Return
                     }
+                    $suffix = " `e[0m:";
                     If ("#?".Equals($parts[3])) {
-                        $exp = "`e[0m:`e[0;36m"
+                        $suffix += "`e[0;36m"
                     } ElseIf ("#!".Equals($parts[3])){
-                        $exp = "`e[0m:`e[1;31m"
-                    } Else {
-                        Return
+                        $suffix += "`e[1;31m"
                     }
                     For($i = 4; $i -lt $parts.Length; $i++) {
+                        $suffix += " $($parts[$i])"
+                    }
+                    $prefix = "`e[1;34m$($parts[1]) `e[37;2m";
+                    while ($prefix.Length -lt 32) {
+                        $prefix += "-"
+                    }
+                    $prefix = $prefix.Replace("`(`)", "`e[1;37m()`e[0m") + "`e[39;22m"
+                    "$prefix$suffix`e[0m"
+                } ElseIf ($_.StartsWith("alias ")) {
+                    $parts = $_.Split(" ")
+                    $exp = "`e[32alias `e[34m $($parts[1]) `e[39m = `e[36m $($parts[2])"
+                    for ($i = 2; $i -lt $parts.Count; $i++) {
                         $exp += " $($parts[$i])"
                     }
-                    $line = $("{0,-30}{1}" -f "`e[1;34m$($parts[1])`e[0m", $exp).Replace("`(`)", "`e[1;37m()`e[0m")
-                    "$line`e[0m"
+                    "$exp`e[0m"
                 }
             }
         }
@@ -106,7 +123,7 @@ function qcmds() { #? operate available commands. syntax: qcmds commandsPrefix s
 
 function editFile() { #? edit file using the prefer text editor
     param([Parameter(Mandatory)]$path)
-    If (Test-Path $path -And Test-Path $path -PathType Container) {
+    If ((Test-Path $path) -And (Test-Path $path -PathType Container)) {
         logError "'$path' is a directory!"
         Return
     }
@@ -134,32 +151,32 @@ function defaultGV() { #? set default global value for variable
     }
 }
 
-function logSuccess() {
+function logSuccess() { #? log success message
 	param([Parameter(Mandatory)]$text, [string]$prefix)
 	qfigLog "`e[38;05;118m" $text $prefix
 }
 
-function logInfo() {
+function logInfo() { #? log info
 	param([Parameter(Mandatory)]$text, [string]$prefix)
 	qfigLog "`e[38;05;123m" $text $prefix
 }
 
-function logWarn() {
+function logWarn() { #? log warning message
 	param([Parameter(Mandatory)]$text, [string]$prefix)
 	qfigLog "`e[38;05;226m" $text $prefix
 }
 
-function logError() {
+function logError() { #? log error message
 	param([Parameter(Mandatory)]$text, [string]$prefix)
 	qfigLog "`e[38;05;196m" $text $prefix
 }
 
-function logSilence() {
+function logSilence() { #? log unconspicuous message
 	param([Parameter(Mandatory)]$text)
 	Write-Host "`e[2m● $text`e[0m"
 }
 
-function qfigLog() {
+function qfigLog() { #x
 	param([Parameter(Mandatory)]$color, [Parameter(Mandatory)]$text, [string]$prefix)
 	if ([string]::isNullOrEmpty($prefix)) {
 		$prefix = "●"
@@ -167,12 +184,12 @@ function qfigLog() {
 	Write-Host "$color$prefix`e[0m $text"
 }
 
-function qmap() {
+function qmap() { #? view or edit a map(which may be recognized by Qfig commands)
     param([Parameter(Mandatory)]$prefix)
     editFile "$Qfig_loc/$prefix`MappingFile"
 }
 
-function md5() {
+function md5() { #? calculate md5. Supporting pipe.
 	param([Parameter(Mandatory, ValueFromPipeline)]$text)
 	process {
 		#converts string to MD5 hash in hyphenated and uppercase format

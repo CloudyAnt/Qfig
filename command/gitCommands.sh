@@ -31,7 +31,7 @@ function gmgc() { #? git merge --continue
     git merge --continue
 }
 
-function gmga() {
+function gmga() { #? git merge --abort
 	git merge --abort
 }
 
@@ -71,7 +71,7 @@ function gcto() { #? commit in one line
 
 _git_stash_key="_git_stash_:"
 
-function gstash() { #? git stash
+function gstash() { #? stash with specific name. syntax: gstash name(optional)
     if [ -z "$1" ] 
     then
         git stash
@@ -80,7 +80,7 @@ function gstash() { #? git stash
     git stash push -m "$_git_stash_key""$1" # stash with specific name
 }
 
-function gstashu() { #? git stash unstaged files 
+function gstashu() { #? stash unstaged files with specific name. syntax: gstashu name(optional)
     if [ -z "$1" ] 
     then
         git stash --keep-index
@@ -89,7 +89,7 @@ function gstashu() { #? git stash unstaged files
     git stash push -m "$_git_stash_key""$1" --keep-index # stash with specific name
 }
 
-function gapply() { #? git stash apply 
+function gapply() { #? apply with specific name. syntax: gapply name(optional)
     if [ -z "$1" ] 
     then
         git stash apply
@@ -100,7 +100,7 @@ function gapply() { #? git stash apply
     git stash apply $key # apply with specific name
 }
 
-function gpop() { #? git stash pop 
+function gpop() { #? pop with specific name. syntax: gpop name(optional)
     if [ -z "$1" ] 
     then
         git stash pop
@@ -127,7 +127,7 @@ function gcst0() { #! [DEPRECATED] check single folder commit status
         | awk '{sub("ahead", "\e[1;31mAHEAD\e[0m")} 1' 
 }
 
-function ghttpproxy() {
+function ghttpproxy() { #? syntax: gttpproxy proxy. unsert proxy if 'proxy' is empty
     if [ -z "$1" ]
     then
         git config --global --unset http.proxy
@@ -140,7 +140,7 @@ function ghttpproxy() {
     fi
 }
 
-function gpush() {
+function gpush() { #? git push with automatic branch creation
     [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
 	logInfo "Push starting.."
 	message=$(git push 2>&1 | tee /dev/tty)
@@ -160,7 +160,7 @@ function gpush() {
 	fi
 }
 
-function gtop() {
+function gtop() { #? go to the top level of current repo
     # CHECK if this is a git repository
     [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
 	gitTopLevel=$(git rev-parse --show-toplevel)
@@ -228,7 +228,7 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 
     # GET pattern & cache, use default if it not exists
 	git_toplevel=$(git rev-parse --show-toplevel)
-    git_commit_info_cache_folder=$Qfig_loc/.gcache/$(echo $git_toplevel | sed 's|/|_|g' | sed 's|:|__|' | md5)
+    git_commit_info_cache_folder=$Qfig_loc/.gcache/$(echo $git_toplevel | md5)
 	[ ! -d "$git_commit_info_cache_folder" ] && mkdir -p $git_commit_info_cache_folder
 	pattern_tokens_file=$git_commit_info_cache_folder/pts
 	r_step_values_cache_file=$git_commit_info_cache_folder/rsvc # r = repository
