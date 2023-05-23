@@ -1,55 +1,44 @@
 #!/bin/bash
 # Quick Sort
-# Since there are no 'local variable' in shell scripts, recursion became quiet tricky.
-# My solution is to use a variable 'loopId' to achieve 'local variable' equivalently:
+# The Shell variables defined in session and functions are visible mutually by default.
+# The 'local' keyword limit a variable only work in containing function
 
 function partition {
-    arr=$1
-    l=$2
-    r=$3
-    i=`expr $l - 1`
+    local l=$1
+    local r=$2
+    local i=$(($l - 1))
 
-    for j in `seq $l $(expr $r - 1)`;do
-        if [ ${arr[$j]} -le ${arr[$r]} ]
+    local j=$l;
+    local temp;
+    for ((; j<=$(($r - 1)); j++)); do
+        if [[ ${arr[$j]} -lt ${arr[$r]} ]]
         then
-            i=`expr $i + 1`
             temp=${arr[$j]}
+            i=$(($i + 1))
             arr[$j]=${arr[$i]}
             arr[$i]=$temp
-
         fi
     done
 
-    i=`expr $i + 1`
     temp=${arr[$r]}
+    i=$(($i + 1))
     arr[$r]=${arr[$i]}
     arr[$i]=$temp
 
-    partitionIndex=$i
+    middle=$i
 }
 
 function qs {
-    loopId=`expr $loopId + 1`
-    arr=$1
-    l=$2
-    r=$3
+    local l=$1
+    local r=$2
 
     if [ $l -lt $r ]
     then
-        eval "l$loopId=$l"
-        eval "r$loopId=$r"
-        partition $arr $l $r
-        eval "partitionIndex$loopId=$partitionIndex"
-        qs $arr $l `expr $partitionIndex - 1`
-
-        partitionIndexx="echo \$partitionIndex$loopId"
-        partitionIndex=`eval $partitionIndexx`
-        rx="echo \$r$loopId"
-        r=`eval $rx`
-        qs $arr `expr $partitionIndex + 1` $r 
+        partition $l $r
+        local middle=$middle
+        qs $l $(($middle - 1))
+        qs $(($middle + 1)) $r
     fi
-
-    loopId=`expr $loopId - 1`
 }
 
 arr=($@)
@@ -61,7 +50,7 @@ else
     intRe='^[0-9]+$'
     arrIsValid=1
 
-    for i in `seq 0 $(expr ${#arr[@]} - 1)`;do
+    for i in $(seq 0 $(expr ${#arr[@]} - 1));do
         if [[ ! ${arr[$i]} =~ $intRe ]] 
         then 
             arrIsValid=0
@@ -72,10 +61,9 @@ else
     if [ $arrIsValid -eq 1 ]
     then
         recursion=0
-        qs $arr 0 `expr ${#arr[@]} - 1`
+        qs 0 $((${#arr[@]} - 1))
         echo ${arr[*]}
     else
         echo "Array is invalid!!"
     fi
 fi
-
