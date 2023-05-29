@@ -366,21 +366,64 @@ function findindex() { #? find 1st target index in provider. Usage: findindex pr
 	return 1
 }
 
-function chr() { #? convert number[s] to ASCII character[s]
-	awk '{
-		split($0, chars, " ");
-		for (i=1; i <= length($0); i++) {
-			printf("%c", chars[i]);
-		}
-		printf("\n");
-	}' <<< $@
+function uni2chr() { #? convert unicodes(hexdecimal) to characters
+	declare -i codesCount=0;
+	declare -i charsCount=0;
+	local ls=""
+	local err=""
+	local arg
+	for arg in "$@"
+	do
+		codesCount=$((codesCount + 1))
+		if ! [[ $arg =~ '^[0-9a-fA-F]+$' ]]; then
+			err="The $codesCount""th arg '$arg' is not hexdecimal" && break
+			break
+		elif [[ 0x$arg -lt 0x0 || 0x$arg -gt 0x10FFFF ]]; then
+			err="The $codesCount""th arg '$arg' is out of range [0, 10FFFF]" && break
+		elif [ $ls ]; then
+			if [[ 0x$arg -lt 0xDC00 || 0x$arg -gt 0xDFFF ]]; then
+				err="The $codesCount""th unicode is not trailing surrogate, while the previous arg $ls is leading surrogate" && break
+			fi
+			local uni=$(sp2uni $ls $arg)
+			printf "\U$uni"
+			charsCount=$((charsCount + 1))
+			ls=""
+		elif [[ 0x$arg -ge 0xD800 && 0x$arg -le 0xDBFF ]]; then
+			ls=$arg
+		elif [[ 0x$arg -ge 0xDC00 && 0x$arg -le 0xDFFF ]]; then
+			err="The $codesCount""th unicode is trailing surrogate, not followed by a leading surrogate" && break
+		elif [ ${#arg} -gt 4 ]; then
+			if [ ${#arg} -gt 8 ]; then
+				arg=${arg:$((${#arg} - 8))}
+			fi
+			printf "\U$arg"
+			charsCount=$((charsCount + 1))
+		else
+			printf "\u$arg"
+			charsCount=$((charsCount + 1))
+		fi
+	done
+	[ $charsCount -gt 0 ] && printf "\n"
+	if [ $err ]; then
+		logError $err
+		return 1
+	fi
 }
 
-function int() { #? convert ASCII character[s] to number[s]
-	all=$@
+function chr2dec() { #? convert characters to unicodes(decimal)
+	local all=$@
 	for (( i=0 ; i<${#all}; i++ )); do
 		c=${all:$i:1}
 		printf "%d " "'$c"
+	done
+	printf "\n"
+}
+
+function chr2hex() { #? convert characters to unicodes(hexdecimal)
+	local all=$@
+	for (( i=0 ; i<${#all}; i++ )); do
+		c=${all:$i:1}
+		printf "%x " "'$c"
 	done
 	printf "\n"
 }
