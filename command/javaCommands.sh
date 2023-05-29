@@ -1,6 +1,6 @@
 #? These are commands about java, make sure it's available before use.
 
-function jrun() { #? java compile hello.java && java hello
+function jrun() { #? java compile then run, jrun Hello => javac Hello.java && java Hello
     [ -z $1 ] && logError "Which file to run ?" && return
     [ ! -f "$1" ] && logError "File does not exist !" && return
 

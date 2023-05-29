@@ -38,10 +38,10 @@ function ..() { #? go to upper level folder
    Set-Location ../
 }
 
-function qcmds() { #? operate available commands. syntax: qcmds commandsPrefix subcommands. -h for more
+function qcmds() { #? operate available commands. Usage: qcmds commandsPrefix subcommands. -h for more
     param([string]$prefix, [string]$subCommand, [switch]$help = $false)
     If ($help -Or (-Not $prefix)) {
-        logInfo "Basic syntax: qcmds toolCommandsPrefix subcommands(optional). e.g., 'qcmds base'"
+        logInfo "Basic usage: qcmds toolCommandsPrefix subcommands(optional). e.g., 'qcmds base'"
         $availabeCommandsNotice = "  Available Qfig tool commands(prefix):"
         Get-ChildItem $Qfig_loc/command | ForEach-Object {
             $itemName = $_.name

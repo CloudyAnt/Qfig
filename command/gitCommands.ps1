@@ -163,7 +163,7 @@ function gpush() {
     }
     Else {
         If ($message -match ".*has no upstream branch.*") {
-            logInfo "Creating upstream branch"
+            logInfo "'No upstream branch' was told, creating"
             $branch = git rev-parse --abbrev-ref HEAD
             $message = git push -u origin | Out-String
             If ($?) {
@@ -209,7 +209,7 @@ function gct() {
         $obstacleProgress = "Revert"
     }
     If ($obstacleProgress) {
-        logWarn "$obstacleProgress in progress, continue ? \e[90mY for Yes, others for No.\e[0m" "!"
+        logWarn "$obstacleProgress in progress, continue ? `e[90mY for Yes, others for No.`e[0m" "!"
 		$yn = Read-Host
         If (-Not ("y".Equals($yn) -Or "Y".Equals($yn))) {
             Return
@@ -233,7 +233,7 @@ function gct() {
 
     IF (Test-Path $gctpattern_file -PathType Leaf) {
         If ($pattern_set) {
-            logError "Can not specify pattern cause $boldRepoPattern exists, modify it to achieve this"
+            logError "Can not specify pattern when $boldRepoPattern exists, modify it to achieve this"
             Return
         }
         $pattern = Get-Content $gctpattern_file

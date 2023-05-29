@@ -6,22 +6,22 @@
 function partition {
     local l=$1
     local r=$2
-    local i=$(($l - 1))
+    local i=$((l - 1))
 
     local j=$l;
     local temp;
-    for ((; j<=$(($r - 1)); j++)); do
+    for ((; j<=$((r - 1)); j++)); do
         if [[ ${arr[$j]} -lt ${arr[$r]} ]]
         then
             temp=${arr[$j]}
-            i=$(($i + 1))
+            i=$((i + 1))
             arr[$j]=${arr[$i]}
             arr[$i]=$temp
         fi
     done
 
     temp=${arr[$r]}
-    i=$(($i + 1))
+    i=$((i + 1))
     arr[$r]=${arr[$i]}
     arr[$i]=$temp
 
@@ -36,8 +36,8 @@ function qs {
     then
         partition $l $r
         local middle=$middle
-        qs $l $(($middle - 1))
-        qs $(($middle + 1)) $r
+        qs $l $((middle - 1))
+        qs $((middle + 1)) $r
     fi
 }
 

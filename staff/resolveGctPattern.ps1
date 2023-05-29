@@ -1,5 +1,5 @@
 param([Parameter(Mandatory)]$pattern)
-# parrtern example:<name@^[^\:]+$:Unknown> <#type@^[^\:]+$:refactor fix feat chore doc test style>: <#message@^[^\:]+$:Unknown>
+# pattern example:<name@^[^\:]+$:Unknown> <#type@^[^\:]+$:refactor fix feat chore doc test style>: <#message@^[^\:]+$:Unknown>
 
 # token types:
 # 0 String

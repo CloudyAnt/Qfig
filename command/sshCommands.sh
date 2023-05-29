@@ -18,14 +18,14 @@ eval `cat $_PEM_MAPPING_FILE | awk -F '=' 'BEGIN{ s = "declare -A _PEM_MAPPING; 
 END { s = s ")"; print s}'`
 
 
-function cs() { #? connect server. syntax: cs mapping; cs mapping identification[optional] 
+function cs() { #? connect server. Usage: cs mapping; cs mapping identification[optional]
     [ -z "$1" ] || [ -z $_SSH_MAPPING[$1] ] && logWarn "No ssh mapping for: $1" && return # need mapping
     _SshEndpoint=$_SSH_MAPPING[$1]
 
     ssh ssh://$_SshEndpoint $2
 }
 
-function csc() { #? connect server & send command. syntax: csc mapping command
+function csc() { #? connect server & send command. Usage: csc mapping command
     [ -z "$1" ] || [ -z $_SSH_MAPPING[$1] ] && logWarn "No ssh mapping for: $1" && return # check mapping 
     [ -z "$2" ] && logWarn "Need command" && return # check command 
     _SshEndpoint=$_SSH_MAPPING[$1]
@@ -33,7 +33,7 @@ function csc() { #? connect server & send command. syntax: csc mapping command
     ssh ssh://$_SshEndpoint $2 
 }
 
-function csi() { #? connect server (or send command) with identification. syntax: csi mapping; csi mapping 'your remote command'
+function csi() { #? connect server (or send command) with identification. Usage: csi mapping; csi mapping 'your remote command'
     [ -z "$1" ] || [ -z $_SSH_MAPPING[$1] ] || [ -z $_PEM_MAPPING[$1] ] && logWarn "No ssh/pem mapping for: $1" && return # need mapping
     _SshEndpoint=$_SSH_MAPPING[$1]
     _PemFile=$_PEM_MAPPING[$1]
@@ -41,7 +41,7 @@ function csi() { #? connect server (or send command) with identification. syntax
     ssh -i $_PemFile ssh://$_SshEndpoint $2
 }
 
-function cpt() { #? copy to server. syntax: cpt localFile mapping remoteFile identification[optional]
+function cpt() { #? copy to server. Usage: cpt localFile mapping remoteFile identification[optional]
     [ -z "$2" ] || [ -z $_SSH_MAPPING[$2] ] && logWarn "No ssh mapping for: $2" && return # need mapping
     _SshEndpoint=$_SSH_MAPPING[$2]
 
@@ -53,7 +53,7 @@ function cpt() { #? copy to server. syntax: cpt localFile mapping remoteFile ide
     fi
 }
 
-function cpti() { #? copy to server with identification. syntax: cpti localFile mapping remoteFile 
+function cpti() { #? copy to server with identification. Usage: cpti localFile mapping remoteFile
     [ -z "$2" ] || [ -z $_SSH_MAPPING[$2] ] || [ -z $_PEM_MAPPING[$2] ] && logWarn "No ssh/pem Mapping For: $2" && return # need mapping
     _SshEndpoint=$_SSH_MAPPING[$2]
     _PemFile=$_PEM_MAPPING[$2]
@@ -62,7 +62,7 @@ function cpti() { #? copy to server with identification. syntax: cpti localFile 
     scp -i $_PemFile $1 $_SshEndpoint:/$3
 }
 
-function cprt() { #? recursively copy entire directories to server. syntax: cprt dir mapping remoteDir identification[optional]
+function cprt() { #? recursively copy entire directories to server. Usage: cprt dir mapping remoteDir identification[optional]
     [ -z "$2" ] || [ -z $_SSH_MAPPING[$2] ] && logWarn "No ssh Mapping For: $2" && return # need mapping
     _SshEndpoint=$_SSH_MAPPING[$2]
 
@@ -74,7 +74,7 @@ function cprt() { #? recursively copy entire directories to server. syntax: cprt
     fi
 }
 
-function cpf() { #? copy from server. syntax: cpf remoteFile mapping localFile identification[optional]
+function cpf() { #? copy from server. Usage: cpf remoteFile mapping localFile identification[optional]
     [ -z "$1" ] || [ -z $_SSH_MAPPING[$1] ] && logWarn "No ssh Mapping For: $1" && return # need mapping
     _SshEndpoint=$_SSH_MAPPING[$1]
 
@@ -86,7 +86,7 @@ function cpf() { #? copy from server. syntax: cpf remoteFile mapping localFile i
     fi
 }
 
-function cpfi() { #? copy from server with identification. syntax: cpfi romoteFile mapping localFile
+function cpfi() { #? copy from server with identification. Usage: cpfi romoteFile mapping localFile
     [ -z "$1" ] || [ -z $_SSH_MAPPING[$1] ] || [ -z $_PEM_MAPPING[$1] ] && logWarn "No ssh/pem Mapping For: $1" && return # need mapping
     _SshEndpoint=$_SSH_MAPPING[$1]
     _PemFile=$_PEM_MAPPING[$1]

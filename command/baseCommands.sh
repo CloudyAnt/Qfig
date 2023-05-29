@@ -50,7 +50,7 @@ function qfig() { #? Qfig preserved command
 					}
 				} END {print ""}'
 			fi
-			rezsh "" "Qfig updated!"
+			rezsh - "Qfig updated!"
 			unset pullMessage
 			;;
 		config)
@@ -78,7 +78,7 @@ function qread() { #? use vared like read
 	eval "vared $1"
 }
 
-function qcmds() { #? operate available commands. syntax: qcmds commandsPrefix subcommands. -h for more
+function qcmds() { #? operate available commands. Usage: qcmds $commandsPrefix $subcommands. -h for more
 	unset help
 	while getopts "h" opt; do
         case $opt in
@@ -91,7 +91,7 @@ function qcmds() { #? operate available commands. syntax: qcmds commandsPrefix s
         esac
     done
 	if [[ "$help" || -z "$1" ]]; then
-		logInfo "Basic syntax: qcmds toolCommandsPrefix subcommands(optional). e.g., 'qcmds base'"
+		logInfo "Usage: qcmds \$toolCommandsPrefix \$subcommands(optional). e.g., 'qcmds base'"
 		echo "  Available Qfig tool commands(prefix): $(ls $Qfig_loc/command | perl -n -e'/(.+)Commands\.sh/ && print "$1 "')"
 		echo "  Subcommands: explain(default), cat(or read), vim(or edit)"
 		return
@@ -303,7 +303,13 @@ function assertExist() { #? check file existence
 }
 
 function rezsh() { #? source .zshrc
-    [ -z "$1" ] && logInfo "Refreshing zsh..." || logInfo "$1..."
+	if [ ! "-" = "$1" ]; then
+		[ -z "$1" ] && logInfo "Refreshing zsh..." || logInfo "$1..."
+	fi
+	# unset all alias
+	unalias -a
+	# unset all functions
+	unset -f -m '*'
     source ~/.zshrc
 	[ -z "$2" ] && logSuccess "Refreshed zsh" || logSuccess "$2"
 }
@@ -333,8 +339,8 @@ function port2ps() { #? get process which listening to port
 	lsof -nP -iTCP -sTCP:LISTEN | grep $1
 }
 
-function findindex() { #? find 1st target index in provider. syntax: findindex provider target
-	[[ -z $1 || -z $2 ]] && logError "Syntax: findindex provider target" && return 1
+function findindex() { #? find 1st target index in provider. Usage: findindex provider target
+	[[ -z $1 || -z $2 ]] && logError "Usage: findindex provider target" && return 1
 	s1len=${#1}
 	s2len=${#2}
 	[ $s2len -gt $s1len ] && logError "Target is longer than provider!" && return 1

@@ -6,6 +6,11 @@ alias gamdn='git commit --amend --no-edit'
 alias gaap='git add -p'
 alias glist='git stash list --date=local'
 alias glistp='git stash list --pretty=format:"%C(red)%h%C(reset) - %C(dim yellow)(%C(bold magenta)%gd%C(dim yellow))%C(reset) %<(70,trunc)%s %C(green)(%cr) %C(bold blue)<%an>%C(reset)"'
+alias g-='gco -'
+alias grb-='git rebase -'
+alias gmgc='git merge --continue'
+alias gmga='git merge --abort'
+alias gmg-='git merge -'
 forbidAlias gp gpush "git push"
 forbidAlias gl "git pull"
 forbidAlias gc gct "git commit"
@@ -23,20 +28,46 @@ forbidAlias gc gct "git commit"
 # grba = git rebase --abort
 # gpr = git pull --rebase
 
-function grb-() { #? git rebase -
-	git rebase -
-}
-
-function gmgc() { #? git merge --continue
-    git merge --continue
-}
-
-function gmga() { #? git merge --abort
-	git merge --abort
-}
-
-function gmg-() { #? git merge -
-    git merge -
+function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(optional) $cmdArg(optional). gtag -h for more
+	if [ -z $1 ]; then
+		git tag --points-at # --points-at defaults to HEAD
+	elif [ "-h" = "$1" ]; then
+		logInfo "Usage: gtag \$tag(optional) \$cmd(optional) \$cmdArg(optional).\n  If no params specified, then show the tags for current commit\n  Available commands:\n"
+		printf "    %-17s%s\n" "c/create" "Default. Create a tag on current commit."
+		printf "    %-17s%s\n" "p/push" "Push the tag to remote, use the 3rd param to specify the remote tag name"
+		printf "    %-17s%s\n" "d/delete" "Delete the tag"
+		printf "    %-17s%s\n" "dr/delete-remote" "Delete the remote tag, \$tag is the remote tag name here"
+		return
+	elif [[ $1 = -* ]]; then
+		logError "A Tag should not starts with '-'" && return 1
+	else
+		cmd=$2
+		if [ -z $cmd ]; then
+			cmd="c"
+		fi
+		case $cmd in
+			c|create)
+				git tag $1
+				if [ 0 -eq $? ]; then
+					logSuccess "Created tag: $1"
+				fi
+			;;
+			p|push)
+				git push origin $1 $3
+			;;
+			d|delete)
+				git tag -d $1
+			;;
+			dr|delete-remote)
+				git push origin :refs/tags/$1
+			;;
+			*)
+				logError "Unknown command: $cmd"
+				gtag -h
+				return 1
+			;;
+		esac
+	fi
 }
 
 function gaaf() { #? git add files in pattern
@@ -71,7 +102,7 @@ function gcto() { #? commit in one line
 
 _git_stash_key="_git_stash_:"
 
-function gstash() { #? stash with specific name. syntax: gstash name(optional)
+function gstash() { #? stash with specific name. Usage: gstash name(optional)
     if [ -z "$1" ] 
     then
         git stash
@@ -80,7 +111,7 @@ function gstash() { #? stash with specific name. syntax: gstash name(optional)
     git stash push -m "$_git_stash_key""$1" # stash with specific name
 }
 
-function gstashu() { #? stash unstaged files with specific name. syntax: gstashu name(optional)
+function gstashu() { #? stash unstaged files with specific name. Usage: gstashu name(optional)
     if [ -z "$1" ] 
     then
         git stash --keep-index
@@ -89,7 +120,7 @@ function gstashu() { #? stash unstaged files with specific name. syntax: gstashu
     git stash push -m "$_git_stash_key""$1" --keep-index # stash with specific name
 }
 
-function gapply() { #? apply with specific name. syntax: gapply name(optional)
+function gapply() { #? apply with specific name. Usage: gapply name(optional)
     if [ -z "$1" ] 
     then
         git stash apply
@@ -100,7 +131,7 @@ function gapply() { #? apply with specific name. syntax: gapply name(optional)
     git stash apply $key # apply with specific name
 }
 
-function gpop() { #? pop with specific name. syntax: gpop name(optional)
+function gpop() { #? pop with specific name. Usage: gpop name(optional)
     if [ -z "$1" ] 
     then
         git stash pop
@@ -127,7 +158,7 @@ function gcst0() { #! [DEPRECATED] check single folder commit status
         | awk '{sub("ahead", "\e[1;31mAHEAD\e[0m")} 1' 
 }
 
-function ghttpproxy() { #? syntax: gttpproxy proxy. unsert proxy if 'proxy' is empty
+function ghttpproxy() { #? Usage: gttpproxy proxy. unsert proxy if 'proxy' is empty
     if [ -z "$1" ]
     then
         git config --global --unset http.proxy
@@ -145,7 +176,7 @@ function gpush() { #? git push with automatic branch creation
 	logInfo "Push starting.."
 	message=$(git push 2>&1 | tee /dev/tty)
 	if [[ $message = *"has no upstream branch"* ]]; then
-		logInfo "Creating upstream branch"
+		logInfo "'No upstream branch' was told, creating"
 		branch=$(git rev-parse --abbrev-ref HEAD)
 		message=$(git push -u origin $branch)
 		if [ $? = 0 ]; then
@@ -166,10 +197,6 @@ function gtop() { #? go to the top level of current repo
 	gitTopLevel=$(git rev-parse --show-toplevel)
 	logInfo "Go to:\n$gitTopLevel"
 	cd $gitTopLevel
-}
-
-function g-() { #? go to previous branch
-	gco -
 }
 
 function gct() { #? git commit step by step
@@ -240,7 +267,7 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 	gctpattern_file=$git_toplevel/$repoPattern
 	saveToRepo=""
 	if [ -f "$gctpattern_file" ]; then
-		[ $setPattern ] && logError "Can not specify pattern cause $boldRepoPattern exists, modify it to achieve this" && return 1
+		[ $setPattern ] && logError "Can not specify pattern when $boldRepoPattern exists, modify it to achieve this" && return 1
 
 		# read from .gctpattern
 		pattern=$(cat $gctpattern_file)

@@ -2,7 +2,7 @@
 
 [ -z "$1" ] && echo "Pattern must not be empty!" && exit 1
 pattern=$1
-# parrtern example:<name@^[^\:]+$:Unknown> <#type@^[^\:]+$:refactor fix feat chore doc test style>: <#message@^[^\:]+$:Unknown>
+# pattern example:<name@^[^\:]+$:Unknown> <#type@^[^\:]+$:refactor fix feat chore doc test style>: <#message@^[^\:]+$:Unknown>
 
 # token types:
 # 0 String
