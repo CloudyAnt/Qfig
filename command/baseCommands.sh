@@ -17,22 +17,22 @@ function qfig() { #? Qfig preserved command
 			echo ""
 			;;
 		update)
-			pullMessage=$(git -C $Qfig_loc pull --rebase 2>&1)
+			local pullMessage=$(git -C $Qfig_loc pull --rebase 2>&1)
             if [[ $? != 0 || "$pullMessage" = *"error"* || "$pullMessage" = *"fatal"* ]]; then
                 logError "Cannot update Qfig:\n$pullMessage" && return
 			elif [[ "$pullMessage" = *"up to date"* ]]; then
 				logSuccess "Qfig is up to date" && return
 			else
 				logInfo "Updating Qfig.."
-				currentHeadFile=$Qfig_loc/.gcache/currentHead
+				local currentHeadFile=$Qfig_loc/.gcache/currentHead
 				if [ ! -f "$currentHeadFile" ]; then
 					mktouch $currentHeadFile
 					echo "!!!" > $currentHeadFile
 				fi
 
-				lastHead=$(cat $currentHeadFile)
-				parts=(${(@s/ /)$(git -C $Qfig_loc log --oneline --decorate -1)})
-				newHead=$parts[1]
+				local lastHead=$(cat $currentHeadFile)
+				local parts=(${(@s/ /)$(git -C $Qfig_loc log --oneline --decorate -1)})
+				local newHead=$parts[1]
 				echo $newHead > $currentHeadFile
 				echo "\nUpdate head \e[1m$lastHead\e[0m -> \e[1m$newHead\e[0m:\n"
 				git -C $Qfig_loc log --oneline --decorate -10 | awk -v ch=$lastHead 'BEGIN{first = 1;
@@ -51,7 +51,6 @@ function qfig() { #? Qfig preserved command
 				} END {print ""}'
 			fi
 			rezsh - "Qfig updated!"
-			unset pullMessage
 			;;
 		config)
 			if [ ! -f $Qfig_loc/config ]; then
@@ -97,7 +96,7 @@ function qcmds() { #? operate available commands. Usage: qcmds $commandsPrefix $
 		return
 	fi
 
-    targetFile=$Qfig_loc/command/$1Commands.sh
+    local targetFile=$Qfig_loc/command/$1Commands.sh
 	if [ ! -f "$targetFile" ]; then
 		if [[ "local" = $1 ]]; then
 			echo "# Write your only-in-this-device commands below. This file will be ignored by .gitignore" > $targetFile
@@ -178,18 +177,14 @@ function qmap() { #? view or edit a map(which may be recognized by Qfig commands
 }
 
 function defaultV() { #? set default value for variable
-    value_name=$1
-    default_value=$2
+    local value_name=$1
+    local default_value=$2
 
     [ -z "$value_name" ] && return
 
-    eval "real_value=\$$value_name"
+    eval "local real_value=\$$value_name"
 
     [ -z "$real_value" ] && eval "$value_name='$default_value'"
-
-    unset value_name
-    unset default_value
-    unset real_value
 }
 
 function unsetFunctionsInFile() { #x unset functions in file 
@@ -237,9 +232,9 @@ function logSilence() { #? log unconspicuous message
 }
 
 function qfigLog() { #x log with a colored dot prefix
-	sgr=$1 # Select graphic rendition
-	log=$2
-	prefix=$3
+	local sgr=$1 # Select graphic rendition
+	local log=$2
+	local prefix=$3
     [[ -z "$sgr" || -z "$log" ]] && return
 	[ -z "$prefix" ] && prefix="●" || prefix=$3
 	
@@ -295,6 +290,7 @@ function undoReplaceWord() { #? recovery file with pointed suffix
 ###
 
 function assertExist() { #? check file existence 
+	local file
     for file in "$@"
     do
         [ ! -f "$file" ] && logError "Missing file: $file" && return
@@ -316,7 +312,6 @@ function rezsh() { #? source .zshrc
 
 function targz() { #? compress folder to tar.gz using option -czvf
 	[ ! -d $1 ] && logError "Folder required" && return 
-	name=$(echo $1 | rev | cut -d/ -f1 | rev)
 	tar -czvf $(echo $1 | rev | cut -d/ -f1 | rev).tar.gz $1
 }
 
@@ -341,12 +336,12 @@ function port2ps() { #? get process which listening to port
 
 function findindex() { #? find 1st target index in provider. Usage: findindex provider target
 	[[ -z $1 || -z $2 ]] && logError "Usage: findindex provider target" && return 1
-	s1len=${#1}
-	s2len=${#2}
+	local s1len=${#1}
+	local s2len=${#2}
 	[ $s2len -gt $s1len ] && logError "Target is longer than provider!" && return 1
-	j=0
-	c2=${2:$j:1}
-	c2_0=$c2
+	local j=0
+	local c2=${2:$j:1}
+	local c2_0=$c2
 	for (( i=0 ; i<$s1len; i++ )); do
 		c1=${1:$i:1}	
 		if [ "$c1" = "$c2" ]; then

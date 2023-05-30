@@ -7,7 +7,7 @@ function jsonget() { #? Usage: jsonget json targetPath, -h for more
   \e[1mWarning\e[0m that the json syntax check is poor, make sure it's correct before use"
         return 0
     fi
-    [[ -z $1 || -z $2 ]] && logError "Usage: jsonget json targetPath" && return 1
+    [[ -z $1 || -z $2 ]] && logError "Usage: jsonget json targetPath. -h for more" && return 1
 
     local s
     local c
@@ -28,7 +28,7 @@ function jsonget() { #? Usage: jsonget json targetPath, -h for more
         fi
         if [ "." = "$c" ]; then
             if [ "" = "$s" ]; then
-                logError "Invalid path: section $((tpi + 1)) is empty" && return 1
+                logError "Invalid path: section $tpi is empty" && return 1
             else
                 tpi=$((tpi + 1))
                 tp[$tpi]=$s

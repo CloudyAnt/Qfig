@@ -40,7 +40,7 @@ function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(optional) $cmd
 	elif [[ $1 = -* ]]; then
 		logError "A Tag should not starts with '-'" && return 1
 	else
-		cmd=$2
+		local cmd=$2
 		if [ -z $cmd ]; then
 			cmd="c"
 		fi
@@ -125,7 +125,7 @@ function gapply() { #? apply with specific name. Usage: gapply name(optional)
         git stash apply
         return
     fi
-    key=$(git stash list | grep "$_git_stash_key""$1" | cut -d: -f1)
+    local key=$(git stash list | grep "$_git_stash_key""$1" | cut -d: -f1)
     [ -z "$key" ] && logWarn "The stash key \"$1\" doesn't exist!" && return
     git stash apply $key # apply with specific name
 }
@@ -136,25 +136,31 @@ function gpop() { #? pop with specific name. Usage: gpop name(optional)
         git stash pop
         return
     fi
-    key=$(git stash list | grep "$_git_stash_key""$1" | cut -d: -f1)
+    local key=$(git stash list | grep "$_git_stash_key""$1" | cut -d: -f1)
     [ -z "$key" ] && logWarn "The stash key \"$1\" doesn't exist!" && return
     git stash pop $key # pop with specific name
 }
 
-function gcst() { #! [DEPRECATED] check multi folder commit status
-    [ -z "$1" ] && gcst0 `pwd` && return
-    present_directory=`pwd`
-    for file in $1/* ; do
-        gcst0 $file -p
-    done
-}
+function gcst() { #? check multi folder commit status
+	function gcst0() {
+		[[ ! -d "$1" || ! -d "$1/.git" ]] && return
+		[ "-p" = "$2" ] && echo $1 | awk -F '/' '{print "\033[1;34m" $NF ":\033[0m" }'
+		git -C $1 status | awk '/Your branch is/{print}' | awk '{sub("Your branch is ", "")} 1' \
+			| awk '{sub("up to date", "\033[1;32mUP TO DATE\033[0m")} 1' \
+			| awk '{sub("ahead", "\033[1;31mAHEAD\033[0m")} 1' 
+	}
 
-function gcst0() { #! [DEPRECATED] check single folder commit status
-    [[ ! -d "$1" || ! -d "$1/.git" ]] && return
-    [ "-p" = "$2" ] && echo $file | awk -F '/' '{print "\e[1;34m" $NF ":\e[0m" }'
-    git -C $1 status | awk '/Your branch is/{print}' | awk '{sub("Your branch is ", "")} 1' \
-        | awk '{sub("up to date", "\e[1;32mUP TO DATE\e[0m")} 1' \
-        | awk '{sub("ahead", "\e[1;31mAHEAD\e[0m")} 1' 
+    local folder=$1
+	if [ -z $folder ]; then
+		gcst0 $(pwd)
+	else
+		local file
+		for file in $folder/* ; do
+			gcst0 $file -p
+		done
+	fi
+
+	unset -f gcst0
 }
 
 function ghttpproxy() { #? Usage: gttpproxy proxy. unsert proxy if 'proxy' is empty
@@ -173,11 +179,11 @@ function ghttpproxy() { #? Usage: gttpproxy proxy. unsert proxy if 'proxy' is em
 function gpush() { #? git push with automatic branch creation
     [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
 	logInfo "Push starting.."
-	message=$(git push 2>&1 | tee /dev/tty)
+	local message=$(git push 2>&1 | tee /dev/tty)
 	if [[ $message = *"has no upstream branch"* ]]; then
 		logInfo "'No upstream branch' was told, creating"
-		branch=$(git rev-parse --abbrev-ref HEAD)
-		message=$(git push -u origin $branch)
+		local branch=$(git rev-parse --abbrev-ref HEAD)
+		local message=$(git push -u origin $branch)
 		if [ $? = 0 ]; then
 			logSuccess "Upstream branch just created"
 		else
@@ -193,15 +199,15 @@ function gpush() { #? git push with automatic branch creation
 function gtop() { #? go to the top level of current repo
     # CHECK if this is a git repository
     [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
-	gitTopLevel=$(git rev-parse --show-toplevel)
+	local gitTopLevel=$(git rev-parse --show-toplevel)
 	logInfo "Go to:\n$gitTopLevel"
 	cd $gitTopLevel
 }
 
 function gct() { #? git commit step by step
 	# READ flags
-	setPattern=""
-	verbose=""
+	local setPattern=""
+	local verbose=""
 	while getopts "phv" opt; do
 		case $opt in
 			h)
@@ -233,8 +239,8 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
     # CHECK if this is a git repository
     [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
     # CHECK if merge, rebase, cherry-pick or revert is in progress 
-	gitStatus=$(git status 2>&1)
-	obstacleProgress=""
+	local gitStatus=$(git status 2>&1)
+	local obstacleProgress=""
 	if [[ "$gitStatus" = *"All conflicts fixed but you are still merging"* || "$gitStatus" = *"You have unmerged paths"* ]]; then
 		obstacleProgress=Merge
 	elif [[ "$gitStatus" = *"interactive rebase in progress;"* ]]; then
@@ -253,23 +259,23 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 	fi
 
     # GET pattern & cache, use default if it not exists
-	git_toplevel=$(git rev-parse --show-toplevel)
-    git_commit_info_cache_folder=$Qfig_loc/.gcache/$(echo $git_toplevel | md5)
+	local git_toplevel=$(git rev-parse --show-toplevel)
+    local git_commit_info_cache_folder=$Qfig_loc/.gcache/$(echo $git_toplevel | md5)
 	[ ! -d "$git_commit_info_cache_folder" ] && mkdir -p $git_commit_info_cache_folder
-	pattern_tokens_file=$git_commit_info_cache_folder/pts
-	r_step_values_cache_file=$git_commit_info_cache_folder/rsvc # r = repository
-	b_step_values_cache_file=$git_commit_info_cache_folder/bsvc-$(git branch --show-current) # b = branch
+	local pattern_tokens_file=$git_commit_info_cache_folder/pts
+	local r_step_values_cache_file=$git_commit_info_cache_folder/rsvc # r = repository
+	local b_step_values_cache_file=$git_commit_info_cache_folder/bsvc-$(git branch --show-current) # b = branch
 
 	# SET pattern
-	repoPattern=".gctpattern"
-	boldRepoPattern="\e[1m$repoPattern\e[0m"
-	gctpattern_file=$git_toplevel/$repoPattern
-	saveToRepo=""
+	local repoPattern=".gctpattern"
+	local boldRepoPattern="\e[1m$repoPattern\e[0m"
+	local gctpattern_file=$git_toplevel/$repoPattern
+	local saveToRepo=""
 	if [ -f "$gctpattern_file" ]; then
 		[ $setPattern ] && logError "Can not specify pattern when $boldRepoPattern exists, modify it to achieve this" && return 1
 
 		# read from .gctpattern
-		pattern=$(cat $gctpattern_file)
+		local pattern=$(cat $gctpattern_file)
 		[ $verbose ] && logSilence "Using $boldRepoPattern \e[90mpattern: $pattern"
 		[ -f "$pattern_tokens_file" ] && [ "?:$pattern" = "$(head -n 1 $pattern_tokens_file)" ] || setPattern=1
 	else
@@ -313,10 +319,11 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 	fi
 
     # CHECK if it's need to commit
-    needToCommit=`gst | awk '/Changes to be committed/{print 1}'`
+    local needToCommit=`gst | awk '/Changes to be committed/{print 1}'`
     [ -z $needToCommit ] && logWarn "Nothing to commit!" && return 1
 
 	# GET pattern tokens
+	local tokens
 	IFS=$'\n' tokens=($(cat $pattern_tokens_file)) IFS=' '
 
 	stepsCount=0
@@ -327,19 +334,24 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 	done
 	
 	# APPEND message step by step
-	message=""
-	curStepNum=0
-	rCurStepNum=0
-	bCurStepNum=0 # branch scope step count
+	local message=""
+	local curStepNum=0
+	local rCurStepNum=0
+	local bCurStepNum=0 # branch scope step count
+	local rStepValues
+	local bStepValues
 	[ -f $r_step_values_cache_file ] && IFS=$'\n' rStepValues=($(cat $r_step_values_cache_file)) IFS=' ' || rStepValues=()
 	[ -f $b_step_values_cache_file ] && IFS=$'\n' bStepValues=($(cat $b_step_values_cache_file)) IFS=' ' || bStepValues=()
-	newRStepValues=""
-	newBStepValues=""
-	stepKey=""
-	stepRegex=""
-	stepOptions=""
-	proceedStep=0
-	branchScope=0
+	local newRStepValues=""
+	local newBStepValues=""
+	local stepKey=""
+	local stepRegex=""
+	local stepOptions=""
+	local proceedStep=0
+	local branchScope=0
+	local stepPrompt
+	local stepDefValue
+	local partial
 	for ((i=1; i<=${#tokens[@]}; i++)); do
 		t=$tokens[$i]
 		case $t in

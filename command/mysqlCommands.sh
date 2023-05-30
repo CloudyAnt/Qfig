@@ -17,11 +17,11 @@ eval `cat $_MYSQL_MAPPING_FILE | awk -F '=' 'BEGIN{ s0 = "";s = "declare -A _MYS
 
 function mysqlc() { #? Connect mysql by mapping
     [ -z $1 ] || [ -z $_MYSQL_MAPPING[$1] ] && logError "Which mapping?" && return
-    unset mapping
+    local mapping
     eval "mapping=($_MYSQL_MAPPING[$1])"
-    hostPort="$mapping[1]:"
-    host=$(cut -d":" -f1 <<< $hostPort)
-    port=$(cut -d":" -f2 <<< $hostPort)
+    local hostPort="$mapping[1]:"
+    local host=$(cut -d":" -f1 <<< $hostPort)
+    local port=$(cut -d":" -f2 <<< $hostPort)
     if [ -z "$port" ]
     then
         mysql -u $mapping[2] -p$mapping[3] -h $host
@@ -34,7 +34,7 @@ function mysqlo() { #? Connect mysql by mapping THEN pass command and output res
     [ -z $1 ] || [ -z $_MYSQL_MAPPING[$1] ] && logError "Which mapping?" && return
     [ -z $2 ] && logError "Need Command" && return
     [ -z $3 ] && logError "Need Output File" && return
-    unset mapping
+    local mapping
     eval "mapping=($_MYSQL_MAPPING[$1])"
     mysql -u $mapping[2] -p$mapping[3] -h $mapping[1] -e "$2 INTO OUTFILE '$3' FIELDS TERMINATED BY ',';"
 }

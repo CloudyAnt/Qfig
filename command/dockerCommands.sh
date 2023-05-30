@@ -29,7 +29,7 @@ function drmc() { #? delete container by id
 }
 
 function dprune() { #? remove all stopped containders and useless images
-	allStoppedContainers=$(docker ps -a -q)
+	local allStoppedContainers=$(docker ps -a -q)
 	if [ -z "$allStoppedContainers" ]
 	then
 		logInfo "No stopped containers"	
