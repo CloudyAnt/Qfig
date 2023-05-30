@@ -474,3 +474,10 @@ function sp2uni() { #? convert surrogate pair (range [D800, DBFF] and [DC00, DFF
 	uni=$(($highOffset * 1024 + $lowOffset + 0x10000))
 	echo $(dec2hex $uni)
 }
+
+function joinBy { #? join reset params by 1st param. Usage: joinBy , a b c
+  local d=${1-} f=${2-}
+  if shift 2; then
+    printf %s "$f" "${@/#/$d}"
+  fi
+}
