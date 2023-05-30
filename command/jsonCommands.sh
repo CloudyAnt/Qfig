@@ -2,8 +2,8 @@
 
 function jsonget() { #? Usage: jsonget json targetPath, -h for more
     if [ "-h" = $1 ]; then
-        logInfo "For json \e[3m{\"users\": [{\"name\": \"chai\"}]}\e[0m, you can get the 1st user's name like: \e[1mjsonget json users.0.name\e[0m. 
-  For json \e[3m[{\"name\": \"chai\"}]\e[0m, then the operation be like: \e[1mjsonget json 0.name\e[0m
+        logInfo "For json \e[34m{\"users\": [{\"name\": \"chai\"}]}\e[0m, you can get the 1st user's name like: \e[1mjsonget json users.0.name\e[0m.
+  For json \e[34m[{\"name\": \"chai\"}]\e[0m, then the operation be like: \e[1mjsonget json 0.name\e[0m
   \e[1mWarning\e[0m that the json syntax check is poor, make sure it's correct before use"
         return 0
     fi
@@ -44,13 +44,21 @@ function jsonget() { #? Usage: jsonget json targetPath, -h for more
     fi
 
     # --- Resolve Json ---
-    local firstC=${1:0:1}
+
     local type
     # x = status of json resloving
     local x=0
     local matched=""
     declare -a cpt # current path section types. 
     # possible types be: O(object), A(array), *(others)
+
+    declare -a cp # current path sections
+    cp[1]="$"
+    declare -i cpi=2 # current path section index
+    local err=""
+    declare -i ai=0 # current array index
+
+    local firstC=${1:0:1}
     case $firstC in
         {)
             cpt[1]="O"
@@ -59,17 +67,15 @@ function jsonget() { #? Usage: jsonget json targetPath, -h for more
         \[)
             cpt[1]="A"
             x=3
+            if [[ $cpi -eq $tpi || "$ai" = $tp[$tpi] ]]; then
+                matched="1"
+            fi
         ;;
         *)
             logError "Invalid json: unrecognized first char: $firstC" && return 1
         ;;
     esac
 
-    declare -a cp # current path sections
-    cp[1]="$"
-    declare -i cpi=2 # current path section index
-    local err=""
-    declare -i ai=0 # current array index
 
     function meetComma {
         if [ "O" = $cpt[$(($cpi - 1))] ]; then
