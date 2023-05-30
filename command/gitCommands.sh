@@ -1,32 +1,31 @@
 #? Git related
 
-alias glog='git log --oneline --abbrev-commit --graph'
+alias g-='gco -'
+alias gaa='git add -A'
+alias gaap='git add -p'
 alias gamd='git commit --amend'
 alias gamdn='git commit --amend --no-edit'
-alias gaap='git add -p'
+alias gco='git checkout'
+alias gcpa='git cherry-pick --abort'
+alias gcpc='git cherry-pick --continue'
 alias glist='git stash list --date=local'
 alias glistp='git stash list --pretty=format:"%C(red)%h%C(reset) - %C(dim yellow)(%C(bold magenta)%gd%C(dim yellow))%C(reset) %<(70,trunc)%s %C(green)(%cr) %C(bold blue)<%an>%C(reset)"'
-alias g-='gco -'
-alias grb-='git rebase -'
-alias gmgc='git merge --continue'
-alias gmga='git merge --abort'
+alias glo='git log --oneline'
+alias glog='git log --oneline --abbrev-commit --graph'
 alias gmg-='git merge -'
+alias gmga='git merge --abort'
+alias gmgc='git merge --continue'
+alias gpr='git pull --rebase'
+alias grb-='git rebase -'
+alias grba='git rebase --abort'
+alias grbc='git rebase --continue'
+alias grmc='git rm --cached'
+alias gst='git status'
+alias gss='git status -s'
 forbidAlias gp gpush "git push"
 forbidAlias gl "git pull"
 forbidAlias gc gct "git commit"
-
-## offical
-# gaa = git add --A
-# gst = git status
-# gss = git status -s
-# gco = git checkout
-# glo = git log --oneline
-# gcm = git checkout $(git_main_branch)
-# grmc = git rm --cached
-# grpc = git cherry-pick --continue
-# grbc = git rebase --continue
-# grba = git rebase --abort
-# gpr = git pull --rebase
+forbidAlias gap gapply
 
 function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(optional) $cmdArg(optional). gtag -h for more
 	if [ -z $1 ]; then
