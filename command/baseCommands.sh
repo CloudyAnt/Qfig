@@ -71,12 +71,6 @@ function qfig() { #? Qfig preserved command
 	esac
 }
 
-function qread() { #? use vared like read
-	[ -z $1 ] && logError "Missing variable name!" && return 1
-	eval "$1="
-	eval "vared $1"
-}
-
 function qcmds() { #? operate available commands. Usage: qcmds $commandsPrefix $subcommands. -h for more
 	unset help
 	while getopts "h" opt; do
@@ -299,6 +293,9 @@ function assertExist() { #? check file existence
 }
 
 function rezsh() { #? source .zshrc
+	[[ -o ksharrays ]] && local ksharrays=1
+	set +o ksharrays # 3rd-parties, e.g. oh-my-zsh, may not expect option
+
 	if [ ! "-" = "$1" ]; then
 		[ -z "$1" ] && logInfo "Refreshing zsh..." || logInfo "$1..."
 	fi
@@ -308,6 +305,10 @@ function rezsh() { #? source .zshrc
 	unset -f -m '*'
     source ~/.zshrc
 	[ -z "$2" ] && logSuccess "Refreshed zsh" || logSuccess "$2"
+
+	if [ $ksharrays ]; then
+		set -o ksharrays
+	fi
 }
 
 function targz() { #? compress folder to tar.gz using option -czvf
@@ -470,9 +471,68 @@ function sp2uni() { #? convert surrogate pair (range [D800, DBFF] and [DC00, DFF
 	echo $(dec2hex $uni)
 }
 
-function joinBy { #? join reset params by 1st param. Usage: joinBy , a b c
-  local d=${1-} f=${2-}
-  if shift 2; then
-    printf %s "$f" "${@/#/$d}"
-  fi
+function concat() { #? concat array. Usage: concat $meta $arr. -h for more
+	if [ "-h" = "$1" ]; then
+		logInfo "Usage: concat \$meta \$arr. \e[34m\$arr\e[0m can be a array variable or varargs."
+		echo "  \e[34m\$meta\e[0m pattern: \e[1m-joiner-start-end (exclusive)\e[0m. The first char is the separator of meta, here it's '-' (recommanded).
+  Start and end are optional. 
+  \e[34m\$meta\e[0m could also be a single character \$c, that equivilent to -\$c or joiner
+  Examples: 
+    \e[1mconcat -,-1-4 \$arr\e[0m (concat items of index 1, 2, 3 using joiner ',')
+    \e[1mconcat \"|\\\|2\" a b c...\e[0m (concat all items after index 2 using joiner '\')
+    \e[1mconcat , a b c...\e[0m (concat all items using joiner ',')"
+		return
+	fi
+	[[ -z $1 || -z $2 ]] && concat -h && return 1
+
+	local joiner
+	local start
+	local end
+	local maxEnd=$((${#@} + 1))
+	if [ 1 -eq ${#1} ]; then
+		joiner=$1
+		start=2 # array start from the 2nd param
+		end=$maxEnd # array end at (length() + 1)
+	else
+		local metaSeparator=${1:0:1}
+		IFS=$metaSeparator local metas=($(echo $1)); IFS=' '
+
+		if [ ${#metas} -lt 1 ]; then
+			logError "Meta must have at least 1 parts (joiner)" && return 1
+		else
+			start=${metas:2:1}
+			if [ -z $start ]; then
+				start=2
+			elif [[ ! $start =~ "^[0-9]+$" ]]; then
+				logError "Start must be a decimal" && return 1
+			else
+				start=$((start + 2))
+			fi
+
+			end=${metas:3:1}
+			if [ -z $end ]; then
+				end=$maxEnd
+			elif [[ ! $end =~ "^[0-9]+$" ]]; then
+				logError "End must be a decimal" && return 1
+			else
+				end=$((end + 2))
+				if [ $end -gt $maxEnd ]; then
+					end=$maxEnd
+				fi
+			fi
+		fi
+		joiner=${metas:1:1}
+	fi
+
+	local firstSet=""
+	local i
+	for (( i=$start ; i<$end; i++ )); do
+		if [ $firstSet ]; then
+			printf "$joiner${@:$i:1}"
+		else
+			firstSet=1
+			printf "${@:$i:1}"
+		fi
+	done
+	printf "\n"
 }

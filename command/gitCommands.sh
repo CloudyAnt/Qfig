@@ -84,7 +84,7 @@ function gctm() { #? commit with message
 	if [ "$1" = '' ]
 	then 
 		logWarn "Commit without message?"
-		qread confirm
+		local confirm=; vared confirm
 		[ "$confirm" = "y" ] && gaa && git commit -m "" 
 	else
 		gaa
@@ -94,7 +94,7 @@ function gctm() { #? commit with message
 
 function gcto() { #? commit in one line
     echo commit with message '"['$1']' $2: $3'" ? (y for Yes)'
-    qread oneline_commit
+	local oneline_commit=; vared oneline_commit
     [ "$oneline_commit" = "y" ] && gaa && git commit -m "[$1] $2: $3"
     unset oneline_commit
 }
@@ -252,11 +252,15 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 	fi
 	if [ $obstacleProgress ]; then
 		logWarn "$obstacleProgress in progress, continue ? \e[90mY for Yes, others for No.\e[0m" "!"
-		qread yn
+		local yn; vared yn
 		if ! [[ 'y' = "$yn" || 'Y' = "$yn" ]]; then
 			return 0	
 		fi
 	fi
+
+	# CHECK options
+	declare -i arrayBase
+	[[ -o ksharrays ]] && arrayBase=0 || arrayBase=1 # if KSH_ARRAYS option set, array based on 0, and '{}' are required to access index
 
     # GET pattern & cache, use default if it not exists
 	local git_toplevel=$(git rev-parse --show-toplevel)
@@ -282,24 +286,24 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 		if [ $setPattern ]; then
 			# specify local pattern
 			logInfo "Please specify the pattern(Rerun with -h to get hint):"
-			qread pattern
+			local pattern=; vared pattern
 		elif [ ! -f "$pattern_tokens_file" ]; then
 			setPattern=1
 			logInfo "Use default pattern \e[34;3;38m$(cat $Qfig_loc/staff/defGctPattern)\e[0m ? \e[90mY for Yes, others for No.\e[0m" "?"
-			qread yn
+			local yn; vared yn
 			if [[ 'y' = "$yn" || 'Y' = "$yn" ]]; then
 				logInfo "Using default pattern"
 				pattern=$(cat $Qfig_loc/staff/defGctPattern)
 			else
 				logInfo "Then please specify the pattern(Rerun with -p to change, -h to get hint):"
-				qread pattern
+				local pattern=; vared pattern
 			fi
 		elif [ $verbose ]; then
 			logSilence "Using local pattern: ${$(head -n 1 $pattern_tokens_file):2}"
 		fi
 		#if [ $setPattern ]; then # whether save to .gctpattern
 			# logInfo "Save it in $boldRepoPattern(It may be shared through your git repo) ? \e[90mY for Yes, others for No.\e[0m" "?"
-			# qread saveToRepo
+			# local saveToRepo=; vared saveToRepo
 		#fi
 	fi
 
@@ -323,7 +327,7 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
     [ -z $needToCommit ] && logWarn "Nothing to commit!" && return 1
 
 	# GET pattern tokens
-	local tokens
+	declare -a tokens
 	IFS=$'\n' tokens=($(cat $pattern_tokens_file)) IFS=' '
 
 	stepsCount=0
@@ -335,9 +339,9 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 	
 	# APPEND message step by step
 	local message=""
-	local curStepNum=0
-	local rCurStepNum=0
-	local bCurStepNum=0 # branch scope step count
+	declare -i curStepNum=0
+	declare -i rCurStepNum=$((arrayBase - 1)) # repo scope step count
+	declare -i bCurStepNum=$((arrayBase - 1)) # branch scope step count
 	local rStepValues
 	local bStepValues
 	[ -f $r_step_values_cache_file ] && IFS=$'\n' rStepValues=($(cat $r_step_values_cache_file)) IFS=' ' || rStepValues=()
@@ -347,13 +351,16 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 	local stepKey=""
 	local stepRegex=""
 	local stepOptions=""
-	local proceedStep=0
-	local branchScope=0
+	declare -i proceedStep=0
+	declare -i branchScope=0
 	local stepPrompt
 	local stepDefValue
 	local partial
-	for ((i=1; i<=${#tokens[@]}; i++)); do
-		t=$tokens[$i]
+	local i
+
+	i=$((arrayBase + 0))
+	for ((; i<=${#tokens[@]}; i++)); do
+		t=${tokens[$i]}
 		case $t in
 			0:*)
 				message+=${t:2}
@@ -361,7 +368,7 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 			;;
 			1:*)
 				stepKey=${t:2}
-				if ! [[ $tokens[$((i + 1))] =~ 11:* || $tokens[$((i + 1))] =~ 12:* ]]; then
+				if ! [[ ${tokens[$((i + 1))]} =~ 11:* || ${tokens[$((i + 1))]} =~ 12:* ]]; then
 					proceedStep=1
 				fi
 			;;
@@ -371,7 +378,7 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 			11:*)
 				if [ $stepKey ]; then
 					stepRegex=${t:3}
-					if ! [[ $tokens[$((i + 1))] =~ 12* ]]; then
+					if ! [[ ${tokens[$((i + 1))]} =~ 12* ]]; then
 						proceedStep=1
 					fi
 				fi
@@ -416,7 +423,7 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 
 			# READ and record value
 			while
-				qread partial
+				local partial=; vared partial
 				if [ -z $partial ]; then
 					partial=$stepDefValue
 				elif [ 1 -lt "${#stepOptions[@]}" ]; then
