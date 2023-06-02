@@ -524,14 +524,19 @@ function concat() { #? concat array. Usage: concat $meta $arr. -h for more
 		joiner=${metas:1:1}
 	fi
 
+	if [ '\' = "$joiner" ]; then
+		joiner='\\'
+	fi
+
 	local firstSet=""
 	local i
 	for (( i=$start ; i<$end; i++ )); do
+		local item=${@:$i:1}
 		if [ $firstSet ]; then
-			printf "$joiner${@:$i:1}"
+			printf $joiner$item
 		else
 			firstSet=1
-			printf "${@:$i:1}"
+			printf $item
 		fi
 	done
 	printf "\n"
