@@ -203,3 +203,13 @@ function md5() { #? calculate md5. Supporting pipe.
 		Return $hash
 	}
 }
+
+function desktop() {
+    param([switch]$go = $false)
+    $DesktopPath = [Environment]::GetFolderPath("Desktop")
+    If ($go) {
+        Set-Location $DesktopPath
+    } Else {
+        Return $DesktopPath
+    }
+}
