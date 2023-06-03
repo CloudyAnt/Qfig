@@ -1,8 +1,8 @@
 #? These commands only requires Powershell built-in commands
 
-function qfig { #? Qfig preserved command
-    param([string]$command)
-    If ("help".Equals($command)) {
+function qfig { #? Qfig preserved command. -h(help) for more
+    param([string]$command, [switch]$help = $false)
+    If ($help -Or "help".Equals($command)) {
         logInfo "Usage: qfig <command>`n`n  Available commands:`n"
         "    {0,-10}{1}" -f "help", "Print this help message"
         "    {0,-10}{1}" -f "update", "Update Qfig"
