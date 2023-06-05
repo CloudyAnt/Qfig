@@ -17,6 +17,9 @@ function qfig() { #? Qfig preserved command
 			echo ""
 			;;
 		update)
+			local parts=(${(@s/ /)$(git -C $Qfig_loc log --oneline --decorate -1)})
+			local curHead=$parts[1]
+
 			local pullMessage=$(git -C $Qfig_loc pull --rebase 2>&1)
             if [[ $? != 0 || "$pullMessage" = *"error"* || "$pullMessage" = *"fatal"* ]]; then
                 logError "Cannot update Qfig:\n$pullMessage" && return
@@ -24,18 +27,10 @@ function qfig() { #? Qfig preserved command
 				logSuccess "Qfig is up to date" && return
 			else
 				logInfo "Updating Qfig.."
-				local currentHeadFile=$Qfig_loc/.gcache/currentHead
-				if [ ! -f "$currentHeadFile" ]; then
-					mktouch $currentHeadFile
-					echo "!!!" > $currentHeadFile
-				fi
-
-				local lastHead=$(cat $currentHeadFile)
 				local parts=(${(@s/ /)$(git -C $Qfig_loc log --oneline --decorate -1)})
 				local newHead=$parts[1]
-				echo $newHead > $currentHeadFile
-				echo "\nUpdate head \e[1m$lastHead\e[0m -> \e[1m$newHead\e[0m:\n"
-				git -C $Qfig_loc log --oneline --decorate -10 | awk -v ch=$lastHead 'BEGIN{first = 1;
+				echo "\nUpdate head \e[1m$curHead\e[0m -> \e[1m$newHead\e[0m:\n"
+				git -C $Qfig_loc log --oneline --decorate -10 | awk -v ch=$curHead 'BEGIN{first = 1;
 					tc["refactor"] = 31; tc["fix"] = 32; tc["feat"] = 33; tc["chore"] = 34; tc["doc"] = 35; tc["test"] = 36;
 				} {
 					if($0 ~ ch) {

@@ -27,11 +27,11 @@ forbidAlias gl "git pull"
 forbidAlias gc gct "git commit"
 forbidAlias gap gapply
 
-function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(optional). gtag -h for more
+function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'create'). gtag -h for more
 	if [ -z $1 ]; then
 		git tag --points-at # --points-at defaults to HEAD
 	elif [ "-h" = "$1" ]; then
-		logInfo "Usage: gtag \$tag(optional) \$cmd(optional).\n  If no params specified, then show the tags for current commit\n  Available commands:\n"
+		logInfo "Usage: gtag \$tag(optional) \$cmd(default 'create').\n  If no params specified, then show the tags for current commit\n  Available commands:\n"
 		printf "    %-17s%s\n" "c/create" "Default. Create a tag on current commit."
 		printf "    %-17s%s\n" "p/push" "Push the tag to remote"
 		printf "    %-17s%s\n" "d/delete" "Delete the tag"
