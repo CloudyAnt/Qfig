@@ -1,4 +1,5 @@
-#? Commands to operate json
+#? Commands to operate json.
+#? No 3rd program needed.
 
 function jsonget() { #? Usage: jsonget json targetPath, -h for more
     if [ "-h" = $1 ]; then
@@ -150,7 +151,7 @@ function jsonget() { #? Usage: jsonget json targetPath, -h for more
                     x=1
                 elif [ '}' = "$c" ]; then
                     meetArrayEnd
-                elif [ ! ' ' = "$c" ]; then
+                elif ! [[ ' ' = "$c" || $'\t' = "$c" || $'\n' = "$c" ]]; then
                     err="Invalid json (00000): expecting '\"' at index $i (after path: $(concatCP)), but got '$c'" && break
                 fi
             ;;
@@ -174,7 +175,7 @@ function jsonget() { #? Usage: jsonget json targetPath, -h for more
             2) # waiting colon
                 if [ ':' = "$c" ]; then
                     x=3
-                elif [ ! ' ' = "$c" ]; then
+                elif ! [[ ' ' = "$c" || $'\t' = "$c" || $'\n' = "$c" ]]; then
                     err="Invalid json (20000): expecting ':' at index $i (path: $(concatCP)), but got '$c'" && break
                 fi
             ;;
@@ -223,7 +224,7 @@ function jsonget() { #? Usage: jsonget json targetPath, -h for more
                     x=0
                     cpt[$cpi]="O"
                     cpi=$((cpi + 1))
-                elif [ ! ' ' = "$c" ]; then
+                elif ! [[ ' ' = "$c" || $'\t' = "$c" || $'\n' = "$c" ]]; then
                     err="Invalid json (30002): expecting '\"' at index $i (path: $(concatCP)), but got '$c'" && break
                 fi
             ;;
@@ -241,7 +242,7 @@ function jsonget() { #? Usage: jsonget json targetPath, -h for more
             41) # appending int value
                 if [[ "$c" =~ '^[0-9]$' ]]; then
                     s=$s$c
-                elif [ " " = "$c" ]; then
+                elif [[ ' ' = "$c" || $'\t' = "$c" || $'\n' = "$c" ]]; then
                     x=5
                 elif [ "," = "$c" ]; then
                     meetComma
@@ -263,7 +264,7 @@ function jsonget() { #? Usage: jsonget json targetPath, -h for more
                 if [[ "$c" =~ '^[0-9]$' ]]; then
                     s=$s$c
                     fc=$((fc + 1))
-                elif [ " " = "$c" ]; then
+                elif [[ ' ' = "$c" || $'\t' = "$c" || $'\n' = "$c" ]]; then
                     x=5
                 elif [ "," = "$c" ]; then
                     [ $fc -eq 0 ] && err="Invalid json (42002): expecting digit (fractional part) at index $i (path: $(concatCP)), but got '$c'" && break
@@ -288,7 +289,7 @@ function jsonget() { #? Usage: jsonget json targetPath, -h for more
                     meetObjectEnd
                 elif [ ']' = "$c" ]; then
                     meetArrayEnd
-                elif [ ! ' ' = "$c" ]; then
+                elif ! [[ ' ' = "$c" || $'\t' = "$c" || $'\n' = "$c" ]]; then
                     err="Invalid json (50000): expecting ',' (or '}', ']) at index $i (path: $(concatCP)), but got '$c'" && break
                 fi
             ;;
