@@ -357,7 +357,46 @@ function findindex() { #? find 1st target index in provider. Usage: findindex pr
 	return 1
 }
 
-function uni2chr() { #? convert unicodes(hexdecimal) to characters
+function chr2uni() { #? convert characters to unicodes(4 digits with '\u' prefix)
+	local all=$@
+	for (( i=0 ; i<${#all}; i++ )); do
+		c=${all:$i:1}
+		local hex=$(printf "%x" "'$c")
+		declare -a codes
+		codes=($(uni2sp $hex -p))
+		for code in $codes; do
+			while [ ${#code} -lt 4 ]; do
+				code="0$code"
+			done
+			printf "\\\u$code"
+		done
+	done
+	printf "\n"
+}
+
+function chr2uni8() { #? convert characters to unicodes(4 digits with '\u' prefix or 8 digits with '\U' prefix)
+	local all=$@
+	for (( i=0 ; i<${#all}; i++ )); do
+		c=${all:$i:1}
+		local code=$(printf "%x" "'$c")
+		if [ ${#code} -gt 4 ]; then
+			while [ ${#code} -lt 8 ]; do
+				code="0$code"
+			done
+			printf "\\\U$code"
+		else
+			while [ ${#code} -lt 4 ]; do
+				code="0$code"
+			done
+			printf "\\\u$code"
+		fi
+	done
+	printf "\n"
+}
+
+#? 'echo' can convert unicodes with '\u' or '\U' prefix to chars, that makes the function 'unicode2char' unnecessary
+
+function hex2chr() { #? convert unicodes(hex codepoint) to characters
 	declare -i codesCount=0;
 	declare -i charsCount=0;
 	local ls=""
@@ -401,16 +440,7 @@ function uni2chr() { #? convert unicodes(hexdecimal) to characters
 	fi
 }
 
-function chr2dec() { #? convert characters to unicodes(decimal)
-	local all=$@
-	for (( i=0 ; i<${#all}; i++ )); do
-		c=${all:$i:1}
-		printf "%d " "'$c"
-	done
-	printf "\n"
-}
-
-function chr2hex() { #? convert characters to unicodes(hexdecimal)
+function chr2hex() { #? convert characters to unicodes(hex codepoint)
 	local all=$@
 	for (( i=0 ; i<${#all}; i++ )); do
 		c=${all:$i:1}
@@ -420,13 +450,37 @@ function chr2hex() { #? convert characters to unicodes(hexdecimal)
 }
 
 function dec2hex() { #? convert decimal to hexadecimal
-	[ -z $1 ] && return
-	printf "%x\n" $1
+	local arg
+	declare -i index=1
+	local out=""
+	for arg in "$@"
+	do
+		if ! [[ $arg =~ '^[0-9]+$' ]]; then
+			logError $index"th param '$arg' is not decimal" && return 1
+		fi
+		out=$out$(printf "%x " $arg)
+		index=$((index + 1))
+	done
+	if [ $index -gt 1 ]; then
+		printf "$out\n"
+	fi
 }
 
 function hex2dec() { #? convert hexadecimal to decimal
-	[ -z $1 ] && return
-	echo $((0x$1))
+	local arg
+	declare -i index=1
+	local out=""
+	for arg in "$@"
+	do
+		if ! [[ $arg =~ '^[0-9a-fA-F]+$' ]]; then
+			logWarn $index"th param '$arg' is not hexdecimal" && return 1
+		fi
+		out=$out"$((0x$arg)) "
+		index=$((index + 1))
+	done
+	if [ $index -gt 0 ]; then
+		printf "$out\n"
+	fi
 }
 
 function uni2sp() { #? convert unicode (range [10000, 10FFFF]) to surrogate pair (range [D800, DBFF] and [DC00, DFFF])
@@ -436,7 +490,11 @@ function uni2sp() { #? convert unicode (range [10000, 10FFFF]) to surrogate pair
 	fi
 
 	if [[ 0x$1 -lt 0x10000 || 0x$1 -gt 0x10FFFF ]]; then
-		logWarn "$1 is out of range [10000, 10FFFF]"
+		if [ '-p' = $2 ]; then # print when out of range
+			echo $1
+		else
+			logWarn "$1 is out of range [10000, 10FFFF]"
+		fi
 	else
 		offset=$((0x$1 - 0x10000))
 		row=$(($offset / 0x400))
@@ -471,7 +529,7 @@ function concat() { #? concat array. Usage: concat $meta $arr. -h for more
 		logInfo "Usage: concat \$meta \$arr. \e[34m\$arr\e[0m can be a array variable or varargs."
 		echo "  \e[34m\$meta\e[0m pattern: \e[1m-joiner-start-end (exclusive)\e[0m. The first char is the separator of meta, here it's '-' (recommanded).
   Start and end are optional. 
-  \e[34m\$meta\e[0m could also be a single character \$c, that equivilent to -\$c or joiner
+  \e[34m\$meta\e[0m could also be a single character \$c, that equivalent to -\$c or joiner
   Examples: 
     \e[1mconcat -,-1-4 \$arr\e[0m (concat items of index 1, 2, 3 using joiner ',')
     \e[1mconcat \"|\\\|2\" a b c...\e[0m (concat all items after index 2 using joiner '\')

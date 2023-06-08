@@ -4,7 +4,7 @@ function gtag() {  #? operate tag. Usage: gtag $tag(optional) $cmd(default 'crea
     param([string]$tag, [string]$cmd, [switch]$help = $false)
     if ($help) {
         logInfo "Usage: gtag \$tag(optional) \$cmd(default 'create').\n  If no params specified, then show the tags for current commit\n  Available commands:\n"
-		"    {0,-17}{1}" -f "c/create", "Default. Create a tag on current commit."
+		"    {0,-17}{1}" -f "c/create", "Default. Create a tag on current commit"
 		"    {0,-10}{1}" -f "p/push", "Push the tag to remote, use the 3rd param to specify the remote tag name"
 		"    {0,-10}{1}" -f "d/delete", "Delete the tag"
 		"    {0,-10}{1}" -f "dr/delete-remote", "Delete the remote tag, \$tag is the remote tag name here"
