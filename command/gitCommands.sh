@@ -34,11 +34,16 @@ function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'creat
 	if [ -z $1 ]; then
 		git tag --points-at # --points-at defaults to HEAD
 	elif [ "-h" = "$1" ]; then
-		logInfo "Usage: gtag \$tag(optional) \$cmd(default 'create').\n  If no params specified, then show the tags for current commit\n  Available commands:\n"
+		logInfo "Usage: gtag \$tag(optional) \$cmd(default 'create').
+  \e[1mIf no params passed (gtag), show the tags on current commit\e[0m
+  Available commands:\n"
 		printf "    %-17s%s\n" "c/create" "Default. Create a tag on current commit"
 		printf "    %-17s%s\n" "p/push" "Push the tag to remote"
 		printf "    %-17s%s\n" "d/delete" "Delete the tag"
 		printf "    %-17s%s\n" "dr/delete-remote" "Delete the remote tag, \$tag is the remote tag name here"
+		printf "    %-17s%s\n" "ddr" "delete & delete-remote"
+		printf "    %-17s%s\n" "cp" "create & push"
+		printf "    %-17s%s\n" "ddrcp" "delete & delete-remote & create & push. meant to update local and remote tag"
 		return
 	elif [[ $1 = -* ]]; then
 		logError "A Tag should not starts with '-'" && return 1
@@ -57,11 +62,34 @@ function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'creat
 			p|push)
 				git push origin tag $1
 			;;
+			cp)
+				git tag $1
+				if [ 0 -eq $? ]; then
+					logSuccess "Created tag: $1"
+					git push origin tag $1
+				fi
+			;;
 			d|delete)
 				git tag -d $1
 			;;
 			dr|delete-remote)
 				git push origin :refs/tags/$1
+			;;
+			ddr)
+				git tag -d $1
+				if [ 0 -eq $? ]; then
+					git push origin :refs/tags/$1
+				fi
+			;;
+			ddrcp)
+				git tag -d $1
+				[ 0 -ne $? ] && return
+				git push origin :refs/tags/$1
+				[ 0 -ne $? ] && return
+				git tag $1
+				[ 0 -ne $? ] && return
+				logSuccess "Created tag: $1"
+				git push origin tag $1
 			;;
 			*)
 				logError "Unknown command: $cmd"
