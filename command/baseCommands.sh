@@ -104,7 +104,7 @@ function qcmds() { #? operate available commands. Usage: qcmds $commandsPrefix $
 		""|explain)
 			cat $targetFile | awk '{
 					if (/^\#\? /) {
-						printf "\033[1;34m▍\033[39m";
+						printf "\033[34m▍\033[39m";
 						for (i = 2; i <= NF; i++) {
 							printf $i " ";
 						}
@@ -394,7 +394,7 @@ function chr2uni8() { #? convert characters to unicodes(4 digits with '\u' prefi
 	printf "\n"
 }
 
-#? 'echo' can convert unicodes with '\u' or '\U' prefix to chars, that makes the function 'unicode2char' unnecessary
+#? 'echo' convert '\u' or '\U' prefixed hexdecimals to chars, makes a function 'unicode2char' unnecessary
 
 function hex2chr() { #? convert unicodes(hex codepoint) to characters
 	declare -i codesCount=0;
@@ -529,11 +529,11 @@ function concat() { #? concat array. Usage: concat $meta $arr. -h for more
 		logInfo "Usage: concat \$meta \$arr. \e[34m\$arr\e[0m can be a array variable or varargs."
 		echo "  \e[34m\$meta\e[0m pattern: \e[1m-joiner-start-end (exclusive)\e[0m. The first char is the separator of meta, here it's '-' (recommanded).
   Start and end are optional. 
-  \e[34m\$meta\e[0m could also be a single character \$c, that equivalent to -\$c or joiner
+  \e[34m\$meta\e[0m could also be a single character \$c, it equivalent to -\$c or joiner
   Examples: 
-    \e[1mconcat -,-1-4 \$arr\e[0m (concat items of index 1, 2, 3 using joiner ',')
-    \e[1mconcat \"|\\\|2\" a b c...\e[0m (concat all items after index 2 using joiner '\')
-    \e[1mconcat , a b c...\e[0m (concat all items using joiner ',')"
+    \e[1mconcat -,-1-4 \$arr\e[0m (concat items of index 1, 2, 3 use joiner ',')
+    \e[1mconcat \"|\\\|2\" a b c...\e[0m (concat all items after index 2 use joiner '\')
+    \e[1mconcat , a b c...\e[0m (concat all items use joiner ',')"
 		return
 	fi
 	[[ -z $1 || -z $2 ]] && concat -h && return 1

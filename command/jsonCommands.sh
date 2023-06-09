@@ -5,11 +5,11 @@ function jsonget() { #? Usage: jsonget json targetPath, -h for more
     if [ "-h" = $1 ]; then
         logInfo "For json \e[34m{\"users\": [{\"name\": \"chai\"}]}\e[0m, you can get the 1st user's name like: \e[1mjsonget json users.0.name\e[0m
   For json \e[34m[{\"name\": \"chai\"}]\e[0m, then the operation be like: \e[1mjsonget json 0.name\e[0m
+  Use '\.' to escape .
   \e[1mNote\e[0m that the json syntax check will stop after target found"
         return 0
     fi
     [[ -z $1 || -z $2 ]] && logError "Usage: jsonget json targetPath. -h for more" && return 1
-
     # --- CHECK options ---
 	declare -i arrayBase
 	[[ -o ksharrays ]] && arrayBase=0 || arrayBase=1 # if KSH_ARRAYS option set, array based on 0, and '{}' are required to access index
@@ -21,6 +21,7 @@ function jsonget() { #? Usage: jsonget json targetPath, -h for more
     declare -a tp # target path sections
     declare -i tpi=$arrayBase # target path section index
     tp[$arrayBase]="$"
+    local i
     for (( i=0; i<${#2}; i++ )); do
         c=${2:$i:1}
         if [ $escaping ]; then
@@ -29,6 +30,7 @@ function jsonget() { #? Usage: jsonget json targetPath, -h for more
             continue
         fi
         if [ '\' = "$c" ]; then
+            escaping=1
             continue
         fi
         if [ "." = "$c" ]; then
@@ -43,6 +45,9 @@ function jsonget() { #? Usage: jsonget json targetPath, -h for more
             s=$s$c
         fi
     done
+    if [ $escaping ]; then
+        logError "Invalid path: '\' was used to escape '.' or '\', do you mean '\ \b\' (double slashes) at index $((i - 1)) ?" && return 1
+    fi
     if [ ! -z "$s" ]; then
         tpi=$((tpi + 1))
         tp[$tpi]=$s
@@ -76,7 +81,7 @@ function jsonget() { #? Usage: jsonget json targetPath, -h for more
         \[)
             cpt[$arrayBase]="A"
             x=3
-            if [[ $cpi -eq $tpi && "$ai" = ${tp[$cpi]} ]]; then
+            if [[ "$ai" = ${tp[$cpi]} ]]; then
                 cpm[$cpi]=4
             else
                 cpm[$cpi]=-4
@@ -150,17 +155,16 @@ function jsonget() { #? Usage: jsonget json targetPath, -h for more
                 if [ '"' = "$c" ]; then
                     x=1
                 elif [ '}' = "$c" ]; then
-                    meetArrayEnd
+                    meetObjectEnd
                 elif ! [[ ' ' = "$c" || $'\t' = "$c" || $'\n' = "$c" ]]; then
                     err="Invalid json (00000): expecting '\"' at index $i (after path: $(concatCP)), but got '$c'" && break
                 fi
             ;;
             1) # appending key 
-                if [[ $escaping && ! '\' = "$c" ]]; then
-                    s=$s$c
-                elif [ '\' = "$c" ]; then
-                    escaping="1"
-                elif [ '"' = "$c" ]; then
+                if [ '"' = "$c" ]; then
+                    if [ $escaping ]; then
+                        err="Invalid json (40001): string ended by '\' at index index $i (path: $(concatCP))" && break
+                    fi
                     cp[$cpi]=$s
                     if [[ ${cpm[$((cpi - 1))]} -ge 0 && $s = ${tp[$cpi]} ]]; then
                         cpm[$cpi]=1
@@ -168,6 +172,11 @@ function jsonget() { #? Usage: jsonget json targetPath, -h for more
                         cpm[$cpi]=-1
                     fi
                     x=2
+                elif [[ $escaping ]]; then
+                    s=$s$c
+                    escaping=""
+                elif [ '\' = "$c" ]; then
+                    escaping="1"
                 else
                     s=$s$c
                 fi
@@ -224,17 +233,23 @@ function jsonget() { #? Usage: jsonget json targetPath, -h for more
                     x=0
                     cpt[$cpi]="O"
                     cpi=$((cpi + 1))
+                elif [ ']' = "$c" ]; then
+                    meetArrayEnd
                 elif ! [[ ' ' = "$c" || $'\t' = "$c" || $'\n' = "$c" ]]; then
                     err="Invalid json (30002): expecting '\"' at index $i (path: $(concatCP)), but got '$c'" && break
                 fi
             ;;
             4) # appending string value
-                if [[ $escaping && ! '\' = "$c" ]]; then
-                    s=$s$c
-                elif [ '\' = "$c" ]; then
-                    escaping="1"
-                elif [ '"' = "$c" ]; then
+                if [ '"' = "$c" ]; then
+                    if [ $escaping ]; then
+                        err="Invalid json (40001): string ended by '\' at index index $i (path: $(concatCP))" && break
+                    fi
                     x=5
+                elif [[ $escaping ]]; then
+                    s=$s$c
+                    escaping=""
+                elif [ '\' = "$c" ]; then
+                    escaping=1
                 else
                     s=$s$c
                 fi
@@ -301,9 +316,9 @@ function jsonget() { #? Usage: jsonget json targetPath, -h for more
 
     if [ $err ]; then
         logError $err && return 1
-    elif [ ${cpm[$tpi]} -gt 0 ]; then
+    elif [ "${cpm[$tpi]}" -gt 0 ]; then
         if [ ! $found ]; then
-            logError "Invalid json (x0005), matched but stopped at depth: $tpi (path: $(concat . $tp))"
+            logError "Invalid json (x0005), matched but stopped at depth: $tpi (path: $(concat -.-1-$tpi $tp))"
         else
             # Found
         fi
