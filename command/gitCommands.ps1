@@ -53,7 +53,7 @@ function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'creat
                 git tag $1
                 if (-Not $?) { Return }
                 logSuccess "Created tag: $tag"
-				git push origin tag $tag
+                git push origin tag $tag
             }
             { "m", "move", "mr", "move-remote" -contains $_ } {
                 $newTag = $cmdArg
@@ -62,7 +62,8 @@ function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'creat
                 }
                 If ("m".Equals($cmd) -Or "move".Equals($cmd)) {
                     git tag $newTag $tag && git tag -d $tag
-                } Else {
+                }
+                Else {
                     git push origin $newTag :$tag
                 }
             }
@@ -189,8 +190,22 @@ function glist {
     git stash list
 }
 
+function GitBranchCompleter { #x
+    param ($commandName, $parameterName, $wordToComplete)
+
+    $result = git branch --list *$wordToComplete*
+    If (($result -is [array]) -And ($result[0] -is [string])) {
+        For ($i = 0; $i -lt $result.Length; $i++) {
+            $result[$i] = $result[$i].SubString(2)
+        }
+        $result
+    } ElseIf ($result -is [string]) {
+        $result.SubString(2)
+    }
+}
+
 function gco {
-    param($branch)
+    param([Parameter(Mandatory)][ArgumentCompleter({ GitBranchCompleter @args })]$branch)
     git checkout $branch 
 }
 

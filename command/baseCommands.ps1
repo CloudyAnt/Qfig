@@ -221,3 +221,31 @@ function which() {
         Write-Host "function $command() {$($cmdObject.Definition)}"
     }
 }
+
+function Get-StringWidth { #x
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$InputString
+    )
+
+    $width = 0
+    Foreach ($char in [char[]]$InputString) {
+        $unicode = [int][char]$char
+
+        if (($unicode -ge 0x0020 -and $unicode -le 0x007E) -or ($unicode -ge 0xFF61 -and $unicode -le 0xFF9F)) {
+            # half-width
+            $width += 1
+        } elseif (($unicode -ge 0x4E00 -and $unicode -le 0x9FFF) -or
+                  ($unicode -ge 0x3040 -and $unicode -le 0x309F) -or
+                  ($unicode -ge 0x30A0 -and $unicode -le 0x30FF) -or
+                  ($unicode -ge 0xFF01 -and $unicode -le 0xFF5E)) {
+            # full-width
+            $width += 2
+        } else {
+            # others
+            $width += 2
+        }
+    }
+
+    Return $width
+}
