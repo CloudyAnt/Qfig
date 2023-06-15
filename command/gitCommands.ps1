@@ -1,45 +1,139 @@
 #? Git related commands
 
-function gtag() {  #? operate tag. Usage: gtag $tag(optional) $cmd(default 'create'). gtag -h for more
-    param([string]$tag, [string]$cmd, [switch]$help = $false)
+function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'create') $cmdArg(optional). gtag -h for more
+    param([string]$tag, [string]$cmd, [string]$cmdArg, [switch]$help = $false)
     if ($help) {
-        logInfo "Usage: gtag \$tag(optional) \$cmd(default 'create').\n  If no params specified, then show the tags for current commit\n  Available commands:\n"
-		"    {0,-17}{1}" -f "c/create", "Default. Create a tag on current commit"
-		"    {0,-10}{1}" -f "p/push", "Push the tag to remote, use the 3rd param to specify the remote tag name"
-		"    {0,-10}{1}" -f "d/delete", "Delete the tag"
-		"    {0,-10}{1}" -f "dr/delete-remote", "Delete the remote tag, \$tag is the remote tag name here"
-		Return
+        logInfo "Usage: gtag `$tag(optional) `$cmd(default 'create') `cmdArg(optional).`n  `e[1mIf no params specified, then show the tags for current commit`e[1m`n  Available commands:`n"
+        "    {0,-18}{1}" -f "c/create", "Default. Create a tag on current commit"
+        "    {0,-18}{1}" -f "p/push", "Push the tag to remote, use the 3rd param to specify the remote tag name"
+        "    {0,-18}{1}" -f "d/delete", "Delete the tag"
+        "    {0,-18}{1}" -f "dr/delete-remote", "Delete the remote tag, `$tag is the remote tag name here"
+        "    {0,-18}{1}" -f "m/move", "Rename the tag"
+        "    {0,-18}{1}" -f "mr/move-remote", "Rename the remote tag, `$tag is the remote tag name here"
+        "    {0,-18}{1}" -f "ddr", "delete & delete-remote"
+        "    {0,-18}{1}" -f "cp", "create & push"
+        "    {0,-18}{1}" -f "ddrcp", "delete & delete-remote & create & push. meant to update local and remote tag"
+        Return
     }
     If ($tag.Length -Eq 0) {
         git tag --points-at
-    } ElseIf ($tag -match "^-.*$") {
-        logError "A Tag should not starts with '-'" && Return
-    } Else {
+    }
+    ElseIf (git check-ref-format "tags/$tag") {
+        If ($tag -match "^-.*$") {
+            logError "A tag should not starts with '-'" && Return
+        }
         If ($cmd.Length -eq 0) {
             cmd="create"
         }
         Switch ($cmd) {
-            {"c", "create" -contains $_} {
+            { "c", "create" -contains $_ } {
                 git tag $tag
-                If ($?) {
-                    logSuccess "Created tag: $tag"
-                }
+                If ($?) { logSuccess "Created tag: $tag" }
             }
-            {"p", "push" -contains $_} {
+            { "p", "push" -contains $_ } {
                 git push origin tag $tag
             }
-            {"d", "delete" -contains $_} {
+            "cp" {
+                git tag $tag && logSuccess "Created tag: $tag" && git push origin tag $tag
+            }
+            { "d", "delete" -contains $_ } {
                 git tag -d $tag
             }
-            {"dr", "delete-remote" -contains $_} {
+            { "dr", "delete-remote" -contains $_ } {
                 git push origin :refs/tags/$tag
+            }
+            "ddr" {
+                git tag -d $1 && git push origin :refs/tags/$tag
+            }
+            "ddrcp" {
+                git tag -d $tag
+                if (-Not $?) { Return }
+                git push origin :refs/tags/$tag
+                if (-Not $?) { Return }
+                git tag $1
+                if (-Not $?) { Return }
+                logSuccess "Created tag: $tag"
+				git push origin tag $tag
+            }
+            { "m", "move", "mr", "move-remote" -contains $_ } {
+                $newTag = $cmdArg
+                If ((-Not $(git check-ref-format "tags/$newTag") -Or ($tag -match "^-.*$"))) {
+                    logError "Please specify a valid new tag name!" && Return
+                }
+                If ("m".Equals($cmd) -Or "move".Equals($cmd)) {
+                    git tag $newTag $tag && git tag -d $tag
+                } Else {
+                    git push origin $newTag :$tag
+                }
             }
             Default {
                 logError "Unknown command: $cmd"
-				gtag -h
-				Return
+                gtag -h
+                Return
             }
         }
+    }
+    Else {
+        logError "$1 is not a valid tag name" && Return 1
+    }
+}
+
+function gb() { #? operate branch. Usage: gb $branch(optional, . stands for current branch) $cmd(default 'create') $cmdArg(optional). gb -h for more
+    param([string]$branch, [string]$cmd, [string]$cmdArg, [switch]$help = $false)
+    if ($help) {
+        logInfo "Usage: gb `$branch(optional) `$cmd(default 'create') `cmdArg(optional).`n  `e[1mIf no params specified, then show the current branch name`e[0m`n  Available commands:`n"
+        "    {0,-19}{1}" -f "c/create", "Default. Create a branch"
+        "    {0,-19}{1}" -f "co/create-checkout", "Create a branch and checkout it"
+        "    {0,-19}{1}" -f "d/delete", "Delete the branch"
+        "    {0,-19}{1}" -f "dr/delete-remote", "Delete the remote branch, `$branch is the remote branch name here"
+        "    {0,-19}{1}" -f "m/move", "Rename the branch"
+        Return
+    }
+    If ($branch.Length -Eq 0) {
+        git branch --show-current
+    }
+    ElseIf (git check-ref-format --branch $branch >$null 2>&1) {
+        If ($tag -match "^-.*$") {
+            logError "A branch name should not starts with '-'" && Return
+        }
+        If ($cmd.Length -eq 0) {
+            cmd="create"
+        }
+        Switch ($branch) {
+            { "c", "create" -contains $_ } {
+                git branch $branch
+                If ($?) { logSuccess "Created branch: $branch" }
+            }
+            { "co", "create-checkout" -contains $_ } {
+                git branch $branch
+                if ($?) { git checkout $branch }
+            }
+            { "d", "delete" -contains $_ } {
+                git branch -D $branch
+            }
+            { "dr", "delete-remote" -contains $_ } {
+                logWarn "Are you sure to delete remote branch $branch ? \e[90m(Yes/No)\e[0m" "!"
+                $yn = Read-Host
+                If (-Not ("yes".Equals($yn) -Or "Yes".Equals($yn))) {
+                    git push origin --delete $branch
+                }
+            }
+            { "m", "move" -contains $_ } {
+                $newB = $cmdArg
+                If ((-Not $(git check-ref-format --branch "$newB" >$null 2>&1) -Or ($newB -match "^-.*$"))) {
+                    logError "Please specify a valid new branch name!" && Return
+                }
+                git branch -m $branch $newB
+            }
+            Default {
+                logError "Unknown command: $cmd"
+                gtag -h
+                Return
+            }
+        }
+    }
+    Else {
+        logError "$1 is not a valid branch name" && Return
     }
 }
 
@@ -244,16 +338,19 @@ function gct() {
     $obstacleProgress = ""
     If (($gst -match ".*All conflicts fixed but you are still merging.*") -Or ($gst -match ".*You have unmerged paths.*")) {
         $obstacleProgress = "Merge"
-    } ElseIf ($gst -match ".*interactive rebase in progress;.*") {
+    }
+    ElseIf ($gst -match ".*interactive rebase in progress;.*") {
         $obstacleProgress = "Rebase"
-    } ElseIf ($gst -match ".*You are currently cherry-picking.*") {
+    }
+    ElseIf ($gst -match ".*You are currently cherry-picking.*") {
         $obstacleProgress = "Cherry-pick"
-    } ElseIf ($gst -match ".*You are currently reverting.*") {
+    }
+    ElseIf ($gst -match ".*You are currently reverting.*") {
         $obstacleProgress = "Revert"
     }
     If ($obstacleProgress) {
         logWarn "$obstacleProgress in progress, continue ? `e[90mY for Yes, others for No.`e[0m" "!"
-		$yn = Read-Host
+        $yn = Read-Host
         If (-Not ("y".Equals($yn) -Or "Y".Equals($yn))) {
             Return
         }
@@ -308,7 +405,8 @@ function gct() {
         ElseIf ($verbose) {
             logSilence "Using local pattern: $((Get-Content $pattern_tokens_file -TotalCount 1).subString(2))"
         }
-        If ($pattern_set) { # whether save to .gctpattern
+        If ($pattern_set) {
+            # whether save to .gctpattern
             # logInfo "Save it in $boldRepoPattern(It may be shared through your git repo) ? `e[2mY for Yes, others for No.`e[0m" "?"
             # $saveToRepo = Read-Host
         }
@@ -364,12 +462,14 @@ function gct() {
     $message = ""
     If (Test-Path $r_step_values_cache_file -PathType Leaf) {
         $rStepValues = (Get-Content $r_step_values_cache_file).split("`n")
-    } Else {
+    }
+    Else {
         $rStepValues = @()
     }
     If (Test-Path $b_step_values_cache_file -PathType Leaf) {
         $bStepValues = (Get-Content $b_step_values_cache_file).split("`n")
-    } Else {
+    }
+    Else {
         $bStepValues = @()
     }
     $newRStepValues = ""
@@ -422,15 +522,18 @@ function gct() {
                 $bCurStepNum++
                 if ($bStepValues[$bCurStepNum]) {
                     $stepDefValue = $bStepValues[$bCurStepNum].subString(1)
-                } Else {
+                }
+                Else {
                     $stepDefValue = ""
                 }
                 $stepPrompt += "`e[4m$stepKey`?`e[0m "
-            } Else {
+            }
+            Else {
                 $rCurStepNum++
                 if ($rStepValues[$rCurStepNum]) {
                     $stepDefValue = $rStepValues[$rCurStepNum].subString(1)
-                } Else {
+                }
+                Else {
                     $stepDefValue = ""
                 }
                 $stepPrompt += "$stepKey`? "
@@ -448,11 +551,12 @@ function gct() {
                     $stepPrompt += " | "
                     $j = 1
                     $stepOptions | ForEach-Object {
-						If ($j -lt 7) {
-							$stepPrompt += "`e[1;3${j}m${j}:$_ "
-						} Else {
-							$stepPrompt += "`e[1;37m${j}:$_ "
-						}
+                        If ($j -lt 7) {
+                            $stepPrompt += "`e[1;3${j}m${j}:$_ "
+                        }
+                        Else {
+                            $stepPrompt += "`e[1;37m${j}:$_ "
+                        }
                         $j += 1
                     }
                     $stepPrompt += "`e[0m"
@@ -486,7 +590,8 @@ function gct() {
             $message += $partial
             if ($branchScope) {
                 $newBStepValues += ">$partial`n"
-            } Else {
+            }
+            Else {
                 $newRStepValues += ">$partial`n"
             }
 

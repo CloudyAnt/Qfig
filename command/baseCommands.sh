@@ -228,7 +228,7 @@ function qfigLog() { #x log with a colored dot prefix
 	[ -z "$prefix" ] && prefix="●" || prefix=$3
 	
 	log=${log//\%/ percent}
-	log=${log//$'\r'/} # It's seem that $'\r'(ascii code 13) != \r, \r can be printed by 'zsh echo -E' but the former can not. Github push message may contiains lots of ascii code 13 in order to update state.
+	log=${log//$'\r'/} # It's seem that $'\r'(ANSI-C Quoting) != \r, \r can be printed by 'zsh echo -E' but the former can not. Github push message may contiains lots of $'\r' in order to update state.
 	log=${log//\\\r/}
 	log=$(echo $log)
 	log="$sgr$prefix\e[0m $log\n"
@@ -412,7 +412,7 @@ function hex2chr() { #? convert unicodes(hex codepoint) to characters
 			err="The $codesCount""th arg '$arg' is out of range [0, 10FFFF]" && break
 		elif [ $ls ]; then
 			if [[ 0x$arg -lt 0xDC00 || 0x$arg -gt 0xDFFF ]]; then
-				err="The $codesCount""th unicode is not trailing surrogate, while the previous arg $ls is leading surrogate" && break
+				err="The $codesCount""th unicode is not a trailing surrogate, while the previous arg $ls is a leading surrogate" && break
 			fi
 			local uni=$(sp2uni $ls $arg)
 			printf "\U$uni"
@@ -421,7 +421,7 @@ function hex2chr() { #? convert unicodes(hex codepoint) to characters
 		elif [[ 0x$arg -ge 0xD800 && 0x$arg -le 0xDBFF ]]; then
 			ls=$arg
 		elif [[ 0x$arg -ge 0xDC00 && 0x$arg -le 0xDFFF ]]; then
-			err="The $codesCount""th unicode is trailing surrogate, not followed by a leading surrogate" && break
+			err="The $codesCount""th unicode is a trailing surrogate, however is was not followed by a leading surrogate" && break
 		elif [ ${#arg} -gt 4 ]; then
 			if [ ${#arg} -gt 8 ]; then
 				arg=${arg:$((${#arg} - 8))}
@@ -501,7 +501,7 @@ function uni2sp() { #? convert unicode (range [10000, 10FFFF]) to surrogate pair
 		column=$(($offset % 0x400))
 		high=$((0xD800 + $row))
 		low=$((0xDC00 + $column))
-		echo "$(dec2hex $high) $(dec2hex $low)"
+		dec2hex $high $low
 	fi
 }
 
@@ -521,7 +521,7 @@ function sp2uni() { #? convert surrogate pair (range [D800, DBFF] and [DC00, DFF
 	highOffset=$((0x$1 - 0xD800))
 	lowOffset=$((0x$2 - 0xDC00))
 	uni=$(($highOffset * 1024 + $lowOffset + 0x10000))
-	echo $(dec2hex $uni)
+	dec2hex $uni
 }
 
 function concat() { #? concat array. Usage: concat $meta $arr. -h for more

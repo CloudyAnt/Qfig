@@ -1,11 +1,11 @@
 #? Git related
 
-alias g-='gco -'
 alias gaa='git add -A'
 alias gaap='git add -p'
 alias gamd='git commit --amend'
 alias gamdn='git commit --amend --no-edit'
 alias gco='git checkout'
+alias gco-='gco -'
 alias gcp='git cherry-pick'
 alias gcpa='git cherry-pick --abort'
 alias gcpc='git cherry-pick --continue'
@@ -29,67 +29,73 @@ forbidAlias gp gpush "git push"
 forbidAlias gl "git pull"
 forbidAlias gc gct "git commit"
 forbidAlias gap gapply
+unalias gb
 
-function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'create'). gtag -h for more
+function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'create') $cmdArg(optional). gtag -h for more
 	if [ -z $1 ]; then
 		git tag --points-at # --points-at defaults to HEAD
 	elif [ "-h" = "$1" ]; then
-		logInfo "Usage: gtag \$tag(optional) \$cmd(default 'create').
+		logInfo "Usage: gtag \$tag(optional) \$cmd(default 'create') \$cmdArg(optional).
   \e[1mIf no params passed (gtag), show the tags on current commit\e[0m
   Available commands:\n"
-		printf "    %-17s%s\n" "c/create" "Default. Create a tag on current commit"
-		printf "    %-17s%s\n" "p/push" "Push the tag to remote"
-		printf "    %-17s%s\n" "d/delete" "Delete the tag"
-		printf "    %-17s%s\n" "dr/delete-remote" "Delete the remote tag, \$tag is the remote tag name here"
-		printf "    %-17s%s\n" "ddr" "delete & delete-remote"
-		printf "    %-17s%s\n" "cp" "create & push"
-		printf "    %-17s%s\n" "ddrcp" "delete & delete-remote & create & push. meant to update local and remote tag"
-		return
-	elif [[ $1 = -* ]]; then
-		logError "A Tag should not starts with '-'" && return 1
-	else
+		printf "    %-18s%s\n" "c/create" "Default. Create a tag on current commit"
+		printf "    %-18s%s\n" "p/push" "Push the tag to remote"
+		printf "    %-18s%s\n" "d/delete" "Delete the tag"
+		printf "    %-18s%s\n" "dr/delete-remote" "Delete the remote tag, \$tag is the remote tag name here"
+		printf "    %-18s%s\n" "m/move" "Rename the tag"
+		printf "    %-18s%s\n" "mr/move-remote" "Rename the remote tag, \$tag is the remote tag name here"
+		printf "    %-18s%s\n" "ddr" "delete & delete-remote"
+		printf "    %-18s%s\n" "cp" "create & push"
+		printf "    %-18s%s\n" "ddrcp" "delete & delete-remote & create & push. meant to update local and remote tag"
+	elif git check-ref-format "tags/$1" ; then
+		local tag=$1
+		if [[ $tag = -* ]]; then
+			logError "A tag should not starts with '-'" && return 1
+		fi
+
 		local cmd=$2
 		if [ -z $cmd ]; then
 			cmd="c"
 		fi
 		case $cmd in
 			c|create)
-				git tag $1
-				if [ 0 -eq $? ]; then
-					logSuccess "Created tag: $1"
-				fi
+				git tag $tag && logSuccess "Created tag: $tag"
 			;;
 			p|push)
-				git push origin tag $1
+				git push origin tag $tag
 			;;
 			cp)
-				git tag $1
-				if [ 0 -eq $? ]; then
-					logSuccess "Created tag: $1"
-					git push origin tag $1
-				fi
+				git tag $tag && logSuccess "Created tag: $tag" && git push origin tag $tag
 			;;
 			d|delete)
-				git tag -d $1
+				git tag -d $tag
 			;;
 			dr|delete-remote)
-				git push origin :refs/tags/$1
+				git push origin :refs/tags/$tag
 			;;
 			ddr)
-				git tag -d $1
-				if [ 0 -eq $? ]; then
-					git push origin :refs/tags/$1
-				fi
+				git tag -d $1 && git push origin :refs/tags/$tag
 			;;
 			ddrcp)
-				git tag -d $1
+				git tag -d $tag
 				[ 0 -ne $? ] && return
-				git push origin :refs/tags/$1
+				git push origin :refs/tags/$tag
 				[ 0 -ne $? ] && return
 				git tag $1
 				[ 0 -ne $? ] && return
-				logSuccess "Created tag: $1"
-				git push origin tag $1
+				logSuccess "Created tag: $tag"
+				git push origin tag $tag
+			;;
+			m|move|mr|move-remote)
+				local newTag=$3
+				if [[ -z $newTag || ! $(git check-ref-format "tags/$newTag") || $newTag = -* ]]; then
+					logError "Please specify a valid new tag name!" && return 1
+				fi
+				if [[ "m" = $cmd || "move" = $cmd ]]; then
+					git tag $newTag $tag && git tag -d $tag
+				else
+					git push origin $newTag :$tag
+				fi
 			;;
 			*)
 				logError "Unknown command: $cmd"
@@ -97,18 +103,75 @@ function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'creat
 				return 1
 			;;
 		esac
+	else
+		logError "$1 is not a valid tag name" && return 1
+	fi
+}
+
+function gb() { #? operate branch. Usage: gb $branch(optional, . stands for current branch) $cmd(default 'create') $cmdArg(optional). gb -h for more
+	if [ -z $1 ]; then
+		git branch --show-current
+	elif [ "-h" = "$1" ]; then
+		logInfo "Usage: gb \$branch(optional, \e[1m.\e[0m stands for current branch) \$cmd(default 'create') \$cmdArg(optional).
+  \e[1mIf no params passed (gb), show the current branch name\e[0m
+  Available commands:\n"
+		printf "    %-19s%s\n" "c/create" "Default. Create a branch"
+		printf "    %-19s%s\n" "co/create-checkout" "Create a branch and checkout it"
+		printf "    %-19s%s\n" "d/delete" "Delete the branch"
+		printf "    %-19s%s\n" "dr/delete-remote" "Delete the remote branch, \$branch is the remote branch name here"
+		printf "    %-19s%s\n" "m/move" "Rename the branch"
+	elif git check-ref-format --branch "$1" >/dev/null 2>&1 ; then
+		if [[ 1 = -* ]]; then
+			logError "A branch name should not starts with '-'" && return 1
+		fi
+
+		local branch=$1
+		if [ "." = $branch ]; then
+			branch=$(git branch --show-current)
+		fi
+
+		local cmd=$2
+		if [ -z $cmd ]; then
+			cmd="c"
+		fi
+		case $cmd in
+			c|create)
+				git branch $branch && logSuccess "Created branch: $branch"
+			;;
+			co|create-checkout)
+				git branch $branch && git checkout $branch
+			;;
+			d|delete)
+				git branch -D $branch
+			;;
+			dr|delete-remote)
+				logWarn "Are you sure to delete remote branch $branch ? \e[90m(Yes/No)\e[0m" "!"
+				local yn; vared yn
+				if [[ 'yes' = "$yn" || 'Yes' = "$yn" ]]; then
+					git push origin --delete $branch
+				fi
+			;;
+			m|move)
+				local newB=$3
+				if [[ ! $(git check-ref-format --branch "$newB" >/dev/null 2>&1) || $newB = -* ]]; then
+					logError "Please specify a valid new branch name!" && return 1
+				fi
+				git branch -m $branch $newB
+			;;
+			*)
+				logError "Unknown command: $cmd"
+				gb -h
+				return 1
+			;;
+		esac
+	else
+		logError "$1 is not a valid branch name" && return 1
 	fi
 }
 
 function gaaf() { #? git add files in pattern
     [ -z $1 ] && return
     git add "*$1*"
-}
-
-function gbco() { #? git branch foo && git checkout foo
-    [ -z $1 ] && return
-	git branch $1
-	git checkout $1
 }
 
 function gctm() { #? commit with message

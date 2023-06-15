@@ -213,3 +213,11 @@ function desktop() {
         Return $DesktopPath
     }
 }
+
+function which() {
+    param([Parameter(Mandatory)][string]$command)
+    $cmdObject = Get-Command $command 2>&1
+    If ($?) {
+        Write-Host "function $command() {$($cmdObject.Definition)}"
+    }
+}
