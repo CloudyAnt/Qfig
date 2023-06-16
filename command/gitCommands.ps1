@@ -2,7 +2,7 @@
 
 function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'create') $cmdArg(optional). gtag -h for more
     param([string]$tag, [string]$cmd, [string]$cmdArg, [switch]$help = $false)
-    if ($help) {
+    If ($help) {
         logInfo "Usage: gtag `$tag(optional) `$cmd(default 'create') `cmdArg(optional).`n  `e[1mIf no params specified, then show the tags for current commit`e[1m`n  Available commands:`n"
         "    {0,-18}{1}" -f "c/create", "Default. Create a tag on current commit"
         "    {0,-18}{1}" -f "p/push", "Push the tag to remote, use the 3rd param to specify the remote tag name"
@@ -10,20 +10,19 @@ function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'creat
         "    {0,-18}{1}" -f "dr/delete-remote", "Delete the remote tag, `$tag is the remote tag name here"
         "    {0,-18}{1}" -f "m/move", "Rename the tag"
         "    {0,-18}{1}" -f "mr/move-remote", "Rename the remote tag, `$tag is the remote tag name here"
+        "    {0,-18}{1}" -f "mmr", "move & move-remote"
         "    {0,-18}{1}" -f "ddr", "delete & delete-remote"
         "    {0,-18}{1}" -f "cp", "create & push"
         "    {0,-18}{1}" -f "ddrcp", "delete & delete-remote & create & push. meant to update local and remote tag"
-        Return
-    }
-    If ($tag.Length -Eq 0) {
+    } ElseIf ($tag.Length -Eq 0) {
         git tag --points-at
-    }
-    ElseIf (git check-ref-format "tags/$tag") {
+    } ElseIf (git check-ref-format "tags/$tag") {
         If ($tag -match "^-.*$") {
-            logError "A tag should not starts with '-'" && Return
+            logError "A tag should not starts with '-'"
+            Return
         }
         If ($cmd.Length -eq 0) {
-            cmd="create"
+            $cmd = "create"
         }
         Switch ($cmd) {
             { "c", "create" -contains $_ } {
@@ -43,31 +42,34 @@ function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'creat
                 git push origin :refs/tags/$tag
             }
             "ddr" {
-                git tag -d $1 && git push origin :refs/tags/$tag
+                git tag -d $tag && git push origin :refs/tags/$tag
             }
             "ddrcp" {
                 git tag -d $tag
                 if (-Not $?) { Return }
                 git push origin :refs/tags/$tag
                 if (-Not $?) { Return }
-                git tag $1
+                git tag $tag
                 if (-Not $?) { Return }
                 logSuccess "Created tag: $tag"
                 git push origin tag $tag
             }
-            { "m", "move", "mr", "move-remote" -contains $_ } {
+            { "m", "move", "mr", "move-remote", "mmr" -contains $_ } {
                 $newTag = $cmdArg
-                If ((-Not $(git check-ref-format "tags/$newTag") -Or ($tag -match "^-.*$"))) {
-                    logError "Please specify a valid new tag name!" && Return
+                If ((-Not (git check-ref-format "tags/$newTag") -Or ($tag -match "^-.*$"))) {
+                    logError "Please specify a valid new tag name!"
+                    Return
                 }
-                If ("m".Equals($cmd) -Or "move".Equals($cmd)) {
+                $goon = $true
+                If ("m", "move", "mmr" -contains $_) {
                     git tag $newTag $tag && git tag -d $tag
+                    If ($?) { logSuccess "Renamed tag $tag to $newTag" } Else { $goon = $false }
                 }
-                Else {
+                If ($goon -And "mr", "move-remote", "mmr" -contains $_) {
                     git push origin $newTag :$tag
+                    If ($?) { logSuccess "Renamed remote tag $tag to $newTag" }
                 }
-            }
-            Default {
+            } Default {
                 logError "Unknown command: $cmd"
                 gtag -h
                 Return
@@ -75,32 +77,31 @@ function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'creat
         }
     }
     Else {
-        logError "$1 is not a valid tag name" && Return 1
+        logError "$tag is not a valid tag name"
+        Return
     }
 }
 
 function gb() { #? operate branch. Usage: gb $branch(optional, . stands for current branch) $cmd(default 'create') $cmdArg(optional). gb -h for more
     param([string]$branch, [string]$cmd, [string]$cmdArg, [switch]$help = $false)
-    if ($help) {
+    If ($help) {
         logInfo "Usage: gb `$branch(optional) `$cmd(default 'create') `cmdArg(optional).`n  `e[1mIf no params specified, then show the current branch name`e[0m`n  Available commands:`n"
         "    {0,-19}{1}" -f "c/create", "Default. Create a branch"
         "    {0,-19}{1}" -f "co/create-checkout", "Create a branch and checkout it"
         "    {0,-19}{1}" -f "d/delete", "Delete the branch"
         "    {0,-19}{1}" -f "dr/delete-remote", "Delete the remote branch, `$branch is the remote branch name here"
         "    {0,-19}{1}" -f "m/move", "Rename the branch"
-        Return
-    }
-    If ($branch.Length -Eq 0) {
+    } ElseIf ($branch.Length -Eq 0) {
         git branch --show-current
-    }
-    ElseIf (git check-ref-format --branch $branch >$null 2>&1) {
+    } ElseIf (git check-ref-format --branch $branch 2>$null) {
         If ($tag -match "^-.*$") {
-            logError "A branch name should not starts with '-'" && Return
+            logError "A branch name should not starts with '-'"
+            Return
         }
         If ($cmd.Length -eq 0) {
-            cmd="create"
+            $cmd = "create"
         }
-        Switch ($branch) {
+        Switch ($cmd) {
             { "c", "create" -contains $_ } {
                 git branch $branch
                 If ($?) { logSuccess "Created branch: $branch" }
@@ -121,20 +122,23 @@ function gb() { #? operate branch. Usage: gb $branch(optional, . stands for curr
             }
             { "m", "move" -contains $_ } {
                 $newB = $cmdArg
-                If ((-Not $(git check-ref-format --branch "$newB" >$null 2>&1) -Or ($newB -match "^-.*$"))) {
-                    logError "Please specify a valid new branch name!" && Return
+                If ((-Not (git check-ref-format --branch "$newB" 2>$null) -Or ($newB -match "^-.*$"))) {
+                    logError "Please specify a valid new branch name!"
+                    Return
                 }
                 git branch -m $branch $newB
+                If ($?) { logSuccess "Renamed branch $branch to $newB" }
             }
             Default {
                 logError "Unknown command: $cmd"
-                gtag -h
+                gb -h
                 Return
             }
         }
     }
     Else {
-        logError "$1 is not a valid branch name" && Return
+        logError "$branch is not a valid branch name"
+        Return
     }
 }
 

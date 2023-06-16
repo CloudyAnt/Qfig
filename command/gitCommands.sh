@@ -44,6 +44,7 @@ function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'creat
 		printf "    %-18s%s\n" "dr/delete-remote" "Delete the remote tag, \$tag is the remote tag name here"
 		printf "    %-18s%s\n" "m/move" "Rename the tag"
 		printf "    %-18s%s\n" "mr/move-remote" "Rename the remote tag, \$tag is the remote tag name here"
+		printf "    %-18s%s\n" "mmr" "move & move-remote"
 		printf "    %-18s%s\n" "ddr" "delete & delete-remote"
 		printf "    %-18s%s\n" "cp" "create & push"
 		printf "    %-18s%s\n" "ddrcp" "delete & delete-remote & create & push. meant to update local and remote tag"
@@ -86,15 +87,17 @@ function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'creat
 				logSuccess "Created tag: $tag"
 				git push origin tag $tag
 			;;
-			m|move|mr|move-remote)
+			m|move|mr|move-remote|mmr)
 				local newTag=$3
 				if [[ -z $newTag || ! $(git check-ref-format "tags/$newTag") || $newTag = -* ]]; then
 					logError "Please specify a valid new tag name!" && return 1
 				fi
-				if [[ "m" = $cmd || "move" = $cmd ]]; then
-					git tag $newTag $tag && git tag -d $tag
-				else
-					git push origin $newTag :$tag
+				local goon=1
+				if [[ "m" = $cmd || "move" = $cmd || "mmr" = $cmd ]]; then
+					git tag $newTag $tag && git tag -d $tag && logSuccess "Renamed tag $tag to $newTag" || goon=""
+				fi
+				if [ $goon ] && [[ "mr" = $cmd || "move-remote" = $cmd || "mmr" = $cmd ]]; then
+					git push origin $newTag :$tag && logSuccess "Renamed remote tag $tag to $newTag"
 				fi
 			;;
 			*)
@@ -121,7 +124,7 @@ function gb() { #? operate branch. Usage: gb $branch(optional, . stands for curr
 		printf "    %-19s%s\n" "dr/delete-remote" "Delete the remote branch, \$branch is the remote branch name here"
 		printf "    %-19s%s\n" "m/move" "Rename the branch"
 	elif git check-ref-format --branch "$1" >/dev/null 2>&1 ; then
-		if [[ 1 = -* ]]; then
+		if [[ $1 = -* ]]; then
 			logError "A branch name should not starts with '-'" && return 1
 		fi
 
@@ -153,7 +156,7 @@ function gb() { #? operate branch. Usage: gb $branch(optional, . stands for curr
 			;;
 			m|move)
 				local newB=$3
-				if [[ ! $(git check-ref-format --branch "$newB" >/dev/null 2>&1) || $newB = -* ]]; then
+				if ! git check-ref-format --branch "$newB" >/dev/null 2>&1 || [[ $newB = -* ]]; then
 					logError "Please specify a valid new branch name!" && return 1
 				fi
 				git branch -m $branch $newB
