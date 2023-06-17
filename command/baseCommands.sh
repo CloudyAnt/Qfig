@@ -30,13 +30,12 @@ function qfig() { #? Qfig preserved command
 				local parts=(${(@s/ /)$(git -C $Qfig_loc log --oneline --decorate -1)})
 				local newHead=$parts[1]
 				echo "\nUpdate head \e[1m$curHead\e[0m -> \e[1m$newHead\e[0m:\n"
-				git -C $Qfig_loc log --oneline --decorate -10 | awk -v ch=$curHead 'BEGIN{first = 1;
+				git -C $Qfig_loc log --oneline --decorate -10 | awk -v ch=$curHead 'BEGIN{
 					tc["refactor"] = 31; tc["fix"] = 32; tc["feat"] = 33; tc["chore"] = 34; tc["doc"] = 35; tc["test"] = 36;
 				} {
 					if($0 ~ ch) {
 						exit;
 					} else {
-						if (first) { first = 0}
 						n = split($0, parts, ":");
 						n1 = split(parts[1], parts1, " ");
 						type = parts1[n1];

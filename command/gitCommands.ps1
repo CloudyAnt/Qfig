@@ -192,6 +192,10 @@ function glist {
     git stash list
 }
 
+function gaf {
+    git fetch --all
+}
+
 function GitBranchCompleter { #x
     param ($commandName, $parameterName, $wordToComplete)
 
