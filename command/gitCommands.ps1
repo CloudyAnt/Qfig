@@ -142,10 +142,8 @@ function gb() { #? operate branch. Usage: gb $branch(optional, . stands for curr
     }
 }
 
-function gbco() {
-    param([Parameter(Mandatory)]$name)
-    git branch $name
-    git checkout $name
+function gco-() {
+    gco -
 }
 
 function glo {
@@ -197,6 +195,9 @@ function glist {
 function GitBranchCompleter { #x
     param ($commandName, $parameterName, $wordToComplete)
 
+    $originalOutputEncoding = [console]::OutputEncoding
+    [console]::OutputEncoding = New-Object System.Text.UTF8Encoding
+
     $result = git branch --list *$wordToComplete*
     If (($result -is [array]) -And ($result[0] -is [string])) {
         For ($i = 0; $i -lt $result.Length; $i++) {
@@ -206,6 +207,8 @@ function GitBranchCompleter { #x
     } ElseIf ($result -is [string]) {
         $result.SubString(2)
     }
+
+    [console]::OutputEncoding = $originalOutputEncoding
 }
 
 function gco {
