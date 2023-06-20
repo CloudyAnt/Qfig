@@ -102,7 +102,7 @@ function qcmds() { #? operate available commands. Usage: qcmds commandsPrefix su
         {"", "explain" -contains $_} {
             Get-Content $targetFile | ForEach-Object {
                 If ($_.StartsWith("#? ")) {
-                    $exp = "`e[1;34m▍`e[39m"
+                    $exp = "`e[34m▍`e[39m"
                     $parts = $_.Split(" ")
                     for ($i = 1; $i -lt $parts.Count; $i++) {
                         $exp += "$($parts[$i]) "

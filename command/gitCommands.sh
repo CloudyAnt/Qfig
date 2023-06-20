@@ -4,8 +4,7 @@ alias gaa='git add -A'
 alias gaap='git add -p'
 alias gamd='git commit --amend'
 alias gamdn='git commit --amend --no-edit'
-alias gco='git checkout'
-alias gco-='gco -'
+alias gco-='git checkout -'
 alias gcp='git cherry-pick'
 alias gcpa='git cherry-pick --abort'
 alias gcpc='git cherry-pick --continue'
@@ -30,8 +29,11 @@ forbidAlias gl "git pull"
 forbidAlias gc gct "git commit"
 forbidAlias gap gapply
 unalias gb
+unalias gco
 
 function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'create') $cmdArg(optional). gtag -h for more
+	# CHECK if this is a git repository
+    [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
 	if [ -z $1 ]; then
 		git tag --points-at # --points-at defaults to HEAD
 	elif [ "-h" = "$1" ]; then
@@ -112,6 +114,8 @@ function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'creat
 }
 
 function gb() { #? operate branch. Usage: gb $branch(optional, . stands for current branch) $cmd(default 'create') $cmdArg(optional). gb -h for more
+	# CHECK if this is a git repository
+    [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
 	if [ -z $1 ]; then
 		git branch --show-current
 	elif [ "-h" = "$1" ]; then
@@ -172,6 +176,90 @@ function gb() { #? operate branch. Usage: gb $branch(optional, . stands for curr
 	fi
 }
 
+function gco() {
+	# CHECK if this is a git repository
+    [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
+	[ -z $1 ] && return
+	IFS=$'\n' branches=($(git branch --list "*$1*")) IFS=' '
+	
+	declare -i arrayBase
+	[[ -o ksharrays ]] && arrayBase=0 || arrayBase=1 # if KSH_ARRAYS option set, array based on 0, and '{}' are required to access index
+
+	if [ ${#branches} -eq 0 ]; then
+		logError "Branch '$1' doesn't exists and none branches have the similar name" && return 1
+	elif [ ${#branches} -eq 1 ]; then
+		branches[$arrayBase]=${branches[$arrayBase]:2}
+		if [ ${branches[$arrayBase]} = $1 ]; then
+			git checkout $1
+		else
+			logInfo "Checkout \e[1m${branches[$arrayBase]}\e[0m ? \e[90mY or Enter for Yes, others for No.\e[0m"
+			local yn; vared yn
+			if [[ '' = "$yn" || 'y' = "$yn" || 'Y' = "$yn" ]]; then
+				git checkout ${branches[$arrayBase]}
+			fi
+		fi
+	else
+		logWarn "Branch '$1' doesn't exists but multiple branches have the similar name:"
+		declare -i i=$arrayBase
+		declare -i maxLen=0;
+		for ((; i<=$((${#branches[@]} - 1 + $arrayBase)); i++)); do
+			branches[$i]=${branches[$i]:2}
+			local len=${#branches[$i]}
+			if [ $len -gt $maxLen ]; then
+				maxLen=$len
+			fi
+		done
+
+		i=$arrayBase
+		declare -i ci=1;
+		declare -i formatLen=$((maxLen + 1))
+		declare -i curLen=0;
+		for ((; i<=$((${#branches[@]} - 1 + $arrayBase)); i++)); do
+			local formatted_number=$(printf "%3s" $i)
+			local formatted_name=$(printf "%-${formatLen}s" "${branches[$i]}")
+			local colored_text="\033[90m$formatted_number:\033[0m$formatted_name"
+			printf "$colored_text"
+			curLen=$((curLen + ${#colored_text}))
+			if [ $curLen -ge 120 ]; then
+				printf "\n"
+				curLen=0
+			fi
+			ci=$((ci % 7 + 1))
+		done
+		printf "\n"
+		local minI=$arrayBase
+		local maxI=$((${#branches} - 1 + $arrayBase))
+		logInfo "Choose one by the prefix number" "-"
+		local number=; vared number
+		if [[ $number =~ '^[0-9]+$' && $number -ge $minI && $number -le $maxI ]]; then
+			git checkout ${branches[$number]}
+		else
+			logError "The input is not valid" "!" && return 1
+		fi
+	fi
+}
+
+function _gco() {
+	declare -i arrayBase
+	[[ -o ksharrays ]] && arrayBase=0 || arrayBase=1 # if KSH_ARRAYS option set, array based on 0, and '{}' are required to access index
+	if [ $COMP_CWORD -gt $(($arrayBase + 1)) ]; then
+		return 0
+	fi
+
+	local latest="${COMP_WORDS[$COMP_CWORD]}"
+	IFS=$'\n' branches=($(git branch --list "$latest*")) IFS=' '
+
+	declare -i i=$arrayBase
+	local str=""
+	for ((; i<=$((${#branches[@]} - 1 + $arrayBase)); i++)); do
+		str=$str" ${branches[$i]:2}"
+	done
+	COMPREPLY=($(compgen -W "$str" -- $latest))
+	return 0
+}
+
+complete -F _gco gco
+
 function gaaf() { #? git add files in pattern
     [ -z $1 ] && return
     git add "*$1*"
@@ -190,6 +278,8 @@ function gctm() { #? commit with message
 }
 
 function gcto() { #? commit in one line
+	# CHECK if this is a git repository
+    [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
     echo commit with message '"['$1']' $2: $3'" ? (y for Yes)'
 	local oneline_commit=; vared oneline_commit
     [ "$oneline_commit" = "y" ] && gaa && git commit -m "[$1] $2: $3"
@@ -199,6 +289,8 @@ function gcto() { #? commit in one line
 _git_stash_key="_git_stash_:"
 
 function gstash() { #? stash with specific name. Usage: gstash name(optional)
+	# CHECK if this is a git repository
+    [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
     if [ -z "$1" ] 
     then
         git stash
@@ -208,6 +300,8 @@ function gstash() { #? stash with specific name. Usage: gstash name(optional)
 }
 
 function gstashu() { #? stash unstaged files with specific name. Usage: gstashu name(optional)
+	# CHECK if this is a git repository
+    [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
     if [ -z "$1" ] 
     then
         git stash --keep-index
@@ -217,6 +311,8 @@ function gstashu() { #? stash unstaged files with specific name. Usage: gstashu 
 }
 
 function gapply() { #? apply with specific name. Usage: gapply name(optional)
+	# CHECK if this is a git repository
+    [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
     if [ -z "$1" ] 
     then
         git stash apply
@@ -228,6 +324,8 @@ function gapply() { #? apply with specific name. Usage: gapply name(optional)
 }
 
 function gpop() { #? pop with specific name. Usage: gpop name(optional)
+	# CHECK if this is a git repository
+    [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
     if [ -z "$1" ] 
     then
         git stash pop
@@ -456,7 +554,7 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 	local i
 
 	i=$((arrayBase + 0))
-	for ((; i<=${#tokens[@]}; i++)); do
+	for ((; i<=$((${#tokens[@]} - 1 + $arrayBase)); i++)); do
 		t=${tokens[$i]}
 		case $t in
 			0:*)
