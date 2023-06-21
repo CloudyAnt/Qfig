@@ -243,7 +243,19 @@ function which() {
     param([Parameter(Mandatory)][string]$command)
     $cmdObject = Get-Command $command 2>&1
     If ($?) {
-        Write-Host "function $command() {$($cmdObject.Definition)}"
+        $type = $cmdObject.CommandType.ToString()
+        If ("Function".Equals($type)) {
+            "function $command() {$($cmdObject.Definition)}"
+        } ElseIf ("Application".Equals($type)) {
+            $($cmdObject.Definition)
+        } ElseIf ("Alias".Equals($type)) {
+            "`e[1mAlias of:`e[0m $($cmdObject.Definition)"
+        } ElseIf ("Cmdlet".Equals($type)) {
+            "`e[1mCmdlet`e[0m"
+        } Else {
+            Write-Host "Command type: $type`nDefinition:`n"
+            $($cmdObject.Definition)
+        }
     }
 }
 

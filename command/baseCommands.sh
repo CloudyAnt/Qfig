@@ -3,7 +3,7 @@
 
 function qfig() { #? Qfig preserved command
 	case $1 in
-		help)
+		-h|help)
 			logInfo "Usage: qfig <command>\n\n  Available commands:\n"
 			printf "    %-10s%s\n" "help" "Print this help message"
 			printf "    %-10s%s\n" "update" "Update Qfig"
