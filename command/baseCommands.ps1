@@ -12,7 +12,7 @@ function qfig { #? Qfig preserved command. -h(help) for more
     } ElseIf ("into".Equals($command)) {
         Set-Location $Qfig_loc
     } ElseIf ("update".Equals($command)) {
-        $curHead = $(git -C $Qfig_lco log --oneline --decorate -1).Split(" ")[1]
+        $curHead = $(git -C $Qfig_loc log --oneline --decorate -1).Split(" ")[1]
         $pullMessage = $(git -C $Qfig_loc pull --rebase 2>&1) -join "`r`n"
         If ($pullMessage -match ".*error.*" -Or $pullMessage -match ".*fatal.*") {
             logError "Cannot update Qfig:`n$pullMessage"
