@@ -211,7 +211,6 @@ function gco() {
 		done
 
 		i=$arrayBase
-		declare -i ci=1;
 		declare -i formatLen=$((maxLen + 1))
 		declare -i curLen=0;
 		for ((; i<=$((${#branches[@]} - 1 + $arrayBase)); i++)); do
@@ -224,7 +223,6 @@ function gco() {
 				printf "\n"
 				curLen=0
 			fi
-			ci=$((ci % 7 + 1))
 		done
 		printf "\n"
 		local minI=$arrayBase
@@ -234,7 +232,7 @@ function gco() {
 		if [[ $number =~ '^[0-9]+$' && $number -ge $minI && $number -le $maxI ]]; then
 			git checkout ${branches[$number]}
 		else
-			logError "The input is not valid" "!" && return 1
+			logError "The input is invalid" "!" && return 1
 		fi
 	fi
 }

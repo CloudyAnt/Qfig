@@ -1,7 +1,7 @@
 #? Commands to operate json.
 #? No 3rd program needed.
 
-function jsonget() { #? Usage: jsonget json targetPath, -h for more
+function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h for more
     if [ "-h" = $1 ]; then
         logInfo "For json \e[34m{\"users\": [{\"name\": \"chai\"}]}\e[0m, you can get the 1st user's name like: \e[1mjsonget json users.0.name\e[0m
   For json \e[34m[{\"name\": \"chai\"}]\e[0m, then the operation be like: \e[1mjsonget json 0.name\e[0m
@@ -71,8 +71,16 @@ function jsonget() { #? Usage: jsonget json targetPath, -h for more
     local err=""
     declare -i ai=0 # current array index
     declare -i fc=0 # current float fractional part digits count
+    local finding=1
 
     local firstC=${1:0:1}
+    if [ '!' = $firstC ]; then
+        finding=""
+        firstC=${1:1:1}
+        i=2
+    else
+        i=1
+    fi
     case $firstC in
         {)
             cpt[$arrayBase]="O"
@@ -150,20 +158,20 @@ function jsonget() { #? Usage: jsonget json targetPath, -h for more
     }
 
     function checkMatch {
-        if [[ ${cpm[$cpi]} && ${cpm[$cpi]} -ge 0 && $cpi -eq $tpi ]]; then
+        if [[ finding && ${cpm[$cpi]} && ${cpm[$cpi]} -ge 0 && $cpi -eq $tpi ]]; then
             found=1
             case ${cpt[$cpi]} in
 		        O)
-                    echo "O:Object"
+                    echo "\e[34mO:\e[0mObject"
                 ;;
                 A)
-                    echo "A:Array"
+                    echo "\e[34mA:\e[0mArray"
                 ;;
                 S|I|F)
-                    echo "${cpt[$cpi]}:$s"
+                    echo "\e[34m${cpt[$cpi]}:\e[0m$s"
                 ;;
                 TRUE|FALSE|NULL)
-                    echo "${cpt[$cpi]}"
+                    echo "\e[34m${cpt[$cpi]}\e[0m"
                 ;;
                 *)
                     err="Internal logic error (E5). Unexpected type ${cpt[$cpi]}"
@@ -173,7 +181,7 @@ function jsonget() { #? Usage: jsonget json targetPath, -h for more
         fi
     }
 
-    for (( i=1 ; i<${#1}; i++)); do
+    for (( ; i<${#1}; i++)); do
         c=${1:$i:1}
         
         case $x in
@@ -351,25 +359,34 @@ function jsonget() { #? Usage: jsonget json targetPath, -h for more
         esac
     done
 
-    if [ $err ]; then
-        logError $err && return 1
-    elif [ "${cpm[$tpi]}" -gt 0 ]; then
-        if [ ! $found ]; then
-            logError "Invalid json (x0005), matched but stopped (value resolvation not finished) at depth: $(($tpi - $arrayBase)) (path: $(concat -.-1-$tpi $tp))"
-        else
-            # Found
-        fi
-    else
-        if [ $cpi -ne $arrayBase ]; then
-            logError "Invalid json (x0000), stopped at depth: $(($tpi - $arrayBase)) (path: $(concatCP))"
-        else
-            logInfo "\e[1mNot found\e[0m"
-        fi
-    fi
-
     unset -f meetComma
     unset -f meetObjectEnd
     unset -f meetArrayEnd
     unset -f checkMatch
     unset -f concatCP
+
+    if [ $err ]; then
+        logError $err && return 1
+    elif [ "${cpm[$tpi]}" -gt 0 ]; then
+        if [ ! $found ]; then
+            logError "Invalid json (x0005), matched but stopped (value resolvation not finished) at depth: $(($tpi - $arrayBase)) (path: $(concat -.-1-$tpi $tp))" && return 1
+        else
+            # Found
+        fi
+    else
+        if [ $cpi -ne $arrayBase ]; then
+            logError "Invalid json (x0000), stopped at depth: $(($tpi - $arrayBase)) (path: $(concat -.-1-$cpi $cp))" && return 1
+        else
+            echo "\e[1mNot found\e[0m"
+        fi
+    fi
+}
+
+function jsoncheck() { #? json checking. Usage: jsoncheck $json
+    [ -z $1 ] && return
+    local res
+    res=$(jsonget "!$1" "-")
+    if [ 0 -ne $? ]; then
+        echo $res >&2 && return 1
+    fi
 }
