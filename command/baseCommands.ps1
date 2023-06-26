@@ -217,13 +217,13 @@ function qmap() { #? view or edit a map(which may be recognized by Qfig commands
 function md5() { #? calculate md5. Supporting pipe.
 	param([Parameter(Mandatory, ValueFromPipeline)]$text)
 	process {
-		#converts string to MD5 hash in hyphenated and uppercase format
+		# converts string to MD5 hash in hyphenated and uppercase format
 
 		$md5 = new-object -TypeName System.Security.Cryptography.MD5CryptoServiceProvider
 		$utf8 = new-object -TypeName System.Text.UTF8Encoding
 		$hash = [System.BitConverter]::ToString($md5.ComputeHash($utf8.GetBytes($text)))
 
-		#to remove hyphens and downcase letters add:
+		# to remove hyphens and downcase letters add:
 		$hash = $hash.ToLower() -replace '-', ''
 		Return $hash
 	}
@@ -240,6 +240,7 @@ function desktop() {
 }
 
 function which() {
+    # get types by [Enum]::GetNames("System.Management.Automation.CommandTypes")
     param([Parameter(Mandatory)][string]$command)
     $cmdObject = Get-Command $command 2>&1
     If ($?) {
@@ -247,11 +248,13 @@ function which() {
         If ("Function".Equals($type)) {
             "function $command() {$($cmdObject.Definition)}"
         } ElseIf ("Application".Equals($type)) {
+            # e.g. ls, cat
             $($cmdObject.Definition)
         } ElseIf ("Alias".Equals($type)) {
             "`e[1mAlias of:`e[0m $($cmdObject.Definition)"
         } ElseIf ("Cmdlet".Equals($type)) {
-            "`e[1mCmdlet`e[0m"
+            # e.g. Where-Object
+            "`e[1mCmdlet definition:`e[0m`n$($cmdObject.Definition)"
         } Else {
             Write-Host "Command type: $type`nDefinition:`n"
             $($cmdObject.Definition)

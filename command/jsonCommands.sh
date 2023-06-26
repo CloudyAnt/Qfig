@@ -88,6 +88,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
         ;;
         \[)
             cpt[$arrayBase]="A"
+            cp[$cpi]="0"
             x=3
             if [[ "$ai" = ${tp[$cpi]} ]]; then
                 cpm[$cpi]=4
@@ -135,7 +136,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
     function meetArrayEnd {
         preCpi=$((cpi - 1))
         if [ "A" = ${cpt[$preCpi]} ]; then
-            if [ "" = $s ]; then
+            if [ "" = "$s" ]; then
                 if [ $ai -gt 0 ]; then
                     err="Invalid json (x0004): not expecting ']' at index $i (path: $(concatCP))" && break
                 else
@@ -196,10 +197,10 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
                 fi
             ;;
             1) # appending key 
-                if [ '"' = "$c" ]; then
-                    if [ $escaping ]; then
-                        err="Invalid json (40001): string ended by '\' at index index $i (path: $(concatCP))" && break
-                    fi
+                if [[ $escaping ]]; then
+                    s=$s$c
+                    escaping=""
+                elif [ '"' = "$c" ]; then
                     cp[$cpi]=$s
                     if [[ ${cpm[$((cpi - 1))]} -ge 0 && $s = ${tp[$cpi]} ]]; then
                         cpm[$cpi]=6
@@ -207,9 +208,6 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
                         cpm[$cpi]=-6
                     fi
                     x=2
-                elif [[ $escaping ]]; then
-                    s=$s$c
-                    escaping=""
                 elif [ '\' = "$c" ]; then
                     escaping="1"
                 else
@@ -285,14 +283,11 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
                 fi
             ;;
             4) # appending string value
-                if [ '"' = "$c" ]; then
-                    if [ $escaping ]; then
-                        err="Invalid json (40001): string ended by '\' at index index $i (path: $(concatCP))" && break
-                    fi
-                    x=5
-                elif [[ $escaping ]]; then
+                if [[ $escaping ]]; then
                     s=$s$c
                     escaping=""
+                elif [ '"' = "$c" ]; then
+                    x=5
                 elif [ '\' = "$c" ]; then
                     escaping=1
                 else
