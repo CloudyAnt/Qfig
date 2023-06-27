@@ -4,6 +4,7 @@ alias gaa='git add -A'
 alias gaap='git add -p'
 alias gamd='git commit --amend'
 alias gamdn='git commit --amend --no-edit'
+alias gco='git checkout'
 alias gco-='git checkout -'
 alias gcp='git cherry-pick'
 alias gcpa='git cherry-pick --abort'
@@ -29,7 +30,6 @@ forbidAlias gl "git pull"
 forbidAlias gc gct "git commit"
 forbidAlias gap gapply
 unalias gb
-unalias gco
 
 function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'create') $cmdArg(optional). gtag -h for more
 	# CHECK if this is a git repository
@@ -176,35 +176,41 @@ function gb() { #? operate branch. Usage: gb $branch(optional, . stands for curr
 	fi
 }
 
-function gco() {
+function gcr() { #? git checkout ref(branch or tag). Usage: gcr $branch/$tag(fuzziable)
 	# CHECK if this is a git repository
     [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
 	[ -z $1 ] && return
+	local branches tags refs
 	IFS=$'\n' branches=($(git branch --list "*$1*")) IFS=' '
-	
+
 	declare -i arrayBase
 	[[ -o ksharrays ]] && arrayBase=0 || arrayBase=1 # if KSH_ARRAYS option set, array based on 0, and '{}' are required to access index
+	declare -i i=$arrayBase
+	for ((; i<=$((${#branches[@]} - 1 + $arrayBase)); i++)); do
+		branches[$i]=${branches[$i]:2}
+	done
+	IFS=$'\n' tags=($(git tag --list "*$1*")) IFS=' '
+	refs=("${branches[@]}" "${tags[@]}")
 
-	if [ ${#branches} -eq 0 ]; then
-		logError "Branch '$1' doesn't exists and none branches have the similar name" && return 1
-	elif [ ${#branches} -eq 1 ]; then
-		branches[$arrayBase]=${branches[$arrayBase]:2}
-		if [ ${branches[$arrayBase]} = $1 ]; then
+	if [ ${#refs} -eq 0 ]; then
+		logError "No branch or tag have a name similar to '$1'" && return 1
+	elif [ ${#refs} -eq 1 ]; then
+		refs[$arrayBase]=${refs[$arrayBase]:2}
+		if [ ${refs[$arrayBase]} = $1 ]; then
 			git checkout $1
 		else
-			logInfo "Checkout \e[1m${branches[$arrayBase]}\e[0m ? \e[90mY or Enter for Yes, others for No.\e[0m"
+			logInfo "Checkout \e[1m${refs[$arrayBase]}\e[0m ? \e[90mY or Enter for Yes, others for No.\e[0m"
 			local yn; vared yn
 			if [[ '' = "$yn" || 'y' = "$yn" || 'Y' = "$yn" ]]; then
-				git checkout ${branches[$arrayBase]}
+				git checkout ${refs[$arrayBase]}
 			fi
 		fi
 	else
-		logWarn "Branch '$1' doesn't exists but multiple branches have the similar name:"
-		declare -i i=$arrayBase
+		logWarn "Branch/Tag '$1' doesn't exists but multiple branches/tags have the similar name:"
+		i=$arrayBase
 		declare -i maxLen=0;
-		for ((; i<=$((${#branches[@]} - 1 + $arrayBase)); i++)); do
-			branches[$i]=${branches[$i]:2}
-			local len=${#branches[$i]}
+		for ((; i<=$((${#refs[@]} - 1 + $arrayBase)); i++)); do
+			local len=${#refs[$i]}
 			if [ $len -gt $maxLen ]; then
 				maxLen=$len
 			fi
@@ -213,9 +219,9 @@ function gco() {
 		i=$arrayBase
 		declare -i formatLen=$((maxLen + 1))
 		declare -i curLen=0;
-		for ((; i<=$((${#branches[@]} - 1 + $arrayBase)); i++)); do
+		for ((; i<=$((${#refs[@]} - 1 + $arrayBase)); i++)); do
 			local formatted_number=$(printf "%3s" $i)
-			local formatted_name=$(printf "%-${formatLen}s" "${branches[$i]}")
+			local formatted_name=$(printf "%-${formatLen}s" "${refs[$i]}")
 			local colored_text="\033[90m$formatted_number:\033[0m$formatted_name"
 			printf "$colored_text"
 			curLen=$((curLen + ${#colored_text}))
@@ -226,18 +232,18 @@ function gco() {
 		done
 		printf "\n"
 		local minI=$arrayBase
-		local maxI=$((${#branches} - 1 + $arrayBase))
+		local maxI=$((${#refs} - 1 + $arrayBase))
 		logInfo "Choose one by the prefix number" "-"
 		local number=; vared number
 		if [[ $number =~ '^[0-9]+$' && $number -ge $minI && $number -le $maxI ]]; then
-			git checkout ${branches[$number]}
+			git checkout ${refs[$number]}
 		else
 			logError "The input is invalid" "!" && return 1
 		fi
 	fi
 }
 
-function _gco() {
+function _gcr() {
 	declare -i arrayBase
 	[[ -o ksharrays ]] && arrayBase=0 || arrayBase=1 # if KSH_ARRAYS option set, array based on 0, and '{}' are required to access index
 	if [ $COMP_CWORD -gt $(($arrayBase + 1)) ]; then
@@ -245,18 +251,26 @@ function _gco() {
 	fi
 
 	local latest="${COMP_WORDS[$COMP_CWORD]}"
+	local branches tags refs
 	IFS=$'\n' branches=($(git branch --list "$latest*")) IFS=' '
 
 	declare -i i=$arrayBase
-	local str=""
 	for ((; i<=$((${#branches[@]} - 1 + $arrayBase)); i++)); do
-		str=$str" ${branches[$i]:2}"
+		branches[$i]=${branches[$i]:2}
+	done
+	IFS=$'\n' tags=($(git tag --list "$latest*")) IFS=' '
+	refs=("${branches[@]}" "${tags[@]}")
+
+	local str=""
+	i=$arrayBase
+	for ((; i<=$((${#refs[@]} - 1 + $arrayBase)); i++)); do
+		str=$str" ${refs[$i]}"
 	done
 	COMPREPLY=($(compgen -W "$str" -- $latest))
 	return 0
 }
 
-complete -F _gco gco
+complete -F _gcr gcr
 
 function gaaf() { #? git add files in pattern
     [ -z $1 ] && return

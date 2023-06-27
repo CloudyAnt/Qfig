@@ -14,8 +14,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
 	declare -i arrayBase
 	[[ -o ksharrays ]] && arrayBase=0 || arrayBase=1 # if KSH_ARRAYS option set, array based on 0, and '{}' are required to access index
 
-    local s
-    local c
+    local s c
     local escaping=""
     # --- RESOLVE path ---
     declare -a tp # target path sections
