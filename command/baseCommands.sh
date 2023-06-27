@@ -24,11 +24,10 @@ function qfig() { #? Qfig preserved command
 			local curHead=$parts[1]
 
 			local pullMessage=$(git -C $Qfig_loc pull --rebase 2>&1)
-			[[ "true" = $(sed -rn 's|<showQfigPullMessage>(.+)</showQfigPullMessage>|\1|p' $Qfig_loc/config) ]] && echo $pullMessage
             if [[ $? != 0 || "$pullMessage" = *"error"* || "$pullMessage" = *"fatal"* ]]; then
                 logError "Cannot update Qfig:\n$pullMessage" && return
-			elif [[ "$pullMessage" = *"up to date"* ]]; then
-				logSuccess "Qfig is up to date" && return
+			elif [[ "$pullMessage" = *"Already up to date."* ]]; then
+				logSuccess "Qfig is already up to date" && return
 			else
 				logInfo "Updating Qfig.."
 				local parts=(${(@s/ /)$(git -C $Qfig_loc log --oneline --decorate -1)})
