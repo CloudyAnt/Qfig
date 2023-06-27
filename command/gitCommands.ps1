@@ -13,7 +13,8 @@ function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'creat
         "    {0,-18}{1}" -f "mmr", "move & move-remote"
         "    {0,-18}{1}" -f "ddr", "delete & delete-remote"
         "    {0,-18}{1}" -f "cp", "create & push"
-        "    {0,-18}{1}" -f "ddrcp", "delete & delete-remote & create & push. meant to update local and remote tag"
+        "    {0,-18}{1}" -f "ddrcp", "delete & delete-remote & create & push. meant to update local and remote tag to current commit"
+        "    {0,-18}{1}" -f "df/delete-fetch", "delete local tag & fetch remote. meant to align local tag with remote"
     } ElseIf ($tag.Length -Eq 0) {
         git tag --points-at
     } ElseIf (git check-ref-format "tags/$tag") {
@@ -69,7 +70,13 @@ function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'creat
                     git push origin $newTag :$tag
                     If ($?) { logSuccess "Renamed remote tag $tag to $newTag" }
                 }
-            } Default {
+            }
+            {"df", "delete-fetch" -contains $_} {
+                git tag -d $tag
+                if (-Not $?) { Return }
+                git fetch origin tag $tag --no-tags
+            }
+            Default {
                 logError "Unknown command: $cmd"
                 gtag -h
                 Return

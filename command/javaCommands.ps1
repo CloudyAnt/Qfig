@@ -1,8 +1,19 @@
 #? These are commands about java, make sure it's available before use.
 
+function JavaFileNameCompeletor() { #x
+    param ($commandName, $parameterName, $wordToComplete)
+
+    $originalOutputEncoding = [console]::OutputEncoding
+    [console]::OutputEncoding = New-Object System.Text.UTF8Encoding
+
+    Get-ChildItem $wordToComplete*.java
+
+    [console]::OutputEncoding = $originalOutputEncoding
+}
+
 function jrun() { #? java compile then run, jrun Hello => javac Hello.java && java Hello
     param(
-        [Parameter(Mandatory)]$file
+        [Parameter(Mandatory)][ArgumentCompleter({ JavaFileNameCompeletor @args })]$file
     )
 
     $filenameParts = $file.split(".")
