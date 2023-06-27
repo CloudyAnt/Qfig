@@ -49,7 +49,8 @@ function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'creat
 		printf "    %-18s%s\n" "mmr" "move & move-remote"
 		printf "    %-18s%s\n" "ddr" "delete & delete-remote"
 		printf "    %-18s%s\n" "cp" "create & push"
-		printf "    %-18s%s\n" "ddrcp" "delete & delete-remote & create & push. meant to update local and remote tag"
+		printf "    %-18s%s\n" "ddrcp" "delete & delete-remote & create & push. meant to update local and remote tag to current commit"
+		printf "    %-18s%s\n" "df/delete-fetch" "delete local tag & fetch remote. meant to align local tag with remote"
 	elif git check-ref-format "tags/$1" ; then
 		local tag=$1
 		if [[ $tag = -* ]]; then
@@ -101,6 +102,11 @@ function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'creat
 				if [ $goon ] && [[ "mr" = $cmd || "move-remote" = $cmd || "mmr" = $cmd ]]; then
 					git push origin $newTag :$tag && logSuccess "Renamed remote tag $tag to $newTag"
 				fi
+			;;
+			df|delete-fetch)
+				git tag -d $tag
+				[ 0 -ne $? ] && return
+				git fetch origin tag $tag --no-tags
 			;;
 			*)
 				logError "Unknown command: $cmd"
@@ -243,10 +249,10 @@ function gcr() { #? git checkout ref(branch or tag). Usage: gcr $branch/$tag(fuz
 	fi
 }
 
-function _gcr() {
+function _gcr() { #x
 	declare -i arrayBase
 	[[ -o ksharrays ]] && arrayBase=0 || arrayBase=1 # if KSH_ARRAYS option set, array based on 0, and '{}' are required to access index
-	if [ $COMP_CWORD -gt $(($arrayBase + 1)) ]; then
+	if [ $COMP_CWORD -ne $(($arrayBase + 1)) ]; then
 		return 0
 	fi
 

@@ -1,6 +1,9 @@
 #!/usr/bin/env zsh
 #? These commands only requires zsh built-in commands
 
+function _doNothing() { #x
+}
+
 function qfig() { #? Qfig preserved command
 	case $1 in
 		-h|help)
@@ -288,7 +291,9 @@ function assertExist() { #? check file existence
 
 function rezsh() { #? source .zshrc
 	[[ -o ksharrays ]] && local ksharrays=1
-	set +o ksharrays # 3rd-parties, e.g. oh-my-zsh, may not expect option
+	# If ksharrays was set, arrays would based on 0, array items can only be accessed like '${arr[1]}' not '$arr[1]',
+	# array size can only be accesse like '${#arr[@]}' not '${#arr}'. Some programs may not expect this option
+	set +o ksharrays
 
 	if [ ! "-" = "$1" ]; then
 		[ -z "$1" ] && logInfo "Refreshing zsh..." || logInfo "$1..."
@@ -300,9 +305,7 @@ function rezsh() { #? source .zshrc
     source ~/.zshrc
 	[ -z "$2" ] && logSuccess "Refreshed zsh" || logSuccess "$2"
 
-	if [ $ksharrays ]; then
-		set -o ksharrays
-	fi
+	[ $ksharrays ] && set -o ksharrays || _doNothing
 }
 
 function targz() { #? compress folder to tar.gz using option -czvf

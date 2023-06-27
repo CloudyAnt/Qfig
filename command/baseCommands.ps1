@@ -229,7 +229,7 @@ function md5() { #? calculate md5. Supporting pipe.
 	}
 }
 
-function desktop() {
+function desktop() { #? show desktop path (no params) or go to desktop (by -go flag)
     param([switch]$go = $false)
     $DesktopPath = [Environment]::GetFolderPath("Desktop")
     If ($go) {
@@ -239,7 +239,7 @@ function desktop() {
     }
 }
 
-function which() {
+function which() { #? equivalent to shell 'which'
     # get types by [Enum]::GetNames("System.Management.Automation.CommandTypes")
     param([Parameter(Mandatory)][string]$command)
     $cmdObject = Get-Command $command 2>&1
