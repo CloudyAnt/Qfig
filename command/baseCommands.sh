@@ -526,19 +526,20 @@ function sp2uni() { #? convert surrogate pair (range [D800, DBFF] and [DC00, DFF
 	dec2hex $uni
 }
 
-function concat() { #? concat array. Usage: concat $meta $arr. -h for more
+function concat() { #? concat array. Usage: concat $meta $item1 $item2 $item3... -h for more
 	if [ "-h" = "$1" ]; then
-		logInfo "Usage: concat \$meta \$arr. \e[34m\$arr\e[0m can be a array variable or varargs."
+		logInfo "Usage: concat \$meta \$item1 \$item2 \$item3.... "
 		echo "  \e[34m\$meta\e[0m pattern: \e[1m-joiner-start-end (exclusive)\e[0m. The first char is the separator of meta, here it's '-' (recommanded).
   Start and end are optional. 
   \e[34m\$meta\e[0m could also be a single character \$c, it equivalent to -\$c or joiner
   Examples: 
-    \e[1mconcat -,-1-4 \$arr\e[0m (concat items of index 1, 2, 3 use joiner ',')
+    \e[1mconcat -,-1-4 \${arr[@]}\e[0m (concat items of index 1, 2, 3 use joiner ',')
     \e[1mconcat \"|\\\|2\" a b c...\e[0m (concat all items after index 2 use joiner '\')
     \e[1mconcat , a b c...\e[0m (concat all items use joiner ',')"
 		return
 	fi
-	[[ -z $1 || -z $2 ]] && concat -h && return 1
+	[ -z "$1" ] && concat -h && return 1
+	[ -z "$2" ] && return
 
 	local joiner
 	local start
@@ -552,10 +553,11 @@ function concat() { #? concat array. Usage: concat $meta $arr. -h for more
 		local metaSeparator=${1:0:1}
 		IFS=$metaSeparator local metas=($(echo $1)); IFS=' '
 
-		if [ ${#metas} -lt 1 ]; then
+		if [ ${#metas[@]} -lt 1 ]; then
 			logError "Meta must have at least 1 parts (joiner)" && return 1
 		else
-			start=${metas:2:1}
+			[[ -o ksharrays ]] && local arrayBase=0 || local arrayBase=1
+			start=${metas[$(($arrayBase + 2))]}
 			if [ -z $start ]; then
 				start=2
 			elif [[ ! $start =~ "^[0-9]+$" ]]; then
@@ -564,7 +566,7 @@ function concat() { #? concat array. Usage: concat $meta $arr. -h for more
 				start=$((start + 2))
 			fi
 
-			end=${metas:3:1}
+			end=${metas[$(($arrayBase + 3))]}
 			if [ -z $end ]; then
 				end=$maxEnd
 			elif [[ ! $end =~ "^[0-9]+$" ]]; then
@@ -576,7 +578,7 @@ function concat() { #? concat array. Usage: concat $meta $arr. -h for more
 				fi
 			fi
 		fi
-		joiner=${metas:1:1}
+		joiner=${metas[$(($arrayBase + 1))]}
 	fi
 
 	if [ '\' = "$joiner" ]; then
@@ -588,11 +590,15 @@ function concat() { #? concat array. Usage: concat $meta $arr. -h for more
 	for (( i=$start ; i<$end; i++ )); do
 		local item=${@:$i:1}
 		if [ $firstSet ]; then
-			printf $joiner$item
+			printf "$joiner$item"
 		else
 			firstSet=1
-			printf $item
+			printf "$item"
 		fi
 	done
 	printf "\n"
+}
+
+function rdIFS() { #? restore to default IFS $' \t\n'
+	IFS=$' \t\n'
 }

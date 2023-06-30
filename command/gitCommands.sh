@@ -119,6 +119,22 @@ function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'creat
 	fi
 }
 
+function _gtag() { #x
+	declare -i arrayBase
+	[[ -o ksharrays ]] && arrayBase=0 || arrayBase=1 # if KSH_ARRAYS option set, array based on 0, and '{}' are required to access index
+	if [ $COMP_CWORD -eq $(($arrayBase + 1)) ]; then
+		local p2="${COMP_WORDS[$(($arrayBase + 1))]}"
+		local tags
+		IFS=$'\n' tags=($(git tag --list "$p2*")) IFS=$' \t\n'
+		local str=$(concat ' ' "${tags[@]}") # incase the ksyarrays was set, use array parameter expansion (${arr[@]}) here
+		COMPREPLY=($(compgen -W "$str" -- $p2))
+		return 0
+	fi
+	return 0
+}
+
+complete -F _gtag gtag
+
 function gb() { #? operate branch. Usage: gb $branch(optional, . stands for current branch) $cmd(default 'create') $cmdArg(optional). gb -h for more
 	# CHECK if this is a git repository
     [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
@@ -151,8 +167,11 @@ function gb() { #? operate branch. Usage: gb $branch(optional, . stands for curr
 			c|create)
 				git branch $branch && logSuccess "Created branch: $branch"
 			;;
-			co|create-checkout)
+			cc|create-checkout)
 				git branch $branch && git checkout $branch
+			;;
+			co|checkout)
+				git checkout $branch
 			;;
 			d|delete)
 				git branch -D $branch
@@ -182,7 +201,7 @@ function gb() { #? operate branch. Usage: gb $branch(optional, . stands for curr
 	fi
 }
 
-function gcr() { #? git checkout ref(branch or tag). Usage: gcr $branch/$tag(fuzziable)
+function gcof() { #? git checkout --- fuzziable edition. Usage: gcof $branch/$tag(fuzziable)
 	# CHECK if this is a git repository
     [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
 	[ -z $1 ] && return
@@ -249,7 +268,7 @@ function gcr() { #? git checkout ref(branch or tag). Usage: gcr $branch/$tag(fuz
 	fi
 }
 
-function _gcr() { #x
+function _gcof() { #x
 	declare -i arrayBase
 	[[ -o ksharrays ]] && arrayBase=0 || arrayBase=1 # if KSH_ARRAYS option set, array based on 0, and '{}' are required to access index
 	if [ $COMP_CWORD -ne $(($arrayBase + 1)) ]; then
@@ -276,7 +295,7 @@ function _gcr() { #x
 	return 0
 }
 
-complete -F _gcr gcr
+complete -F _gcof gcof
 
 function gaaf() { #? git add files in pattern
     [ -z $1 ] && return
@@ -413,8 +432,12 @@ function gtop() { #? go to the top level of current repo
     # CHECK if this is a git repository
     [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
 	local gitTopLevel=$(git rev-parse --show-toplevel)
-	logInfo "Go to:\n$gitTopLevel"
-	cd $gitTopLevel
+	if [[ '-g' = $1 || '-go' = $1 ]]; then
+		logInfo "Go to:\n$gitTopLevel"
+		cd $gitTopLevel
+	else
+		echo $gitTopLevel
+	fi
 }
 
 function gct() { #? git commit step by step
