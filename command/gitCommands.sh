@@ -360,7 +360,7 @@ function gapply() { #? apply with specific name. Usage: gapply name(optional)
     git stash apply $key # apply with specific name
 }
 
-function gpop() { #? pop with specific name. Usage: gpop name(optional)
+function gpop() { #? pop with specific name. Usage: gpop $name(optional)
 	# CHECK if this is a git repository
     [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
     if [ -z "$1" ] 
@@ -371,6 +371,13 @@ function gpop() { #? pop with specific name. Usage: gpop name(optional)
     local key=$(git stash list | grep "$_git_stash_key""$1" | cut -d: -f1)
     [ -z "$key" ] && logWarn "The stash key \"$1\" doesn't exist!" && return
     git stash pop $key # pop with specific name
+}
+
+function gpopi() { #? pop stash at a specific index. Usage gpopi $index
+	if [[ -z $1 || ! $1 =~ '^[0-9]+$' ]]; then
+		logError "Please specify a valid index (non-negative integer)" && return 1
+	fi
+	git stash pop stash@{$1}
 }
 
 function gcst() { #? check multi folder commit status
