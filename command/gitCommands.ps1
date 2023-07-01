@@ -1,5 +1,86 @@
 #? Git related commands
 
+function gco-() {
+    gco -
+}
+
+function glo {
+    git log --oneline
+}
+
+function glog {
+    git log --oneline --abbrev-commit --graph
+}
+
+
+function gamd {
+    git commit --amend
+}
+
+function gamdn {
+    git commit --amend --no-edit
+}
+
+function gaa {
+    git add -A
+}
+
+function gaap {
+    git add -p
+}
+
+function glo {
+    git log --oneline
+}
+
+function gst {
+    git status
+}
+
+function glist {
+    git stash list
+}
+
+function gfa() {
+    git fetch --all
+}
+
+function grb() {
+    git rebase
+}
+
+function grbc() {
+    git rebase --continue
+}
+
+function grb-() {
+    git rebase -
+}
+
+function gmg() {
+    git merge
+}
+
+function gmgc() {
+    git merge --continue
+}
+
+function gmg-() {
+    git merge -
+}
+
+function gcp() {
+    git cherry-pick
+}
+
+function gcpc() {
+    git cherry-pick --continue
+}
+
+function gcp-() {
+    git cherry-pick -
+}
+
 function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'create') $cmdArg(optional). gtag -h for more
     param([string]$tag, [string]$cmd, [string]$cmdArg, [switch]$help = $false)
     If ($help) {
@@ -91,6 +172,10 @@ function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'creat
 
 function gb() { #? operate branch. Usage: gb $branch(optional, . stands for current branch) $cmd(default 'create') $cmdArg(optional). gb -h for more
     param([string]$branch, [string]$cmd, [string]$cmdArg, [switch]$help = $false)
+    If (".".Equals($branch)) {
+        $branch = $(git branch --show-current)
+    }
+
     If ($help) {
         logInfo "Usage: gb `$branch(optional) `$cmd(default 'create') `cmdArg(optional).`n  `e[1mIf no params specified, then show the current branch name`e[0m`n  Available commands:`n"
         "    {0,-19}{1}" -f "c/create", "Default. Create a branch"
@@ -121,9 +206,9 @@ function gb() { #? operate branch. Usage: gb $branch(optional, . stands for curr
                 git branch -D $branch
             }
             { "dr", "delete-remote" -contains $_ } {
-                logWarn "Are you sure to delete remote branch $branch ? \e[90m(Yes/No)\e[0m" "!"
+                logWarn "Are you sure to delete remote branch `e[1m$branch`e[0m ? `e[90m(Yes/No)`e[0m" "!"
                 $yn = Read-Host
-                If (-Not ("yes".Equals($yn) -Or "Yes".Equals($yn))) {
+                If ("yes".Equals($yn) -Or "Yes".Equals($yn)) {
                     git push origin --delete $branch
                 }
             }
@@ -149,35 +234,6 @@ function gb() { #? operate branch. Usage: gb $branch(optional, . stands for curr
     }
 }
 
-function gco-() {
-    gco -
-}
-
-function glo {
-    git log --oneline
-}
-
-function glog {
-    git log --oneline --abbrev-commit --graph
-}
-
-
-function gamd {
-    git commit --amend
-}
-
-function gamdn {
-    git commit --amend --no-edit
-}
-
-function gaa {
-    git add -A
-}
-
-function gaap {
-    git add -p
-}
-
 function gaaf() {
     #? git add files in pattern
     param($pattern)
@@ -187,37 +243,19 @@ function gaaf() {
     git add "*$pattern*"
 }
 
-function glo {
-    git log --oneline
-}
-
-function gst {
-    git status
-}
-
-function glist {
-    git stash list
-}
-
-function gaf {
-    git fetch --all
-}
-
 function GitBranchCompleter { #x
     param ($commandName, $parameterName, $wordToComplete)
 
     $originalOutputEncoding = [console]::OutputEncoding
     [console]::OutputEncoding = New-Object System.Text.UTF8Encoding
 
-    $result = git branch --list *$wordToComplete*
-    If (($result -is [array]) -And ($result[0] -is [string])) {
-        For ($i = 0; $i -lt $result.Length; $i++) {
-            $result[$i] = $result[$i].SubString(2)
-        }
-        $result
-    } ElseIf ($result -is [string]) {
-        $result.SubString(2)
+    $result=@()
+    $result += $(git branch --list *$wordToComplete*)
+    $result += $(git branch -r --list *$wordToComplete*) # -r show the matched remote branches only
+    For ($i = 0; $i -lt $result.Length; $i++) {
+        $result[$i] = $result[$i].SubString(2)
     }
+    $result
 
     [console]::OutputEncoding = $originalOutputEncoding
 }

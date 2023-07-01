@@ -138,9 +138,14 @@ complete -F _gtag gtag
 function gb() { #? operate branch. Usage: gb $branch(optional, . stands for current branch) $cmd(default 'create') $cmdArg(optional). gb -h for more
 	# CHECK if this is a git repository
     [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
-	if [ -z $1 ]; then
+
+	local branch=$1
+	if [ "." = $branch ]; then
+		branch=$(git branch --show-current)
+	fi
+	if [ -z $branch ]; then
 		git branch --show-current
-	elif [ "-h" = "$1" ]; then
+	elif [ "-h" = "$branch" ]; then
 		logInfo "Usage: gb \$branch(optional, \e[1m.\e[0m stands for current branch) \$cmd(default 'create') \$cmdArg(optional).
   \e[1mIf no params passed (gb), show the current branch name\e[0m
   Available commands:\n"
@@ -149,14 +154,9 @@ function gb() { #? operate branch. Usage: gb $branch(optional, . stands for curr
 		printf "    %-19s%s\n" "d/delete" "Delete the branch"
 		printf "    %-19s%s\n" "dr/delete-remote" "Delete the remote branch, \$branch is the remote branch name here"
 		printf "    %-19s%s\n" "m/move" "Rename the branch"
-	elif git check-ref-format --branch "$1" >/dev/null 2>&1 ; then
-		if [[ $1 = -* ]]; then
+	elif git check-ref-format --branch "$branch" >/dev/null 2>&1 ; then
+		if [[ $branch = -* ]]; then
 			logError "A branch name should not starts with '-'" && return 1
-		fi
-
-		local branch=$1
-		if [ "." = $branch ]; then
-			branch=$(git branch --show-current)
 		fi
 
 		local cmd=$2
@@ -239,6 +239,7 @@ function gcof() { #? git checkout --- fuzziable edition. Usage: gcof $branch/$ta
 	# CHECK if this is a git repository
     [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
 	[ -z $1 ] && return
+
 	declare -i arrayBase
 	[[ -o ksharrays ]] && arrayBase=0 || arrayBase=1 # if KSH_ARRAYS option set, array based on 0, and '{}' are required to access index
 	declare -i i=$arrayBase
@@ -255,6 +256,7 @@ function gcof() { #? git checkout --- fuzziable edition. Usage: gcof $branch/$ta
 		branches[$i]=${branches[$i]:2}
 		_branches_[branches[$i]]="1"
 	done
+
 	i=$arrayBase
 	for ((; i<=$((${#originBranches[@]} - 1 + $arrayBase)); i++)); do
 		originBranches[$i]=${originBranches[$i]:9} # "  origin/".length = 9

@@ -252,13 +252,12 @@ function which() { #? equivalent to shell 'which'
         If ("Function".Equals($type)) {
             "function $command() {$($cmdObject.Definition)}"
         } ElseIf ("Application".Equals($type)) {
-            # e.g. ls, cat
-            $($cmdObject.Definition)
+            "`e[1mApplication:`e[0m $($cmdObject.Definition)"
         } ElseIf ("Alias".Equals($type)) {
             "`e[1mAlias of:`e[0m $($cmdObject.Definition)"
         } ElseIf ("Cmdlet".Equals($type)) {
             # e.g. Where-Object
-            "`e[1mCmdlet definition:`e[0m`n$($cmdObject.Definition)"
+            "`e[1mCmdlet:`e[0m`n$($cmdObject.Definition)"
         } Else {
             Write-Host "Command type: $type`nDefinition:`n"
             $($cmdObject.Definition)
