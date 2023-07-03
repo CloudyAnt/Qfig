@@ -125,7 +125,7 @@ function _gtag() { #x
 	if [ $COMP_CWORD -eq $(($arrayBase + 1)) ]; then
 		local p2="${COMP_WORDS[$(($arrayBase + 1))]}"
 		local tags
-		IFS=$'\n' tags=($(git tag --list "$p2*")) IFS=$' \t\n'
+		IFS=$'\n' tags=($(git tag --list "$p2*")) rdIFS
 		local str=$(concat ' ' "${tags[@]}") # incase the ksyarrays was set, use array parameter expansion (${arr[@]}) here
 		COMPREPLY=($(compgen -W "$str" -- $p2))
 		return 0
@@ -201,24 +201,73 @@ function gb() { #? operate branch. Usage: gb $branch(optional, . stands for curr
 	fi
 }
 
+function _gb() { #x
+	declare -i arrayBase
+	[[ -o ksharrays ]] && arrayBase=0 || arrayBase=1 # if KSH_ARRAYS option set, array based on 0, and '{}' are required to access index
+	if [ $COMP_CWORD -eq $(($arrayBase + 1)) ]; then
+		local p2="${COMP_WORDS[$(($arrayBase + 1))]}"
+		local tags
+		IFS=$'\n'
+		branches=($(git branch --list "$p2*"))
+		originBranches=($(git branch -r --list "origin/$p2*"))
+		rdIFS
+
+		declare -A _branches_
+		declare -i i=$arrayBase
+		for ((; i<=$((${#branches[@]} - 1 + $arrayBase)); i++)); do
+			branches[$i]=${branches[$i]:2}
+			_branches_[branches[$i]]="1"
+		done
+		i=$arrayBase
+		for ((; i<=$((${#originBranches[@]} - 1 + $arrayBase)); i++)); do
+			originBranches[$i]=${originBranches[$i]:9} # "  origin/".length = 9
+			if [ ! "1" = "${_branches_[originBranches[$i]]}" ]; then
+				branches+=(${originBranches[$i]})
+			fi
+		done
+
+		local str=$(concat ' ' "${branches[@]}") # incase the ksyarrays was set, use array parameter expansion (${arr[@]}) here
+		COMPREPLY=($(compgen -W "$str" -- $p2))
+		return 0
+	fi
+	return 0
+}
+
+complete -F _gb gb
+
 function gcof() { #? git checkout --- fuzziable edition. Usage: gcof $branch/$tag(fuzziable)
 	# CHECK if this is a git repository
     [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
 	[ -z $1 ] && return
-	local branches tags refs
-	IFS=$'\n' branches=($(git branch --list "*$1*")) IFS=' '
-
 	declare -i arrayBase
 	[[ -o ksharrays ]] && arrayBase=0 || arrayBase=1 # if KSH_ARRAYS option set, array based on 0, and '{}' are required to access index
 	declare -i i=$arrayBase
+	local branches tags refs
+	IFS=$'\n'
+	branches=($(git branch --list "*$1*"))  # list branches from local
+	originBranches=($(git branch -r --list "origin/$1*")) # list branches from origin
+	tags=($(git tag --list "*$1*")) # list tags
+	rdIFS
+
+	i=$arrayBase
+	declare -A _branches_
 	for ((; i<=$((${#branches[@]} - 1 + $arrayBase)); i++)); do
 		branches[$i]=${branches[$i]:2}
+		_branches_[branches[$i]]="1"
 	done
-	IFS=$'\n' tags=($(git tag --list "*$1*")) IFS=' '
+	i=$arrayBase
+	for ((; i<=$((${#originBranches[@]} - 1 + $arrayBase)); i++)); do
+		originBranches[$i]=${originBranches[$i]:9} # "  origin/".length = 9
+		if [ ! "1" = "${_branches_[originBranches[$i]]}" ]; then
+			branches+=(${originBranches[$i]})
+		fi
+		_branches_[originBranches[$i]]="1"
+	done
+
 	refs=("${branches[@]}" "${tags[@]}")
 
 	if [ ${#refs} -eq 0 ]; then
-		logError "No branch or tag have a name similar to '$1'" && return 1
+		logError "No  branch or tag similar to $1" && return 1
 	elif [ ${#refs} -eq 1 ]; then
 		refs[$arrayBase]=${refs[$arrayBase]:2}
 		if [ ${refs[$arrayBase]} = $1 ]; then
@@ -231,7 +280,7 @@ function gcof() { #? git checkout --- fuzziable edition. Usage: gcof $branch/$ta
 			fi
 		fi
 	else
-		logWarn "Branch/Tag '$1' doesn't exists but multiple branches/tags have the similar name:"
+		logInfo "Guessed:"
 		i=$arrayBase
 		declare -i maxLen=0;
 		for ((; i<=$((${#refs[@]} - 1 + $arrayBase)); i++)); do
@@ -244,6 +293,7 @@ function gcof() { #? git checkout --- fuzziable edition. Usage: gcof $branch/$ta
 		i=$arrayBase
 		declare -i formatLen=$((maxLen + 1))
 		declare -i curLen=0;
+		[ ${#branches[@]} -gt 0 ] && echo "\e[32m--- \e[1mBranches\e[22m ---\e[0m" || _doNothing
 		for ((; i<=$((${#refs[@]} - 1 + $arrayBase)); i++)); do
 			local formatted_number=$(printf "%3s" $i)
 			local formatted_name=$(printf "%-${formatLen}s" "${refs[$i]}")
@@ -254,8 +304,14 @@ function gcof() { #? git checkout --- fuzziable edition. Usage: gcof $branch/$ta
 				printf "\n"
 				curLen=0
 			fi
+			if [[ ${#branches[@]} = $((i - 1 + $arrayBase)) && ${#tags[@]} -gt 0 ]]; then
+				[ $curLen -ne 0 ] && printf "\n" || _doNothing
+				echo "\e[32m--- \e[1mTags\e[22m -------\e[0m"
+				curLen=0
+			fi
 		done
-		printf "\n"
+
+		[ $curLen -ne 0 ] && printf "\n" || _doNothing
 		local minI=$arrayBase
 		local maxI=$((${#refs} - 1 + $arrayBase))
 		logInfo "Choose one by the prefix number" "-"
