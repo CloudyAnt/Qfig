@@ -1,6 +1,8 @@
 #!/usr/bin/env zsh
 #? These commands only requires zsh built-in commands
 
+Qfig_log_prefix="●"
+
 function _doNothing() { #x
 }
 
@@ -69,7 +71,7 @@ function qfig() { #? Qfig preserved command
 }
 
 function qcmds() { #? operate available commands. Usage: qcmds $commandsPrefix $subcommands. -h for more
-	unset help
+	local help
 	while getopts "h" opt; do
         case $opt in
             h)
@@ -219,7 +221,7 @@ function logDebug() { #x debug
 function logSilence() { #? log unconspicuous message
     [ -z $1 ] && return
     #logColor "\033[30;42m" $1
-	printf "\e[2m● $1\e[0m\n"
+	printf "\e[2m$Qfig_log_prefix $1\e[0m\n"
 }
 
 function qfigLog() { #x log with a colored dot prefix
@@ -227,7 +229,7 @@ function qfigLog() { #x log with a colored dot prefix
 	local log=$2
 	local prefix=$3
     [[ -z "$sgr" || -z "$log" ]] && return
-	[ -z "$prefix" ] && prefix="●" || prefix=$3
+	[ -z "$prefix" ] && prefix="$Qfig_log_prefix" || prefix=$3
 	
 	log=${log//\%/ percent}
 	log=${log//$'\r'/} # It's seem that $'\r'(ANSI-C Quoting) != \r, \r can be printed by 'zsh echo -E' but the former can not. Github push message may contiains lots of $'\r' in order to update state.
@@ -601,4 +603,59 @@ function concat() { #? concat array. Usage: concat $meta $item1 $item2 $item3...
 
 function rdIFS() { #? restore to default IFS $' \t\n'
 	IFS=$' \t\n'
+}
+
+function confirm() { #? ask for confirmation. Usage: confirm $flags(optional) $msg(optional), -h for more
+	local type="N" # N=normal, W=warning
+	local enterForYes=""
+	local prefix=""
+	while getopts ":hwep:" opt; do
+        case $opt in
+			h)
+				logInfo "Usage: confirm \$flags(optional) \$msg(optional).\n  Flags:\n"
+				printf "    %-5s%s\n" "h" "Print this help message"
+				printf "    %-5s%s\n" "w" "Raise to warning level"
+				printf "    %-5s%s\n" "e" "Treat Enter as yes when it's normal level"
+				printf "    %-5s%s\n" "p:" "Specific the prefix. default is $Qfig_log_prefix"
+				return 0
+				;;
+            w)
+				type="W"
+                ;;
+			e)
+				enterForYes="1"
+				;;
+			p)
+				prefix=$OPTARG
+				;;
+			:)
+                ;;
+			\?)
+				;;
+        esac
+    done
+	shift "$((OPTIND - 1))"
+
+	local message
+	[[ "$1" =~ "-.+" || -z "$1" ]] && message="Are you sure ?" || message=$1
+	local yn="";
+	if [ "W" = "$type" ]; then
+		[ -z "$prefix" ] && prefix="!" || _doNothing
+		logWarn "$message \e[90mInput Yes/yes to confirm.\e[0m" $prefix
+		vared yn
+		if [[ 'yes' = "$yn" || 'Yes' = "$yn" ]]; then
+			return 0
+		fi
+	else
+		if [[ $enterForYes ]]; then
+			logInfo "$message \e[90mPress Enter or Input Y/y for Yes, others for No.\e[0m" $prefix
+		else
+			logInfo "$message \e[90mInput Y/y for Yes, others for No.\e[0m" $prefix
+		fi
+		vared yn
+		if [[ 'Y' = "$yn" || 'y' = "$yn" || 'yes' = "$yn" || 'Yes' = "$yn" ]] || [[ $enterForYes && -z "$yn" ]]; then
+			return 0
+		fi
+	fi
+	return 1
 }

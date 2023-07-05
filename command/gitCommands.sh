@@ -177,11 +177,7 @@ function gb() { #? operate branch. Usage: gb $branch(optional, . stands for curr
 				git branch -D $branch
 			;;
 			dr|delete-remote)
-				logWarn "Are you sure to delete remote branch $branch ? \e[90m(Yes/No)\e[0m" "!"
-				local yn; vared yn
-				if [[ 'yes' = "$yn" || 'Yes' = "$yn" ]]; then
-					git push origin --delete $branch
-				fi
+				confirm -w "Are you sure to delete the remote branch \e[1m$branch\e[0m ?" && git push origin --delete $branch || logInfo "NOT deleted"
 			;;
 			m|move)
 				local newB=$3
@@ -275,11 +271,7 @@ function gcof() { #? git checkout --- fuzziable edition. Usage: gcof $branch/$ta
 		if [ ${refs[$arrayBase]} = $1 ]; then
 			git checkout $1
 		else
-			logInfo "Checkout \e[1m${refs[$arrayBase]}\e[0m ? \e[90mY or Enter for Yes, others for No.\e[0m"
-			local yn; vared yn
-			if [[ '' = "$yn" || 'y' = "$yn" || 'Y' = "$yn" ]]; then
-				git checkout ${refs[$arrayBase]}
-			fi
+			confirm -e "Checkout \e[1m${refs[$arrayBase]}\e[0m ?" && git checkout ${refs[$arrayBase]} || _doNothing
 		fi
 	else
 		logInfo "Guessed:"
@@ -552,11 +544,7 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 		obstacleProgress=Revert
 	fi
 	if [ $obstacleProgress ]; then
-		logWarn "$obstacleProgress in progress, continue ? \e[90mY for Yes, others for No.\e[0m" "!"
-		local yn; vared yn
-		if ! [[ 'y' = "$yn" || 'Y' = "$yn" ]]; then
-			return 0	
-		fi
+		confirm -w "$obstacleProgress in progress, continue ?"  && _doNothing || return 0
 	fi
 
 	# CHECK options
@@ -590,9 +578,7 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 			local pattern=; vared pattern
 		elif [ ! -f "$pattern_tokens_file" ]; then
 			setPattern=1
-			logInfo "Use default pattern \e[34;3;38m$(cat $Qfig_loc/staff/defGctPattern)\e[0m ? \e[90mY for Yes, others for No.\e[0m" "?"
-			local yn; vared yn
-			if [[ 'y' = "$yn" || 'Y' = "$yn" ]]; then
+			if confirm -p "?" "Use default pattern \e[34;3;38m$(cat $Qfig_loc/staff/defGctPattern)\e[0m ?"; then
 				logInfo "Using default pattern"
 				pattern=$(cat $Qfig_loc/staff/defGctPattern)
 			else
