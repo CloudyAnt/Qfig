@@ -362,7 +362,8 @@ function findindex() { #? find 1st target index in provider. Usage: findindex pr
 }
 
 function chr2uni() { #? convert characters to unicodes(4 digits with '\u' prefix)
-	local all=$@
+	local all c
+	all=$@
 	for (( i=0 ; i<${#all}; i++ )); do
 		c=${all:$i:1}
 		local hex=$(printf "%x" "'$c")
@@ -379,7 +380,8 @@ function chr2uni() { #? convert characters to unicodes(4 digits with '\u' prefix
 }
 
 function chr2uni8() { #? convert characters to unicodes(4 digits with '\u' prefix or 8 digits with '\U' prefix)
-	local all=$@
+	local all c
+	all=$@
 	for (( i=0 ; i<${#all}; i++ )); do
 		c=${all:$i:1}
 		local code=$(printf "%x" "'$c")
@@ -445,7 +447,8 @@ function hex2chr() { #? convert unicodes(hex codepoint) to characters
 }
 
 function chr2hex() { #? convert characters to unicodes(hex codepoint)
-	local all=$@
+	local all c
+	all=$@
 	for (( i=0 ; i<${#all}; i++ )); do
 		c=${all:$i:1}
 		printf "%x " "'$c"
@@ -500,6 +503,7 @@ function uni2sp() { #? convert unicode (range [10000, 10FFFF]) to surrogate pair
 			logWarn "$1 is out of range [10000, 10FFFF]"
 		fi
 	else
+		local offset row column high low
 		offset=$((0x$1 - 0x10000))
 		row=$(($offset / 0x400))
 		column=$(($offset % 0x400))
@@ -522,6 +526,7 @@ function sp2uni() { #? convert surrogate pair (range [D800, DBFF] and [DC00, DFF
 		logWarn "2nd (low-surrogate) unit $2 is out of range [DC00, DFFF]" && return
 	fi
 
+	local highOffset lowOffset uni
 	highOffset=$((0x$1 - 0xD800))
 	lowOffset=$((0x$2 - 0xDC00))
 	uni=$(($highOffset * 1024 + $lowOffset + 0x10000))
@@ -658,4 +663,28 @@ function confirm() { #? ask for confirmation. Usage: confirm $flags(optional) $m
 		fi
 	fi
 	return 1
+}
+
+function _getStringWidth() { #x
+	declare -i width unicode
+	width=0
+	local all c i
+	all=$@
+	for (( i=0 ; i<${#all}; i++ )); do
+		c=${all:$i:1}
+		unicode="0x$(printf "%x" "'$c")"
+
+		if [[ $unicode -ge 0x0020 && $unicode -le 0x007E ]] || [[ $unicode -ge 0xFF61 && $unicode -le 0xFF9F ]]; then
+            # half-width
+            width=$((width + 1))
+        elif [[ $unicode -ge 0x4E00 && $unicode -le 0x9FFF ]] || [[ $unicode -ge 0x3040 && $unicode -le 0x309F ]] || \
+            [[ $unicode -ge 0x30A0 && $unicode -le 0x30FF ]] || [[ $unicode -ge 0xFF01 && $unicode -le 0xFF5E ]]; then
+            # full-width
+            width=$((width + 2))
+        else
+            # others
+            width=$((width + 2))
+        fi
+	done
+	echo $width
 }

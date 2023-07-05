@@ -276,22 +276,26 @@ function gcof() { #? git checkout --- fuzziable edition. Usage: gcof $branch/$ta
 	else
 		logInfo "Guessed:"
 		i=$arrayBase
-		declare -i maxLen=0;
+		declare -i maxLen=0
+		declare -a lenOffsets
 		for ((; i<=$((${#refs[@]} - 1 + $arrayBase)); i++)); do
-			local len=${#refs[$i]}
+			local len=$(_getStringWidth ${refs[$i]})
+			lenOffsets[$i]=$((len - ${#refs[$i]}))
 			if [ $len -gt $maxLen ]; then
 				maxLen=$len
 			fi
 		done
 
 		i=$arrayBase
-		declare -i formatLen=$((maxLen + 1))
-		declare -i curLen=0;
+		declare -i formatLen
+		declare -i curLen=0
+		local formatted_number formatted_name colored_text
 		[ ${#branches[@]} -gt 0 ] && echo "\e[32m--- \e[1mBranches\e[22m ---\e[0m" || _doNothing
 		for ((; i<=$((${#refs[@]} - 1 + $arrayBase)); i++)); do
-			local formatted_number=$(printf "%3s" $i)
-			local formatted_name=$(printf "%-${formatLen}s" "${refs[$i]}")
-			local colored_text="\033[90m$formatted_number:\033[0m$formatted_name"
+			formatLen=$((maxLen - ${lenOffsets[$i]}))
+			formatted_number=$(printf "%3s" $i)
+			formatted_name=$(printf "%-${formatLen}s" "${refs[$i]}")
+			colored_text="\033[90m$formatted_number:\033[0m$formatted_name"
 			printf "$colored_text"
 			curLen=$((curLen + ${#colored_text}))
 			if [ $curLen -ge 120 ]; then
