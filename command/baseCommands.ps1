@@ -67,6 +67,14 @@ function ..() { #? go to upper level directory
    Set-Location ../
 }
 
+function open() {
+    param([string]$dir)
+    if ([string]::IsNullOrWhiteSpace($dir)) {
+        $dir = "."
+    }
+    Start-Process $dir
+}
+
 function qcmds() { #? operate available commands. Usage: qcmds commandsPrefix subcommands. -h for more
     param([string]$prefix, [string]$subCommand, [switch]$help = $false)
     If ($help -Or (-Not $prefix)) {
