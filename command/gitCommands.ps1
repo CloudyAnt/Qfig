@@ -255,6 +255,10 @@ function GitBranchCompleter { #x
     For ($i = 0; $i -lt $result.Length; $i++) {
         $result[$i] = $result[$i].SubString(2)
     }
+
+    If ($result.Length -eq 0) {
+        $result += "."
+    }
     $result
 
     [console]::OutputEncoding = $originalOutputEncoding

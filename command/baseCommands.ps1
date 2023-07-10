@@ -59,6 +59,10 @@ function qfig { #? Qfig preserved command. -h(help) for more
     }
 }
 
+function =() {
+    cd -
+}
+
 function ~() { #? go to home directory
     Set-Location $HOME
 }
