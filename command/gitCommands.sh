@@ -267,7 +267,6 @@ function gcof() { #? git checkout --- fuzziable edition. Usage: gcof $branch/$ta
 	if [ ${#refs} -eq 0 ]; then
 		logError "No  branch or tag similar to $1" && return 1
 	elif [ ${#refs} -eq 1 ]; then
-		refs[$arrayBase]=${refs[$arrayBase]:2}
 		if [ ${refs[$arrayBase]} = $1 ]; then
 			git checkout $1
 		else

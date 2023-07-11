@@ -642,7 +642,7 @@ function confirm() { #? ask for confirmation. Usage: confirm $flags(optional) $m
 	shift "$((OPTIND - 1))"
 
 	local message
-	[[ "$1" =~ "-.+" || -z "$1" ]] && message="Are you sure ?" || message=$1
+	[[ -z "$1" ]] && message="Are you sure ?" || message=$1
 	local yn="";
 	if [ "W" = "$type" ]; then
 		[ -z "$prefix" ] && prefix="!" || _doNothing
