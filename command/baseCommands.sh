@@ -666,6 +666,11 @@ function confirm() { #? ask for confirmation. Usage: confirm $flags(optional) $m
 }
 
 function _getStringWidth() { #x
+	if [[ $_CURRENT_SHELL =~ ^.*zsh$ ]]; then
+		echo $(($#1 * 3 - ${#${(ml[$#1 * 2])1}})) # zsh has this method to get width faster
+		return
+	fi
+
 	declare -i width unicode
 	width=0
 	local all c i

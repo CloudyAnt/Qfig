@@ -13,3 +13,4 @@ Activate Qfig by running the script **activation.sh/ps1**.
 - Run `qcmds local edit` to write only-in-this-device commands.
 
 *Any new changes will be effective in new sessions. To make it effective immidiately by running command `rezsh` in zsh or `. $profile` in powershell.*
+*Bash is supposed to be supported too, however it has not been rigorously tested.*

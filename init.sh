@@ -42,3 +42,5 @@ fi
 if [ -f "$Qfig_loc/command/localCommands.sh" ]; then
 	source $Qfig_loc/command/localCommands.sh
 fi
+
+_CURRENT_SHELL=$(ps -p $$ -o comm=)
