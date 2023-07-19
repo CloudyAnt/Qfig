@@ -15,6 +15,7 @@ function qfig() { #? Qfig preserved command
 			printf "    %-10s%s\n" "into" "Go into Qfig project folder"
 			printf "    %-10s%s\n" "config" "Edit config to enable commands, etc."
 			printf "    %-10s%s\n" "im" "Show initiation message again"
+			printf "    %-10s%s\n" "v/version" "Show current version"
 			printf "\n  \e[2mTips:\n"
 			printf "    Command 'qcmds' perform operations about tool commands. Run 'qcmds -h' for more\n"
 			printf "    Command 'gct' perform gct-commit step by step(need to enable 'git' commands)\n"
@@ -63,6 +64,12 @@ function qfig() { #? Qfig preserved command
 			;;
 		im)
 			logInfo $initMsg
+			;;
+		v|version)
+			local parts=(${(@s/ /)$(git -C $Qfig_loc log --oneline --decorate -1)})
+			local curHead=$parts[1]
+			local branch=$(git -C $Qfig_loc symbolic-ref --short HEAD)
+			echo "$branch($curHead)"
 			;;
 		*)
 			qfig help
@@ -241,7 +248,8 @@ function qfigLog() { #x log with a colored dot prefix
 }
 
 function forbidAlias() { #x forbid alias 
-	[ -z "$1" ] && return
+	[ -z "$1" ] && return || _doNothing
+	unsetAlias $1
 	if [ -z "$2" ]
 	then
 		eval "alias $1='logWarn \"Forbidden alias \\\\e[31m$1\\\\e[0m.\"'"
@@ -251,6 +259,11 @@ function forbidAlias() { #x forbid alias
 	else
 		eval "alias $1='logWarn \"Forbidden alias \\\\e[31m$1\\\\e[0m, user \\\\e[92m$2\\\\e[0m or \\\\e[92m$3\\\\e[0m instead.\"'"
 	fi
+}
+
+function unsetAlias() { #x unset alias
+	[ -z "$1" ] && return || _doNothing
+	unalias $1 2>/dev/null
 }
 
 ### 
@@ -646,16 +659,16 @@ function confirm() { #? ask for confirmation. Usage: confirm $flags(optional) $m
 	local yn="";
 	if [ "W" = "$type" ]; then
 		[ -z "$prefix" ] && prefix="!" || _doNothing
-		logWarn "$message \e[90mInput Yes/yes to confirm.\e[0m" $prefix
+		logWarn "$message \e[90mInput yes/Yes to confirm.\e[0m" $prefix
 		vared yn
 		if [[ 'yes' = "$yn" || 'Yes' = "$yn" ]]; then
 			return 0
 		fi
 	else
 		if [[ $enterForYes ]]; then
-			logInfo "$message \e[90mPress Enter or Input Y/y for Yes, others for No.\e[0m" $prefix
+			logInfo "$message \e[90mPress Enter or Input y/Y for Yes, others for No.\e[0m" $prefix
 		else
-			logInfo "$message \e[90mInput Y/y for Yes, others for No.\e[0m" $prefix
+			logInfo "$message \e[90mInput y/Y for Yes, others for No.\e[0m" $prefix
 		fi
 		vared yn
 		if [[ 'Y' = "$yn" || 'y' = "$yn" || 'yes' = "$yn" || 'Yes' = "$yn" ]] || [[ $enterForYes && -z "$yn" ]]; then

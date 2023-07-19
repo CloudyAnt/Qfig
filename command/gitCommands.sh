@@ -29,7 +29,7 @@ forbidAlias gp gpush "git push"
 forbidAlias gl "git pull"
 forbidAlias gc gct "git commit"
 forbidAlias gap gapply
-unalias gb
+unsetAlias gb
 
 function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'create') $cmdArg(optional). gtag -h for more
 	# CHECK if this is a git repository
@@ -140,7 +140,7 @@ function gb() { #? operate branch. Usage: gb $branch(optional, . stands for curr
     [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
 
 	local branch=$1
-	if [ "." = $branch ]; then
+	if [ "." = "$branch" ]; then
 		branch=$(git branch --show-current)
 	fi
 	if [ -z $branch ]; then
@@ -150,10 +150,12 @@ function gb() { #? operate branch. Usage: gb $branch(optional, . stands for curr
   \e[1mIf no params passed (gb), show the current branch name\e[0m
   Available commands:\n"
 		printf "    %-19s%s\n" "c/create" "Default. Create a branch"
-		printf "    %-19s%s\n" "co/create-checkout" "Create a branch and checkout it"
+		printf "    %-19s%s\n" "co/checkout" "Checkout the branch"
+		printf "    %-19s%s\n" "cc/create-checkout" "Create a branch and checkout it"
 		printf "    %-19s%s\n" "d/delete" "Delete the branch"
 		printf "    %-19s%s\n" "dr/delete-remote" "Delete the remote branch, \$branch is the remote branch name here"
 		printf "    %-19s%s\n" "m/move" "Rename the branch"
+		printf "    %-19s%s\n" "t/track" "Show current track or track a remote branch"
 	elif git check-ref-format --branch "$branch" >/dev/null 2>&1 ; then
 		if [[ $branch = -* ]]; then
 			logError "A branch name should not starts with '-'" && return 1
@@ -185,6 +187,14 @@ function gb() { #? operate branch. Usage: gb $branch(optional, . stands for curr
 					logError "Please specify a valid new branch name!" && return 1
 				fi
 				git branch -m $branch $newB
+			;;
+			t|track)
+				local upstream=$3
+				if [ -z "$upstream" ]; then
+					git branch -vv | awk "/..$branch /{print}"
+				else
+					git branch -u $upstream $branch
+				fi
 			;;
 			*)
 				logError "Unknown command: $cmd"

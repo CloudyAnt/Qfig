@@ -183,6 +183,7 @@ function gb() { #? operate branch. Usage: gb $branch(optional, . stands for curr
         "    {0,-19}{1}" -f "d/delete", "Delete the branch"
         "    {0,-19}{1}" -f "dr/delete-remote", "Delete the remote branch, `$branch is the remote branch name here"
         "    {0,-19}{1}" -f "m/move", "Rename the branch"
+        "    {0,-19}{1}" -f "t/track", "Show current track or track a remote branch"
     } ElseIf ($branch.Length -Eq 0) {
         git branch --show-current
     } ElseIf (git check-ref-format --branch $branch 2>$null) {
@@ -206,9 +207,7 @@ function gb() { #? operate branch. Usage: gb $branch(optional, . stands for curr
                 git branch -D $branch
             }
             { "dr", "delete-remote" -contains $_ } {
-                logWarn "Are you sure to delete remote branch `e[1m$branch`e[0m ? `e[90m(Yes/No)`e[0m" "!"
-                $yn = Read-Host
-                If ("yes".Equals($yn) -Or "Yes".Equals($yn)) {
+                If (confirm -w "Are you sure to delete remote branch `e[1m$branch`e[0m ?") {
                     git push origin --delete $branch
                 }
             }
@@ -220,6 +219,14 @@ function gb() { #? operate branch. Usage: gb $branch(optional, . stands for curr
                 }
                 git branch -m $branch $newB
                 If ($?) { logSuccess "Renamed branch $branch to $newB" }
+            }
+            { "t", "track" -contains $_ } {
+                $upstream = $cmdArg
+                If ([string]::IsNullOrEmpty($upstream)) {
+                    git branch -vv | Where-Object {$_ -Match "..$branch.+" }
+                } Else {
+                    git branch -u $upstream $branch
+                }
             }
             Default {
                 logError "Unknown command: $cmd"
@@ -424,9 +431,7 @@ function gct() {
         $obstacleProgress = "Revert"
     }
     If ($obstacleProgress) {
-        logWarn "$obstacleProgress in progress, continue ? `e[90mY for Yes, others for No.`e[0m" "!"
-        $yn = Read-Host
-        If (-Not ("y".Equals($yn) -Or "Y".Equals($yn))) {
+        If (-Not (confirm -w "$obstacleProgress in progress, continue ? `e[90mY for Yes, others for No.`e[0m")) {
             Return
         }
     }
@@ -466,9 +471,7 @@ function gct() {
         }
         ElseIf (-Not (Test-Path $pattern_tokens_file -PathType Leaf)) {
             $pattern_set = $true
-            logInfo "Use default pattern `e[34;3;38m$(Get-Content $Qfig_loc/staff/defGctPattern)`e[0m ? `e[2mY for Yes, others for No.`e[0m" "?"
-            $yn = Read-Host
-            If ("y".Equals($yn) -Or "Y".Equals($yn)) {
+            If (confirm "Use default pattern `e[34;3;38m$(Get-Content $Qfig_loc/staff/defGctPattern)`e[0m ?") {
                 logInfo "Using default pattern"
                 $pattern = Get-Content "$Qfig_loc/staff/defGctPattern"
             }

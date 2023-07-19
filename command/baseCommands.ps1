@@ -9,18 +9,19 @@ function qfig { #? Qfig preserved command. -h(help) for more
         "    {0,-10}{1}" -f "into", "Go into Qfig project folder"
         "    {0,-10}{1}" -f "config", "Edit config to enable commands, etc."
         "    {0,-10}{1}" -f "im", "Show initiation message again"
+        "    {0,-10}{1}" -f "v/version", "Show current version"
     } ElseIf ("into".Equals($command)) {
         Set-Location $Qfig_loc
     } ElseIf ("update".Equals($command)) {
-        $curHead = $(git -C $Qfig_loc log --oneline --decorate -1).Split(" ")[0]
-        $pullMessage = $(git -C $Qfig_loc pull --rebase 2>&1) -join "`r`n"
+        $curHead = (git -C $Qfig_loc log --oneline --decorate -1).Split(" ")[0]
+        $pullMessage = (git -C $Qfig_loc pull --rebase 2>&1) -join "`r`n"
         If ($pullMessage -match ".*error.*" -Or $pullMessage -match ".*fatal.*") {
             logError "Cannot update Qfig:`n$pullMessage"
         } ElseIf ($pullMessage -match ".*up to date.*") {
             logSuccess "Qfig is up to date"
         } Else {
             logInfo "Updateing Qfig.."
-            $newHead = $(git -C $Qfig_loc log --oneline --decorate -1).Split(" ")[0]
+            $newHead = (git -C $Qfig_loc log --oneline --decorate -1).Split(" ")[0]
             Write-Host "`nUpdate head `e[1m$curHead`e[0m -> `e[1m$newHead`e[0m:`n"
 
             $typeColors = @{"refactor"= 31; "fix" = 32; "feat" = 33; "chore" = 34; "doc" = 35; "test" = 36}
@@ -46,7 +47,7 @@ function qfig { #? Qfig preserved command. -h(help) for more
             logSuccess "Qfig updated!. Run '. `$profile' or open a new session to check"
         }
     } ElseIf ("config".Equals($command)) {
-        If (-Not $(Test-Path -Path "$Qfig_loc/config" -PathType Leaf)) {
+        If (-Not (Test-Path -Path "$Qfig_loc/config" -PathType Leaf)) {
             "# This config was copied from the 'configTemplate'" > $Qfig_loc/config
             Get-Content $Qfig_loc/configTemplate | Select-Object -Skip 1 >> $Qfig_loc/config
             logInfo "Copied config from configTemplate"
@@ -54,6 +55,10 @@ function qfig { #? Qfig preserved command. -h(help) for more
         editFile $Qfig_loc/config
     } ElseIf ("im".Equals($command)) {
         logInfo $initMsg
+    } ElseIf ("v".Equals($command) -Or "version".Equals($command)) {
+        $curHead = (git -C $Qfig_loc log --oneline --decorate -1).Split(" ")[0]
+        $branch = git -C $Qfig_loc symbolic-ref --short HEAD
+        Write-Host "$branch($curHead)"
     } Else {
         qfig -command help
     }
@@ -303,4 +308,35 @@ function Get-StringWidth { #x
     }
 
     Return $width
+}
+
+function confirm() {
+    param ([string]$msg, [string]$prefix, [switch]$enterForYes = $false, [switch]$warning = $false)
+
+    If ([string]::IsNullOrEmpty($msg)) {
+        $msg = "Are you sure ?"
+    }
+
+    If ($warning) {
+        If ([string]::IsNullOrEmpty($prefix)) {
+            $prefix = "!"
+        }
+        logWarn "$msg `e[90mInput yes/Yes to confirm.`e[0m" $prefix
+        $yn = Read-Host
+        If ("yes".Equals($yn) -Or "Yes".Equals($yn)) {
+            $true
+        }
+    } Else {
+        If ($enterForYes) {
+            logInfo "$msg `e[90mPress Enter or Input y/Y for Yes, others for No.`e[0m" $prefix
+        } Else {
+			logInfo "$msg `e[90mInput y/Y for Yes, others for No.`e[0m" $prefix
+        }
+        $yn = Read-Host
+        If (("Y", "y", "Yes", "yes" -contains $yn) -Or ($enterForYes -And [string]::IsNullOrEmpty($yn))) {
+            $true
+        }
+
+    }
+    $false
 }
