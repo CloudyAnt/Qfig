@@ -368,9 +368,10 @@ function gaaf() { #? git add files in pattern
 function gctm() { #? commit with message
 	if [ "$1" = '' ]
 	then 
-		logWarn "Commit without message?"
-		local confirm=; vared confirm
-		[ "$confirm" = "y" ] && gaa && git commit -m "" 
+		if confirm -w "Commit without message ?"; then
+			gaa
+			git commit -m ""
+		fi
 	else
 		gaa
 		git commit -m "$1"
@@ -523,11 +524,11 @@ function gct() { #? git commit step by step
 				printf "    %-6s%s\n" "-v" "Show more verbose info"
 				echo
 				echo "  \e[34;1mPattern Hint\e[0m:\n  Example: \e[34m<step1:default> <#step2:default option2 option3>: <step3@[^\\:]+>\e[0m. \
-The \e[1m#\e[0m in step2 behind char \e[1m<\e[0m indicate it's a branch-scope-step. \
-The \e[1m[^\\:]+\e[0m in step3 behind char \e[1m@\e[0m sepcify the regex this step value must match. \e[1m\ \e[0mescape the character behind it.\n"
+The \e[1m#\e[0m in step2 behind char \e[1m<\e[0m indicates it's a branch-scope step. \
+The \e[1m[^\\:]+\e[0m in step3 behind char \e[1m@\e[0m sepcifies the regex this step value must match. \e[1m\ \e[0mescape the character behind it.\n"
 				echo "  \e[34;1mCommit Hint\e[0m:\n  Input then press \e[1mEnter\e[0m to set value for a step, \e[34mthe last-time value or default value will be appended\e[0m if the input is empty. \
 You can also \e[34mchoose one option by input number\e[0m if there are multi options specified for current step.\n"
-				echo "  Recommend pattern: $(cat $Qfig_loc/staff/defGctPattern)"
+				echo "  \e[34;1mRecommended pattern\e[0m:\n  $(cat $Qfig_loc/staff/defGctPattern)"
 				return
 				;;
 			p) # specify pattern

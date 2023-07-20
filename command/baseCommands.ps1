@@ -58,7 +58,7 @@ function qfig { #? Qfig preserved command. -h(help) for more
     } ElseIf ("v".Equals($command) -Or "version".Equals($command)) {
         $curHead = (git -C $Qfig_loc log --oneline --decorate -1).Split(" ")[0]
         $branch = git -C $Qfig_loc symbolic-ref --short HEAD
-        Write-Host "$branch($curHead)"
+        Write-Host "$branch ($curHead)"
     } Else {
         qfig -command help
     }

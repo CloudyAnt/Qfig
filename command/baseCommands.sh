@@ -69,7 +69,7 @@ function qfig() { #? Qfig preserved command
 			local parts=(${(@s/ /)$(git -C $Qfig_loc log --oneline --decorate -1)})
 			local curHead=$parts[1]
 			local branch=$(git -C $Qfig_loc symbolic-ref --short HEAD)
-			echo "$branch($curHead)"
+			echo "$branch ($curHead)"
 			;;
 		*)
 			qfig help
@@ -176,7 +176,7 @@ function qmap() { #? view or edit a map(which may be recognized by Qfig commands
 	editfile "$Qfig_loc/$1MappingFile"
 }
 
-function defaultV() { #? set default value for variable
+function defaultGV() { #? set default global value for variable
     local value_name=$1
     local default_value=$2
 
