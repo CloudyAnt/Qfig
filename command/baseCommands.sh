@@ -1,9 +1,23 @@
-#!/usr/bin/env zsh
 #? These commands only requires zsh built-in commands
 
 Qfig_log_prefix="●"
 
 function _doNothing() { #x
+	:
+}
+
+function _getCurrentHead() {
+	local arrayBase
+	if [[ "$_CURRENT_SHELL" = "zsh" ]]; then
+		[[ -o ksharrays ]] && arrayBase=0 || arrayBase=1
+		local parts=(${(@s/ /)$(git -C $Qfig_loc log --oneline --decorate -1)})
+		echo ${parts[$arrayBase]}
+	elif [[ "$_CURRENT_SHELL" = "bash" ]]; then
+		IFS=' ' read -r -a parts <<< "$(git -C $Qfig_loc log --oneline --decorate -1)"
+		echo ${parts[0]}
+	else
+		echo "???"
+	fi
 }
 
 function qfig() { #? Qfig preserved command
@@ -23,9 +37,7 @@ function qfig() { #? Qfig preserved command
 			echo ""
 			;;
 		update)
-			local parts=(${(@s/ /)$(git -C $Qfig_loc log --oneline --decorate -1)})
-			local curHead=$parts[1]
-
+			local curHead=$(_getCurrentHead)
 			local pullMessage=$(git -C $Qfig_loc pull --rebase 2>&1)
             if [[ $? != 0 || "$pullMessage" = *"error"* || "$pullMessage" = *"fatal"* ]]; then
                 logError "Cannot update Qfig:\n$pullMessage" && return
@@ -33,8 +45,7 @@ function qfig() { #? Qfig preserved command
 				logSuccess "Qfig is already up to date" && return
 			else
 				logInfo "Updating Qfig.."
-				local parts=(${(@s/ /)$(git -C $Qfig_loc log --oneline --decorate -1)})
-				local newHead=$parts[1]
+				local newHead=$(_getCurrentHead)
 				echo "\nUpdate head \e[1m$curHead\e[0m -> \e[1m$newHead\e[0m:\n"
 				git -C $Qfig_loc log --oneline --decorate -10 | awk -v ch=$curHead 'BEGIN{
 					tc["refactor"] = 31; tc["fix"] = 32; tc["feat"] = 33; tc["chore"] = 34; tc["doc"] = 35; tc["test"] = 36;
@@ -66,8 +77,7 @@ function qfig() { #? Qfig preserved command
 			logInfo $initMsg
 			;;
 		v|version)
-			local parts=(${(@s/ /)$(git -C $Qfig_loc log --oneline --decorate -1)})
-			local curHead=$parts[1]
+			local curHead=$(_getCurrentHead)
 			local branch=$(git -C $Qfig_loc symbolic-ref --short HEAD)
 			echo "$branch ($curHead)"
 			;;
@@ -114,7 +124,7 @@ function qcmds() { #? operate available commands. Usage: qcmds $commandsPrefix $
 			;;	
 		""|explain)
 			cat $targetFile | awk '{
-					if (/^\#\? /) {
+					if (/^#\? /) {
 						printf "\033[34m▍\033[39m";
 						for (i = 2; i <= NF; i++) {
 							printf $i " ";
@@ -679,7 +689,7 @@ function confirm() { #? ask for confirmation. Usage: confirm $flags(optional) $m
 }
 
 function _getStringWidth() { #x
-	if [[ $_CURRENT_SHELL =~ ^.*zsh$ ]]; then
+	if [[ $_CURRENT_SHELL = "zsh" ]]; then
 		echo $(($#1 * 3 - ${#${(ml[$#1 * 2])1}})) # zsh has this method to get width faster
 		return
 	fi

@@ -69,9 +69,11 @@ function hsl2rgb() { #? convert HSL(integers) to RGB(integers)
         logError $err" is(are) invalid !" && return 1
     fi
 
+    local _s=$s
+    echo $_s
     s=$(echo $s | awk '{print $1/100}')
     l=$(echo $l | awk '{print $1/100}')
-    if [ $s -eq 0 ]; then
+    if [ $_s -eq 0 ]; then
         local G=$(echo "$l" | awk '{printf "%.0f\n", $1*255}')
         echo "$G $G $G" && return
     fi
