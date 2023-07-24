@@ -729,7 +729,7 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 					partial=$stepDefValue
 				elif [ 1 -lt "${#stepOptions[@]}" ]; then
 					# select by option id
-					if echo $partial | egrep -q '^[0-9]+$' && [ $partial -le ${#stepOptions} ]
+					if [[ $partial =~ ^[0-9]+$ && $partial -le ${#stepOptions} ]]
 					then
 						echo "\e[2mChosen:\e[0m \e[1;3${partial}m$stepOptions[$partial]\e[0m"
 						partial=$stepOptions[$partial]
