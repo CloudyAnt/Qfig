@@ -70,7 +70,6 @@ function hsl2rgb() { #? convert HSL(integers) to RGB(integers)
     fi
 
     local _s=$s
-    echo $_s
     s=$(echo $s | awk '{print $1/100}')
     l=$(echo $l | awk '{print $1/100}')
     if [ $_s -eq 0 ]; then
@@ -94,8 +93,8 @@ function hsl2rgb() { #? convert HSL(integers) to RGB(integers)
     }; t*=255; printf \"%.0f\",t}"
 
     local R G B
-    R=$(echo "$hue 2" | awk $awkPattern)
-    G=$(echo "$hue 0" | awk $awkPattern)
-    B=$(echo "$hue -2" | awk $awkPattern)
+    R=$(echo "$hue 2" | awk "$awkPattern")
+    G=$(echo "$hue 0" | awk "$awkPattern")
+    B=$(echo "$hue -2" | awk "$awkPattern")
     echo "$R $G $B"
 }

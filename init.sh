@@ -1,6 +1,6 @@
-_CURRENT_SHELL=$(ps -p $$ -o comm=) # if [[ "$OSTYPE" == "darwin"* ]] || [[ "$OSTYPE" == "linux"* ]]
+_CURRENT_SHELL=$(ps -p $$ -o comm= 2>/dev/null) # if [[ "$OSTYPE" == "darwin"* ]] || [[ "$OSTYPE" == "linux"* ]]
 if [ $? -ne 0 ]; then
-	_CURRENT_SHELL=$(ps -p $$ comm=) # elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]]
+	_CURRENT_SHELL=$(ps -p $$ comm= 2>/dev/null) # elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]]
 fi
 if [ $? -ne 0 ]; then
 	echo "Qfig is activated, but cannot determine the current shell."

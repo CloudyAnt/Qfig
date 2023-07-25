@@ -79,7 +79,7 @@ function qfig() { #? Qfig preserved command
 			cd $_QFIG_LOC
 			;;
 		im)
-			logInfo $initMsg
+			logInfo "$initMsg"
 			;;
 		v|version)
 			local curHead=$(_getCurrentHead)
@@ -333,7 +333,7 @@ function resh() { #? re-source .zshrc/.bashrc
 	# unset all functions
 	if [ $_CURRENT_SHELL = "zsh" ]; then
 		unset -f -m '*'
-	elif [ $_CURRENT_SHELL = "bash" ]; then
+	elif [[ $_CURRENT_SHELL = "bash" && ! "$OSTYPE" = "msys" ]]; then # msys = Git Bash, critical functions in it should not be unset
 		for f in $(declare -F -p | cut -d " " -f 3); do unset -f $f; done
 	fi
     source "$HOME/.${_CURRENT_SHELL}rc"
