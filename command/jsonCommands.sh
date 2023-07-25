@@ -11,8 +11,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
     fi
     [[ -z $1 || -z $2 ]] && logError "Usage: jsonget json targetPath. -h for more" && return 1
     # --- CHECK options ---
-	declare -i arrayBase
-	[[ -o ksharrays ]] && arrayBase=0 || arrayBase=1 # if KSH_ARRAYS option set, array based on 0, and '{}' are required to access index
+	declare -i arrayBase=$(_getArrayBase)
 
     local s c
     local escaping=""
@@ -366,6 +365,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
             logError "Invalid json (x0005), matched but stopped (value resolvation not finished) at depth: $(($tpi - $arrayBase)) (path: $(concat -.-1-$tpi $tp))" && return 1
         else
             # Found
+            :
         fi
     else
         if [ $cpi -ne $arrayBase ]; then

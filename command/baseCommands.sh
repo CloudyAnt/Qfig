@@ -2,19 +2,24 @@
 
 Qfig_log_prefix="●"
 
-function _doNothing() { #x
-	:
+function _getArrayBase() {
+	if [[ -o kasharray ]] 2>/dev/null; then
+		echo 0
+	elif [[ "$_CURRENT_SHELL" = "zsh" || "$_CURRENT_SHELL" = "fish" ]]; then
+		echo 1
+	else
+		echo 0
+	fi
 }
 
 function _getCurrentHead() {
-	local arrayBase
+	declare -i arrayBase=$(_getArrayBase)
 	if [[ "$_CURRENT_SHELL" = "zsh" ]]; then
-		[[ -o ksharrays ]] && arrayBase=0 || arrayBase=1
-		local parts=(${(@s/ /)$(git -C $Qfig_loc log --oneline --decorate -1)})
+		local parts=(${(@s/ /)$(git -C $_QFIG_LOC log --oneline --decorate -1)})
 		echo ${parts[$arrayBase]}
 	elif [[ "$_CURRENT_SHELL" = "bash" ]]; then
-		IFS=' ' read -r -a parts <<< "$(git -C $Qfig_loc log --oneline --decorate -1)"
-		echo ${parts[0]}
+		IFS=' ' read -r -a parts <<< "$(git -C $_QFIG_LOC log --oneline --decorate -1)"
+		echo ${parts[$arrayBase]}
 	else
 		echo "???"
 	fi
@@ -38,7 +43,7 @@ function qfig() { #? Qfig preserved command
 			;;
 		update)
 			local curHead=$(_getCurrentHead)
-			local pullMessage=$(git -C $Qfig_loc pull --rebase 2>&1)
+			local pullMessage=$(git -C $_QFIG_LOC pull --rebase 2>&1)
             if [[ $? != 0 || "$pullMessage" = *"error"* || "$pullMessage" = *"fatal"* ]]; then
                 logError "Cannot update Qfig:\n$pullMessage" && return
 			elif [[ "$pullMessage" = *"Already up to date."* ]]; then
@@ -47,7 +52,7 @@ function qfig() { #? Qfig preserved command
 				logInfo "Updating Qfig.."
 				local newHead=$(_getCurrentHead)
 				echo "\nUpdate head \e[1m$curHead\e[0m -> \e[1m$newHead\e[0m:\n"
-				git -C $Qfig_loc log --oneline --decorate -10 | awk -v ch=$curHead 'BEGIN{
+				git -C $_QFIG_LOC log --oneline --decorate -10 | awk -v ch=$curHead 'BEGIN{
 					tc["refactor"] = 31; tc["fix"] = 32; tc["feat"] = 33; tc["chore"] = 34; tc["doc"] = 35; tc["test"] = 36;
 				} {
 					if($0 ~ ch) {
@@ -64,21 +69,21 @@ function qfig() { #? Qfig preserved command
 			rezsh - "Qfig updated!"
 			;;
 		config)
-			if [ ! -f $Qfig_loc/config ]; then
-				echo "# This config was copied from the 'configTemplate'\n$(tail -n +2 $Qfig_loc/configTemplate)" > $Qfig_loc/config
+			if [ ! -f $_QFIG_LOC/config ]; then
+				echo "# This config was copied from the 'configTemplate'\n$(tail -n +2 $_QFIG_LOC/configTemplate)" > $_QFIG_LOC/config
 				logInfo "Copied config from \e[1mconfigTemplate\e[0m"
 			fi
-			editfile $Qfig_loc/config
+			editfile $_QFIG_LOC/config
 			;;
 		into)
-			cd $Qfig_loc
+			cd $_QFIG_LOC
 			;;
 		im)
 			logInfo $initMsg
 			;;
 		v|version)
 			local curHead=$(_getCurrentHead)
-			local branch=$(git -C $Qfig_loc symbolic-ref --short HEAD)
+			local branch=$(git -C $_QFIG_LOC symbolic-ref --short HEAD)
 			echo "$branch ($curHead)"
 			;;
 		*)
@@ -101,12 +106,12 @@ function qcmds() { #? operate available commands. Usage: qcmds $commandsPrefix $
     done
 	if [[ "$help" || -z "$1" ]]; then
 		logInfo "Usage: qcmds \$toolCommandsPrefix \$subcommands(optional). e.g., 'qcmds base'"
-		echo "  Available Qfig tool commands(prefix): $(ls $Qfig_loc/command | perl -n -e'/(.+)Commands\.sh/ && print "$1 "')"
+		echo "  Available Qfig tool commands(prefix): $(ls $_QFIG_LOC/command | perl -n -e'/(.+)Commands\.sh/ && print "$1 "')"
 		echo "  Subcommands: explain(default), cat(or read), vim(or edit)"
 		return
 	fi
 
-    local targetFile=$Qfig_loc/command/$1Commands.sh
+    local targetFile=$_QFIG_LOC/command/$1Commands.sh
 	if [ ! -f "$targetFile" ]; then
 		if [[ "local" = $1 ]]; then
 			echo "# Write your only-in-this-device commands below. This file will be ignored by .gitignore" > $targetFile
@@ -183,7 +188,7 @@ function editfile() { #? edit a file using preferedTextEditor
 
 function qmap() { #? view or edit a map(which may be recognized by Qfig commands)
 	[ -z "$1" ] && logError "Which map ?" && return 1
-	editfile "$Qfig_loc/$1MappingFile"
+	editfile "$_QFIG_LOC/$1MappingFile"
 }
 
 function defaultGV() { #? set default global value for variable
@@ -206,37 +211,37 @@ function unsetFunctionsInFile() { #x unset functions in file
 #? About colorful output, refer to https://en.wikipedia.org/wiki/ANSI_escape_code#SGR
 
 function logInfo() { #? log info
-    [ -z $1 ] && return
-    #logColor "\033[30;46m" $1 
-	qfigLog "\e[38;05;123m" $1 $2
+    [ -z "$1" ] && return
+    #logColor "\033[30;46m" $1
+	qfigLog "\e[38;05;123m" "$1" "$2"
 }
 
 
 function logError() { #? log error message
-    [ -z $1 ] && return
+    [ -z "$1" ] && return
     #logColor "\033[30;41m" $1 
-	qfigLog "\e[38;05;196m" $1 $2
+	qfigLog "\e[38;05;196m" "$1" "$2"
 }
 
 function logWarn() { #? log warning message
-    [ -z $1 ] && return
+    [ -z "$1" ] && return
     #logColor "\033[30;103m" $1
-	qfigLog "\e[38;05;226m" $1 $2
+	qfigLog "\e[38;05;226m" "$1" "$2"
 }
 
 function logSuccess() { #? log success message
-    [ -z $1 ] && return
+    [ -z "$1" ] && return
     #logColor "\033[30;42m" $1
-	qfigLog "\e[38;05;118m" $1 $2
+	qfigLog "\e[38;05;118m" "$1" "$2"
 }
 
 function logDebug() { #x debug
-    [ -z $1 ] && return
+    [ -z "$1" ] && return
 	printf "\e[3m\e[34;100mDEBUG\e[0m \e[1;3m$1\e[0;0m\n"
 }
 
 function logSilence() { #? log unconspicuous message
-    [ -z $1 ] && return
+    [ -z "$1" ] && return
     #logColor "\033[30;42m" $1
 	printf "\e[2m$Qfig_log_prefix $1\e[0m\n"
 }
@@ -254,11 +259,11 @@ function qfigLog() { #x log with a colored dot prefix
 	log=$(echo $log)
 	log="$sgr$prefix\e[0m $log\n"
 
-	printf $log
+	printf "$log"
 }
 
 function forbidAlias() { #x forbid alias 
-	[ -z "$1" ] && return || _doNothing
+	[ -z "$1" ] && return || :
 	unsetAlias $1
 	if [ -z "$2" ]
 	then
@@ -272,7 +277,7 @@ function forbidAlias() { #x forbid alias
 }
 
 function unsetAlias() { #x unset alias
-	[ -z "$1" ] && return || _doNothing
+	[ -z "$1" ] && return || :
 	unalias $1 2>/dev/null
 }
 
@@ -314,23 +319,27 @@ function assertExist() { #? check file existence
     echo "checked"
 }
 
-function rezsh() { #? source .zshrc
-	[[ -o ksharrays ]] && local ksharrays=1
+function resh() { #? re-source .zshrc/.bashrc
+	[[ -o ksharrays ]] && local ksharrays=1 || local ksharrays=""
 	# If ksharrays was set, arrays would based on 0, array items can only be accessed like '${arr[1]}' not '$arr[1]',
 	# array size can only be accesse like '${#arr[@]}' not '${#arr}'. Some programs may not expect this option
-	set +o ksharrays
+	[ $ksharrays ] && set +o ksharrays || :
 
 	if [ ! "-" = "$1" ]; then
-		[ -z "$1" ] && logInfo "Refreshing zsh..." || logInfo "$1..."
+		[ -z "$1" ] && logInfo "Refreshing $_CURRENT_SHELL..." || logInfo "$1..."
 	fi
 	# unset all alias
 	unalias -a
 	# unset all functions
-	unset -f -m '*'
-    source ~/.zshrc
-	[ -z "$2" ] && logSuccess "Refreshed zsh" || logSuccess "$2"
+	if [ $_CURRENT_SHELL = "zsh" ]; then
+		unset -f -m '*'
+	elif [ $_CURRENT_SHELL = "bash" ]; then
+		for f in $(declare -F -p | cut -d " " -f 3); do unset -f $f; done
+	fi
+    source "$HOME/.${_CURRENT_SHELL}rc"
+	[ -z "$2" ] && logSuccess "Refreshed $_CURRENT_SHELL" || logSuccess "$2"
 
-	[ $ksharrays ] && set -o ksharrays || _doNothing
+	[ $ksharrays ] && set -o ksharrays || :
 }
 
 function targz() { #? compress folder to tar.gz using option -czvf
@@ -586,7 +595,7 @@ function concat() { #? concat array. Usage: concat $meta $item1 $item2 $item3...
 		if [ ${#metas[@]} -lt 1 ]; then
 			logError "Meta must have at least 1 parts (joiner)" && return 1
 		else
-			[[ -o ksharrays ]] && local arrayBase=0 || local arrayBase=1
+			declare -i arrayBase=$(_getArrayBase)
 			start=${metas[$(($arrayBase + 2))]}
 			if [ -z $start ]; then
 				start=2
@@ -668,7 +677,7 @@ function confirm() { #? ask for confirmation. Usage: confirm $flags(optional) $m
 	[[ -z "$1" ]] && message="Are you sure ?" || message=$1
 	local yn="";
 	if [ "W" = "$type" ]; then
-		[ -z "$prefix" ] && prefix="!" || _doNothing
+		[ -z "$prefix" ] && prefix="!" || :
 		logWarn "$message \e[90mInput yes/Yes to confirm.\e[0m" $prefix
 		vared yn
 		if [[ 'yes' = "$yn" || 'Yes' = "$yn" ]]; then

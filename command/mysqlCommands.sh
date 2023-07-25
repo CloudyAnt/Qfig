@@ -4,37 +4,38 @@
 
 alias mysqll='mysql -uroot -p' # Connect local mysql
 
-_MYSQL_MAPPING_FILE=$Qfig_loc/mysqlMappingFile
+_MYSQL_MAPPING_FILE=$_QFIG_LOC/mysqlMappingFile
 
 [ ! -f $_MYSQL_MAPPING_FILE ] && touch $_MYSQL_MAPPING_FILE
-eval `cat $_MYSQL_MAPPING_FILE | awk -F '=' 'BEGIN{ s0 = "";s = "declare -A _MYSQL_MAPPING=(";s1 = ""} \
-    { if ( NF >= 2) { \
-        split($2, parts, "#"); s0 = s0 ";_MYSQL_MAPPING_" $1 "=(\"" parts[1] "\" \"" parts[2] "\" \"" parts[3] "\")"; \
-        s = s " [" $1 "]=$_MYSQL_MAPPING_" $1; \
-        s1 = s1 ";unset _MYSQL_MAPPING_" $1; \
-    }} \
-    END { s = s ")"; print s0; print s; print s1}'`
+eval $(awk -F '=' 'BEGIN { s="declare -g -A _MYSQL_MAPPING;" } {
+    if (NF >= 2) {
+        split($2, parts, "#");
+        s = s ":;_MYSQL_MAPPING[" $1 "]=\"" parts[1] " " parts[2] " " parts[3] "\"";
+    }
+} END { print s }' $_MYSQL_MAPPING_FILE)
 
 function mysqlc() { #? Connect mysql by mapping
-    [ -z $1 ] || [ -z $_MYSQL_MAPPING[$1] ] && logError "Which mapping?" && return
-    local mapping
-    eval "mapping=($_MYSQL_MAPPING[$1])"
-    local hostPort="$mapping[1]:"
+    [ -z "$1" ] || [ -z "${_MYSQL_MAPPING[$1]}" ] && logError "No corrosponding mapping" && return
+    declare -a mapping=(${_MYSQL_MAPPING[$1]})
+    declare -i arrayBase=$(_getArrayBase)
+    local hostPort="${mapping[$arrayBase]}:"
     local host=$(cut -d":" -f1 <<< $hostPort)
     local port=$(cut -d":" -f2 <<< $hostPort)
+    local username=${mapping[$((arrayBase + 1))]}
+    local password=${mapping[$((arrayBase + 2))]}
     if [ -z "$port" ]
     then
-        mysql -u $mapping[2] -p$mapping[3] -h $host
+        mysql -u $username -p$password -h $host
     else
-        mysql -u $mapping[2] -p$mapping[3] -h $host -P $port
+        mysql -u $username -p$password -h $host -P $port
     fi
 }
 
 function mysqlo() { #? Connect mysql by mapping THEN pass command and output result to files
-    [ -z $1 ] || [ -z $_MYSQL_MAPPING[$1] ] && logError "Which mapping?" && return
-    [ -z $2 ] && logError "Need Command" && return
-    [ -z $3 ] && logError "Need Output File" && return
-    local mapping
-    eval "mapping=($_MYSQL_MAPPING[$1])"
-    mysql -u $mapping[2] -p$mapping[3] -h $mapping[1] -e "$2 INTO OUTFILE '$3' FIELDS TERMINATED BY ',';"
+    [ -z "$1" ] || [ -z "${_MYSQL_MAPPING[$1]}" ] && logError "No corrosponding mapping" && return
+    [ -z "$2" ] && logError "Need Command" && return
+    [ -z "$3" ] && logError "Need Output File" && return
+    declare -a mapping=(${_MYSQL_MAPPING[$1]})
+    declare -i arrayBase=$(_getArrayBase)
+    mysql -u $mapping[$((arrayBaes + 1))] -p$mapping[$((arrayBaes + 2))] -h $mapping[1] -e "$2 INTO OUTFILE '$3' FIELDS TERMINATED BY ',';"
 }

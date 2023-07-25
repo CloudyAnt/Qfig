@@ -120,8 +120,7 @@ function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'creat
 }
 
 function _gtag() { #x
-	declare -i arrayBase
-	[[ -o ksharrays ]] && arrayBase=0 || arrayBase=1 # if KSH_ARRAYS option set, array based on 0, and '{}' are required to access index
+	declare -i arrayBase=$(_getArrayBase)
 	if [ $COMP_CWORD -eq $(($arrayBase + 1)) ]; then
 		local p2="${COMP_WORDS[$(($arrayBase + 1))]}"
 		local tags
@@ -208,8 +207,7 @@ function gb() { #? operate branch. Usage: gb $branch(optional, . stands for curr
 }
 
 function _gb() { #x
-	declare -i arrayBase
-	[[ -o ksharrays ]] && arrayBase=0 || arrayBase=1 # if KSH_ARRAYS option set, array based on 0, and '{}' are required to access index
+	declare -i arrayBase=$(_getArrayBase)
 	if [ $COMP_CWORD -eq $(($arrayBase + 1)) ]; then
 		local p2="${COMP_WORDS[$(($arrayBase + 1))]}"
 		local tags
@@ -246,8 +244,7 @@ function gcof() { #? git checkout --- fuzziable edition. Usage: gcof $branch/$ta
     [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
 	[ -z $1 ] && return
 
-	declare -i arrayBase
-	[[ -o ksharrays ]] && arrayBase=0 || arrayBase=1 # if KSH_ARRAYS option set, array based on 0, and '{}' are required to access index
+	declare -i arrayBase=$(_getArrayBase)
 	declare -i i=$arrayBase
 	local branches tags refs
 	IFS=$'\n'
@@ -280,7 +277,7 @@ function gcof() { #? git checkout --- fuzziable edition. Usage: gcof $branch/$ta
 		if [ ${refs[$arrayBase]} = $1 ]; then
 			git checkout $1
 		else
-			confirm -e "Checkout \e[1m${refs[$arrayBase]}\e[0m ?" && git checkout ${refs[$arrayBase]} || _doNothing
+			confirm -e "Checkout \e[1m${refs[$arrayBase]}\e[0m ?" && git checkout ${refs[$arrayBase]} || :
 		fi
 	else
 		logInfo "Guessed:"
@@ -299,7 +296,7 @@ function gcof() { #? git checkout --- fuzziable edition. Usage: gcof $branch/$ta
 		declare -i formatLen
 		declare -i curLen=0
 		local formatted_number formatted_name colored_text
-		[ ${#branches[@]} -gt 0 ] && echo "\e[32m--- \e[1mBranches\e[22m ---\e[0m" || _doNothing
+		[ ${#branches[@]} -gt 0 ] && echo "\e[32m--- \e[1mBranches\e[22m ---\e[0m" || :
 		for ((; i<=$((${#refs[@]} - 1 + $arrayBase)); i++)); do
 			formatLen=$((maxLen - ${lenOffsets[$i]}))
 			formatted_number=$(printf "%3s" $i)
@@ -312,13 +309,13 @@ function gcof() { #? git checkout --- fuzziable edition. Usage: gcof $branch/$ta
 				curLen=0
 			fi
 			if [[ ${#branches[@]} = $((i - 1 + $arrayBase)) && ${#tags[@]} -gt 0 ]]; then
-				[ $curLen -ne 0 ] && printf "\n" || _doNothing
+				[ $curLen -ne 0 ] && printf "\n" || :
 				echo "\e[32m--- \e[1mTags\e[22m -------\e[0m"
 				curLen=0
 			fi
 		done
 
-		[ $curLen -ne 0 ] && printf "\n" || _doNothing
+		[ $curLen -ne 0 ] && printf "\n" || :
 		local minI=$arrayBase
 		local maxI=$((${#refs} - 1 + $arrayBase))
 		logInfo "Choose one by the prefix number" "-"
@@ -332,8 +329,7 @@ function gcof() { #? git checkout --- fuzziable edition. Usage: gcof $branch/$ta
 }
 
 function _gcof() { #x
-	declare -i arrayBase
-	[[ -o ksharrays ]] && arrayBase=0 || arrayBase=1 # if KSH_ARRAYS option set, array based on 0, and '{}' are required to access index
+	declare -i arrayBase=$(_getArrayBase)
 	if [ $COMP_CWORD -ne $(($arrayBase + 1)) ]; then
 		return 0
 	fi
@@ -528,7 +524,7 @@ The \e[1m#\e[0m in step2 behind char \e[1m<\e[0m indicates it's a branch-scope s
 The \e[1m[^\\:]+\e[0m in step3 behind char \e[1m@\e[0m sepcifies the regex this step value must match. \e[1m\ \e[0mescape the character behind it.\n"
 				echo "  \e[34;1mCommit Hint\e[0m:\n  Input then press \e[1mEnter\e[0m to set value for a step, \e[34mthe last-time value or default value will be appended\e[0m if the input is empty. \
 You can also \e[34mchoose one option by input number\e[0m if there are multi options specified for current step.\n"
-				echo "  \e[34;1mRecommended pattern\e[0m:\n  $(cat $Qfig_loc/staff/defGctPattern)"
+				echo "  \e[34;1mRecommended pattern\e[0m:\n  $(cat $_QFIG_LOC/staff/defGctPattern)"
 				return
 				;;
 			p) # specify pattern
@@ -558,16 +554,15 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 		obstacleProgress=Revert
 	fi
 	if [ $obstacleProgress ]; then
-		confirm -w "$obstacleProgress in progress, continue ?"  && _doNothing || return 0
+		confirm -w "$obstacleProgress in progress, continue ?"  && : || return 0
 	fi
 
 	# CHECK options
-	declare -i arrayBase
-	[[ -o ksharrays ]] && arrayBase=0 || arrayBase=1 # if KSH_ARRAYS option set, array based on 0, and '{}' are required to access index
+	declare -i arrayBase=$(_getArrayBase)
 
     # GET pattern & cache, use default if it not exists
 	local git_toplevel=$(git rev-parse --show-toplevel)
-    local git_commit_info_cache_folder=$Qfig_loc/.gcache/$(echo $git_toplevel | md5)
+    local git_commit_info_cache_folder=$_QFIG_LOC/.gcache/$(echo $git_toplevel | md5)
 	[ ! -d "$git_commit_info_cache_folder" ] && mkdir -p $git_commit_info_cache_folder
 	local pattern_tokens_file=$git_commit_info_cache_folder/pts
 	local r_step_values_cache_file=$git_commit_info_cache_folder/rsvc # r = repository
@@ -592,9 +587,9 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 			local pattern=; vared pattern
 		elif [ ! -f "$pattern_tokens_file" ]; then
 			setPattern=1
-			if confirm -p "?" "Use default pattern \e[34;3;38m$(cat $Qfig_loc/staff/defGctPattern)\e[0m ?"; then
+			if confirm -p "?" "Use default pattern \e[34;3;38m$(cat $_QFIG_LOC/staff/defGctPattern)\e[0m ?"; then
 				logInfo "Using default pattern"
-				pattern=$(cat $Qfig_loc/staff/defGctPattern)
+				pattern=$(cat $_QFIG_LOC/staff/defGctPattern)
 			else
 				logInfo "Then please specify the pattern(Rerun with -p to change, -h to get hint):"
 				local pattern=; vared pattern
@@ -610,7 +605,7 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 
 	# RESOLVE pattern
 	if [ $setPattern ]; then
-		resolveResult=$($Qfig_loc/staff/resolveGctPattern.sh $pattern)
+		resolveResult=$($_QFIG_LOC/staff/resolveGctPattern.sh $pattern)
 		if [ $? -eq 0 ]; then
 			echo "?:$pattern" > $pattern_tokens_file
 			echo $resolveResult >> $pattern_tokens_file
@@ -731,8 +726,8 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 					# select by option id
 					if [[ $partial =~ ^[0-9]+$ && $partial -le ${#stepOptions} ]]
 					then
-						echo "\e[2mChosen:\e[0m \e[1;3${partial}m$stepOptions[$partial]\e[0m"
-						partial=$stepOptions[$partial]
+						echo "\e[2mChosen:\e[0m \e[1;3${partial}m${stepOptions[$partial]}\e[0m"
+						partial=${stepOptions[$partial]}
 					fi
 				fi
 				if [[ $partial && $stepRegex && ! $partial =~ $stepRegex ]]; then

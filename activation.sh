@@ -1,9 +1,19 @@
 # Activate Qfig for zsh(or bash)
-currentShell=$(ps -p $$ comm=)
-if [[ "$currentShell" =~ ^.+zsh$ ]]; then
+currentShell=$(ps -p $$ -o comm=) # if [[ "$OSTYPE" == "darwin"* ]] || [[ "$OSTYPE" == "linux"* ]]
+if [ $? -ne 0 ]; then
+	currentShell=$(ps -p $$ comm=) # elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]]
+fi
+if [ $? -ne 0 ]; then
+	echo "Sorry, cannot determine the current shell."
+	exit 1
+fi
+
+# .zprofile or .bash_profile will no be loaded if it's not login shell
+# .zshrc and .bashrc will always be loaded
+if [[ "$currentShell" =~ ^.*zsh$ ]]; then
 	sysConfigFile="$HOME/.zshrc"
-elif [[ "$currentShell" =~ ^.+bash$ ]]; then
-	sysConfigFile="$HOME/.bash_profile"
+elif [[ "$currentShell" =~ ^.*bash$ ]]; then
+	sysConfigFile="$HOME/.bashrc"
 else
 	echo "Sorry, only zsh and bash are not supported now."
 	unset currentShell
@@ -25,11 +35,6 @@ else
 	echo source $baseConfig >> $sysConfigFile
 	echo "Qfig has been activated! Please open a new session to check."
 fi
-
-# Delete old registration
-awk -v odr="source $currentLoc/config.sh" '{if($0 !=odr) print}' $sysConfigFile > $HOME/.temprc
-cat $HOME/.temprc > $sysConfigFile
-rm $HOME/.temprc
 
 # Init
 source $sysConfigFile
