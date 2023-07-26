@@ -67,3 +67,6 @@ else
         echo "Array is invalid!!"
     fi
 fi
+
+unset -f partition
+unset -f qs

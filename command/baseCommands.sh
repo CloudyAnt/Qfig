@@ -3,7 +3,7 @@
 Qfig_log_prefix="●"
 
 function _getArrayBase() {
-	if [[ -o kasharray ]] 2>/dev/null; then
+	if [[ -o ksharrays ]] 2>/dev/null; then
 		echo 0
 	elif [[ "$_CURRENT_SHELL" = "zsh" || "$_CURRENT_SHELL" = "fish" ]]; then
 		echo 1
@@ -20,6 +20,7 @@ function _getCurrentHead() {
 	elif [[ "$_CURRENT_SHELL" = "bash" ]]; then
 		IFS=' ' read -r -a parts <<< "$(git -C $_QFIG_LOC log --oneline --decorate -1)"
 		echo ${parts[$arrayBase]}
+		rdIFS
 	else
 		echo "???"
 	fi
@@ -66,7 +67,7 @@ function qfig() { #? Qfig preserved command
 					}
 				} END {print ""}'
 			fi
-			rezsh - "Qfig updated!"
+			resh - "Qfig updated!"
 			;;
 		config)
 			if [ ! -f $_QFIG_LOC/config ]; then
@@ -254,7 +255,9 @@ function qfigLog() { #x log with a colored dot prefix
 	[ -z "$prefix" ] && prefix="$Qfig_log_prefix" || prefix=$3
 	
 	log=${log//\%/ percent}
-	log=${log//$'\r'/} # It's seem that $'\r'(ANSI-C Quoting) != \r, \r can be printed by 'zsh echo -E' but the former can not. Github push message may contiains lots of $'\r' in order to update state.
+	# It's seem that $'\r'(ANSI-C Quoting) != \r, \r can be printed by 'zsh echo -E' but the former can not.
+	# Github push message may contiains lots of $'\r' in order to update state.
+	log=${log//$'\r'/} 
 	log=${log//\\\r/}
 	log=$(echo $log)
 	log="$sgr$prefix\e[0m $log\n"
@@ -333,7 +336,7 @@ function resh() { #? re-source .zshrc/.bashrc
 	# unset all functions
 	if [ $_CURRENT_SHELL = "zsh" ]; then
 		unset -f -m '*'
-	elif [[ $_CURRENT_SHELL = "bash" && ! "$OSTYPE" = "msys" ]]; then # msys = Git Bash, critical functions in it should not be unset
+	elif [[ $_CURRENT_SHELL = "bash" && ! "$OSTYPE" = "msys" ]]; then # msys = Git Bash, some functions in it should not be unset
 		for f in $(declare -F -p | cut -d " " -f 3); do unset -f $f; done
 	fi
     source "$HOME/.${_CURRENT_SHELL}rc"
@@ -699,7 +702,7 @@ function confirm() { #? ask for confirmation. Usage: confirm $flags(optional) $m
 
 function _getStringWidth() { #x
 	if [[ $_CURRENT_SHELL = "zsh" ]]; then
-		echo $(($#1 * 3 - ${#${(ml[$#1 * 2])1}})) # zsh has this method to get width faster
+		echo $(($#1 * 3 - ${#${(ml[$#1 * 2])1}})) # zsh can use this method to get width faster
 		return
 	fi
 

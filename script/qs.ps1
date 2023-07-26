@@ -42,3 +42,6 @@ function qs {
 
 qs $list 0 ($list.Length - 1)
 $list -join "," 
+
+Remove-Item -Path Function:\partition
+Remove-Item -Path Function:\qs

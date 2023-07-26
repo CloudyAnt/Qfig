@@ -11,7 +11,7 @@ fi
 if [[ "$currentShell" =~ ^.*zsh$ ]]; then
 	sysConfigFile="$HOME/.zshrc" # .zshrc will always be loaded
 elif [[ "$currentShell" =~ ^.*bash$ ]]; then
-	sysConfigFile="$HOME/.bashrc" # bash may only run .bashrc if not login shell
+	sysConfigFile="$HOME/.bashrc" # bash only run .bashrc if not login shell
 	sysConfigFile1="$HOME/.bash_profile" # bash only run .bash_profile if login shell
 else
 	echo "Sorry, only zsh and bash are not supported now."
