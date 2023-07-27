@@ -1,7 +1,6 @@
 #? These commands only requires zsh built-in commands
 
-Qfig_log_prefix="●"
-
+## these commands with '_' prefix weren't designed to be shown by 'qcmds' or to be used directly (though you can)
 function _getArrayBase() { #x
 	if [[ -o ksharrays ]] 2>/dev/null; then
 		echo 0
@@ -14,7 +13,7 @@ function _getArrayBase() { #x
 
 function _getCurrentHead() { #x
 	declare -i arrayBase=$(_getArrayBase)
-	local parts=($(git -C $_QFIG_LOC log --oneline --decorate -1)})
+	local parts=($(echo $(git -C $_QFIG_LOC log --oneline --decorate -1)))
 	echo ${parts[$arrayBase]} # dash doesn't support such grammar
 }
 
@@ -37,7 +36,7 @@ function echoe() { #? echo with escapes
 	fi
 }
 
-function md5() { #x
+function md5x() { #x
 	local str
 	read str
 	if [[ "$_CURRENT_SHELL" = "zsh" ]]; then
@@ -270,6 +269,7 @@ function logDebug() { #x debug
 	printf "\e[3m\e[34;100mDEBUG\e[0m \e[1;3m$1\e[0;0m\n"
 }
 
+Qfig_log_prefix="●"
 function logSilence() { #? log unconspicuous message
     [ -z "$1" ] && return
     #logColor "\033[30;42m" $1
@@ -424,6 +424,7 @@ function findindex() { #? find 1st target index in provider. Usage: findindex pr
 }
 
 function chr2uni() { #? convert characters to unicodes(4 digits with '\u' prefix)
+	[ -z $1 ] && return
 	local all c
 	all=$@
 	for (( i=0 ; i<${#all}; i++ )); do
@@ -442,6 +443,7 @@ function chr2uni() { #? convert characters to unicodes(4 digits with '\u' prefix
 }
 
 function chr2uni8() { #? convert characters to unicodes(4 digits with '\u' prefix or 8 digits with '\U' prefix)
+	[ -z $1 ] && return
 	local all c
 	all=$@
 	for (( i=0 ; i<${#all}; i++ )); do
@@ -509,6 +511,7 @@ function hex2chr() { #? convert unicodes(hex codepoint) to characters
 }
 
 function chr2hex() { #? convert characters to unicodes(hex codepoint)
+	[ -z $1 ] && return
 	local all c
 	all=$@
 	for (( i=0 ; i<${#all}; i++ )); do
@@ -524,10 +527,10 @@ function dec2hex() { #? convert decimal to hexadecimal
 	local out=""
 	for arg in "$@"
 	do
-		if ! [[ $arg =~ '^[0-9]+$' ]]; then
+		if ! [[ $arg =~ ^[0-9]+$ ]]; then
 			logError $index"th param '$arg' is not decimal" && return 1
 		fi
-		out=$out$(printf "%x " $arg)
+		[ $index -eq 1 ] && out=$out$(printf "%x" $arg) || out=$out$(printf " %x" $arg)
 		index=$((index + 1))
 	done
 	if [ $index -gt 1 ]; then
@@ -577,7 +580,7 @@ function uni2sp() { #? convert unicode (range [10000, 10FFFF]) to surrogate pair
 
 function sp2uni() { #? convert surrogate pair (range [D800, DBFF] and [DC00, DFFF]) to unicode (range [10000, 10FFFF])
 	[[ -z $1 || -z $2 ]] && logWarn "A surrogate pair needs 2 units" && return
-	if ! [[ $1 =~ '^[0-9a-fA-F]+$' && $2 =~ '^[0-9a-fA-F]+$' ]]; then
+	if ! [[ $1 =~ ^[0-9a-fA-F]+$ && $2 =~ ^[0-9a-fA-F]+$ ]]; then
 		logWarn "$1 or $2 is not hexdecimal" && return
 	fi
 
@@ -629,7 +632,7 @@ function concat() { #? concat array. Usage: concat $meta $item1 $item2 $item3...
 			start=${metas[$(($arrayBase + 2))]}
 			if [ -z $start ]; then
 				start=2
-			elif [[ ! $start =~ "^[0-9]+$" ]]; then
+			elif [[ ! $start =~ ^[0-9]+$ ]]; then
 				logError "Start must be a decimal" && return 1
 			else
 				start=$((start + 2))
@@ -638,7 +641,7 @@ function concat() { #? concat array. Usage: concat $meta $item1 $item2 $item3...
 			end=${metas[$(($arrayBase + 3))]}
 			if [ -z $end ]; then
 				end=$maxEnd
-			elif [[ ! $end =~ "^[0-9]+$" ]]; then
+			elif [[ ! $end =~ ^[0-9]+$ ]]; then
 				logError "End must be a decimal" && return 1
 			else
 				end=$((end + 2))
@@ -668,7 +671,7 @@ function concat() { #? concat array. Usage: concat $meta $item1 $item2 $item3...
 	printf "\n"
 }
 
-__IFS__=$(hex2chr 20 9 a 0)
+__IFS__=$(hex2chr 20 9 a)
 function rdIFS() { #? restore to default IFS
 	IFS=$__IFS__
 }
@@ -756,3 +759,63 @@ function _getStringWidth() { #x
 	done
 	echo $width
 }
+
+function hex2utf8() { #? covert unicode code point to utf8 encoding, -s to add space between bytes
+	local arg
+	declare -i index=1
+	local out part
+	declare -i uni
+	local bytesInterval
+	if [ "-s" = "$1" ]; then
+		bytesInterval=" "
+		shift 1
+	fi
+	for arg in "$@"
+	do
+		if ! [[ $arg =~ ^[0-9a-fA-F]+$ ]]; then
+			logError $index"th param '$arg' is not decimal" && return 1
+		fi
+		uni=0x$arg
+		[ $index -eq 1 ] && part="" || part=" "
+		if [[ 0x$arg -le 0x007F ]]; then
+			part="$part$arg"
+		elif [[ 0x$arg -le 0x07FF ]]; then
+			part="$part$(dec2hex $((0xC0 + ($uni >> 6))))$bytesInterval"
+			part="$part$(dec2hex $((0x80 + ($uni & 0x3F))))"
+		elif [[ 0x$arg -le 0xFFFF ]]; then
+			part="$part$(dec2hex $((0xE0 + ($uni >> 12))))$bytesInterval"
+			part="$part$(dec2hex $((0x80 + ($uni >> 6) & 0x3F)))$bytesInterval"
+			part="$part$(dec2hex $((0x80 + ($uni & 0x3F))))"
+		elif [[ 0x$arg -le 0x10FFFF ]]; then
+			part="$part$(dec2hex $((0xE0 + ($uni >> 18))))$bytesInterval"
+			part="$part$(dec2hex $((0x80 + ($uni >> 12) & 0x3F)))$bytesInterval"
+			part="$part$(dec2hex $((0x80 + ($uni >> 6) & 0x3F)))$bytesInterval"
+			part="$part$(dec2hex $((0x80 + ($uni & 0x3F))))"
+		else
+			logError $index"th param '$arg' is out of range" && return 1
+		fi
+		out=$out$part
+		index=$((index + 1))
+	done
+	echo $out
+}
+
+function enurlp() { #? encode url param.
+	[ -z $1 ] && return
+	local all c hex out
+	all=$@
+	for (( i=0 ; i<${#all}; i++ )); do
+		c=${all:$i:1}
+		hex=$(printf "%x " "'$c")
+		if [[ 0x$hex -ge 0x5a && 0x$hex -le 0x41 ]] || [[ 0x$hex -ge 0x61 && 0x$hex -le 0x7a ]] \
+		|| [[ 0x$hex -ge 0x30 && 0x$hex -le 0x39 ]] \
+		|| [[ 0x$hex -eq 0x2A || 0x$hex -eq 0x2D || 0x$hex -eq 0x2E || 0x$hex -eq 0x5F ]]; then
+			out=$out$c
+		else
+			for byte in $(hex2utf8 -s $(chr2hex $c)); do
+				out="$out%$byte"
+			done
+		fi
+	done
+	echo $out
+}	

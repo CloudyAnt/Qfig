@@ -6,8 +6,13 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
         logInfo "For json \e[34m{\"users\": [{\"name\": \"chai\"}]}\e[0m, you can get the 1st user's name like: \e[1mjsonget json users.0.name\e[0m
   For json \e[34m[{\"name\": \"chai\"}]\e[0m, then the operation be like: \e[1mjsonget json 0.name\e[0m
   Use '\.' to escape .
-  \e[1mNote\e[0m that the json syntax check will stop after target found"
+  \e[1mNote\e[0m that the json syntax check will stop after target found
+  Use -t to remove type indication"
         return 0
+    fi
+    if [ "-t" = $1 ]; then
+        local notype=1
+        shift 1
     fi
     [[ -z $1 || -z $2 ]] && logError "Usage: jsonget json targetPath. -h for more" && return 1
     # --- CHECK options ---
@@ -159,15 +164,16 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
     function checkMatch {
         if [[ finding && ${cpm[$cpi]} && ${cpm[$cpi]} -ge 0 && $cpi -eq $tpi ]]; then
             found=1
+            [ $notype ] && local prefix="" || local prefix="${cpt[$cpi]}:"
             case ${cpt[$cpi]} in
 		        O)
-                    echoe "\e[34mO:\e[0mObject"
+                    echoe "\e[34m$prefix\e[0mObject"
                 ;;
                 A)
-                    echoe "\e[34mA:\e[0mArray"
+                    echoe "\e[34m$prefix\e[0mArray"
                 ;;
                 S|I|F)
-                    echoe "\e[34m${cpt[$cpi]}:\e[0m$s"
+                    echoe "\e[34m$prefix\e[0m$s"
                 ;;
                 TRUE|FALSE|NULL)
                     echoe "\e[34m${cpt[$cpi]}\e[0m"
@@ -371,7 +377,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
         if [ $cpi -ne $arrayBase ]; then
             logError "Invalid json (x0000), stopped at depth: $(($tpi - $arrayBase)) (path: $(concat -.-1-$cpi $cp))" && return 1
         else
-            echoe "\e[1mNot found\e[0m"
+            echoe "\e[1mNot found\e[0m" && return 2
         fi
     fi
 }

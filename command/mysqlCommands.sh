@@ -6,17 +6,17 @@ alias mysqll='mysql -uroot -p' # Connect local mysql
 
 _MYSQL_MAPPING_FILE=$_QFIG_LOC/mysqlMappingFile
 
-[ ! -f $_MYSQL_MAPPING_FILE ] && touch $_MYSQL_MAPPING_FILE
+[ ! -f $_MYSQL_MAPPING_FILE ] && touch $_MYSQL_MAPPING_FILE || :
 eval $(awk -F '=' 'BEGIN { s="declare -g -A _MYSQL_MAPPING;" } {
-    if (NF >= 2) {
+    if (NF >= 3) {
         split($2, parts, "#");
-        s = s ":;_MYSQL_MAPPING[" $1 "]=\"" parts[1] " " parts[2] " " parts[3] "\"";
+        s = s "_MYSQL_MAPPING[" $1 "]=\"" parts[1] " " parts[2] " " parts[3] "\";";
     }
 } END { print s }' $_MYSQL_MAPPING_FILE)
 
 function mysqlc() { #? Connect mysql by mapping
     [ -z "$1" ] || [ -z "${_MYSQL_MAPPING[$1]}" ] && logError "No corrosponding mapping" && return
-    declare -a mapping=(${_MYSQL_MAPPING[$1]})
+    declare -a mapping=($(echo ${_MYSQL_MAPPING[$1]}))
     declare -i arrayBase=$(_getArrayBase)
     local hostPort="${mapping[$arrayBase]}:"
     local host=$(cut -d":" -f1 <<< $hostPort)

@@ -151,8 +151,9 @@ if [ $stepsCount -eq 0 ]; then
     echo "Please specify any steps!" && exit 1
 fi
 
+# echo without escapes
 if [ "$_CURRENT_SHELL" = "zsh" ]; then
-	echo -e $tokens
+	echo -E $tokens
 else
 	echo $tokens
 fi
