@@ -19,6 +19,7 @@ else
 	echo "Qfig is activated, but only zsh and bash are supported now."
 	return 1
 fi
+export _CURRENT_SHELL
 
 ## Base configs
 source $_QFIG_LOC/command/baseCommands.sh

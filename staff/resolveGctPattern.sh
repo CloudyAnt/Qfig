@@ -1,5 +1,3 @@
-#!/bin/zsh
-
 [ -z "$1" ] && echo "Pattern must not be empty!" && exit 1
 pattern=$1
 # pattern example:<name@^[^\:]+$:Unknown> <#type@^[^\:]+$:refactor fix feat chore doc test style>: <#message@^[^\:]+$:Unknown>
@@ -23,6 +21,7 @@ stepsCount=0
 stepRegex=""
 lastStepKey=""
 recordingStepType=0
+[[ "$(uname -s)" =~ CYGWIN* || "$(uname -s)" =~ MINGW* ]] && NL="\r\n" || NL="\n" # Windows use \r\n as newline
 for (( i=0 ; i<${#pattern}; i++ )); do
     c=${pattern:$i:1}
 
@@ -30,7 +29,7 @@ for (( i=0 ; i<${#pattern}; i++ )); do
 		recordingStepType=0
 		# append branch-scope-step mark
 		if [ '#' = "$c" ]; then
-			tokens+="10:\n"
+			tokens+="10:$NL"
 			continue
 		fi
 	fi
@@ -47,7 +46,7 @@ for (( i=0 ; i<${#pattern}; i++ )); do
             if [[ '>' = "$c" ]]; then
                 echo "Bad ending '$c' at index $i. No corrosponding beginning" && exit 1
             elif [ '<' = "$c" ]; then
-				[ "$s" ] && tokens+="0:$s\n" && s=""
+				[ "$s" ] && tokens+="0:$s$NL" && s=""
                 x=1
 				stepRegex=""
 				recordingStepType=1
@@ -58,7 +57,7 @@ for (( i=0 ; i<${#pattern}; i++ )); do
         1) # appending key
             if [ ':' = "$c" ]; then
                 if [ "$s" ]; then
-                    tokens+="1:$s\n"
+                    tokens+="1:$s$NL"
 					lastStepKey=$s
                     s=""
                     x=2
@@ -67,7 +66,7 @@ for (( i=0 ; i<${#pattern}; i++ )); do
                 fi
 			elif [ '@' = "$c" ]; then
                 if [ "$s" ]; then
-                    tokens+="1:$s\n"
+                    tokens+="1:$s$NL"
                     s=""
                     x=3
                 else
@@ -77,7 +76,7 @@ for (( i=0 ; i<${#pattern}; i++ )); do
 				echo "Bad key beginning '$c' at index $i. Specifying key \"$lastStepKey\" content"  && exit 1
 			elif [ '>' = "$c" ]; then
 				if [ "$s" ]; then
-					tokens+="1:$s\n"
+					tokens+="1:$s$NL"
                     stepsCount=$(($stepsCount + 1))
 					s=""
 					x=0
@@ -94,14 +93,14 @@ for (( i=0 ; i<${#pattern}; i++ )); do
 			elif [ '>' = "$c" ]; then
 				if [ "$s" ]; then
 					if [ $stepRegex ]; then
-						ops=(${(@s/ /)${s}})
+						ops=($s)
 						for option in $ops; do
 							if ! [[ $option =~ $stepRegex ]]; then
 								echo "Option \e[1m$option\e[0m is not matching \e[3m$stepRegex\e[0m" && exit 1
 							fi
 						done
 					fi
-					tokens+="12:$s\n"
+					tokens+="12:$s$NL"
                     stepsCount=$(($stepsCount + 1))
 				else
 					echo "Please specify options for key \"$lastStepKey\" or remove the ':'" && exit 1
@@ -117,7 +116,7 @@ for (( i=0 ; i<${#pattern}; i++ )); do
 				echo "Bad key beginning '$c' at index $i. Specifying key \"$lastStepKey\" regex"  && exit 1
 			elif [ '>' = "$c" ]; then
 				if [ "$s" ]; then
-					tokens+="11:$s\n"
+					tokens+="11:$s$NL"
                     stepsCount=$(($stepsCount + 1))
 				else
 					echo "Please specify regex for key \"$lastStepKey\" or remove the '@'" && exit 1
@@ -126,7 +125,7 @@ for (( i=0 ; i<${#pattern}; i++ )); do
 				x=0
 			elif [ ':' = "$c" ]; then
 				if [ "$s" ]; then
-					tokens+="11:$s\n"
+					tokens+="11:$s$NL"
 					stepRegex=$s
 					s=""
 					x=2
@@ -152,4 +151,8 @@ if [ $stepsCount -eq 0 ]; then
     echo "Please specify any steps!" && exit 1
 fi
 
-echo $tokens
+if [ "$_CURRENT_SHELL" = "zsh" ]; then
+	echo -e $tokens
+else
+	echo $tokens
+fi

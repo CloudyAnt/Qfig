@@ -2,28 +2,57 @@
 
 Qfig_log_prefix="●"
 
-function _getArrayBase() {
+function _getArrayBase() { #x
 	if [[ -o ksharrays ]] 2>/dev/null; then
 		echo 0
-	elif [[ "$_CURRENT_SHELL" = "zsh" || "$_CURRENT_SHELL" = "fish" ]]; then
+	elif [[ "$_CURRENT_SHELL" = "zsh" ]]; then # Besides, fish is the same
 		echo 1
 	else
 		echo 0
 	fi
 }
 
-function _getCurrentHead() {
+function _getCurrentHead() { #x
 	declare -i arrayBase=$(_getArrayBase)
+	local parts=($(git -C $_QFIG_LOC log --oneline --decorate -1)})
+	echo ${parts[$arrayBase]} # dash doesn't support such grammar
+}
+
+function _readAndEcho() { #x
+	local v
 	if [[ "$_CURRENT_SHELL" = "zsh" ]]; then
-		local parts=(${(@s/ /)$(git -C $_QFIG_LOC log --oneline --decorate -1)})
-		echo ${parts[$arrayBase]}
-	elif [[ "$_CURRENT_SHELL" = "bash" ]]; then
-		IFS=' ' read -r -a parts <<< "$(git -C $_QFIG_LOC log --oneline --decorate -1)"
-		echo ${parts[$arrayBase]}
-		rdIFS
+		vared v
 	else
-		echo "???"
+		read v
 	fi
+	echo $v
+}
+
+function echoe() { #? echo with escapes
+	[ -z "$1" ] && return 0 || :
+	if [[ "$_CURRENT_SHELL" = "zsh" ]]; then # csh, tcsh, etc. are the same
+		echo $1
+	else
+		echo -e $1
+	fi
+}
+
+function md5() { #x
+	local str
+	read str
+	if [[ "$_CURRENT_SHELL" = "zsh" ]]; then
+		echo -n $str | md5
+	else
+		local sum=($(echo -n $str | md5sum))
+		echo ${sum[0]}
+	fi
+}
+
+function _rmCr() { #x
+	while IFS= read -r str; do
+        echo "${str//$'\r'/}"
+    done
+	rdIFS
 }
 
 function qfig() { #? Qfig preserved command
@@ -52,7 +81,7 @@ function qfig() { #? Qfig preserved command
 			else
 				logInfo "Updating Qfig.."
 				local newHead=$(_getCurrentHead)
-				echo "\nUpdate head \e[1m$curHead\e[0m -> \e[1m$newHead\e[0m:\n"
+				echoe "\nUpdate head \e[1m$curHead\e[0m -> \e[1m$newHead\e[0m:\n"
 				git -C $_QFIG_LOC log --oneline --decorate -10 | awk -v ch=$curHead 'BEGIN{
 					tc["refactor"] = 31; tc["fix"] = 32; tc["feat"] = 33; tc["chore"] = 34; tc["doc"] = 35; tc["test"] = 36;
 				} {
@@ -71,7 +100,7 @@ function qfig() { #? Qfig preserved command
 			;;
 		config)
 			if [ ! -f $_QFIG_LOC/config ]; then
-				echo "# This config was copied from the 'configTemplate'\n$(tail -n +2 $_QFIG_LOC/configTemplate)" > $_QFIG_LOC/config
+				echoe "# This config was copied from the 'configTemplate'\n$(tail -n +2 $_QFIG_LOC/configTemplate)" > $_QFIG_LOC/config
 				logInfo "Copied config from \e[1mconfigTemplate\e[0m"
 			fi
 			editfile $_QFIG_LOC/config
@@ -255,11 +284,9 @@ function qfigLog() { #x log with a colored dot prefix
 	[ -z "$prefix" ] && prefix="$Qfig_log_prefix" || prefix=$3
 	
 	log=${log//\%/ percent}
-	# It's seem that $'\r'(ANSI-C Quoting) != \r, \r can be printed by 'zsh echo -E' but the former can not.
-	# Github push message may contiains lots of $'\r' in order to update state.
+	# whatever a true LF (unicode d) or LF escape sequence "\r" (unicode 5c and 72) should be remove here
 	log=${log//$'\r'/} 
 	log=${log//\\\r/}
-	log=$(echo $log)
 	log="$sgr$prefix\e[0m $log\n"
 
 	printf "$log"
@@ -446,7 +473,7 @@ function hex2chr() { #? convert unicodes(hex codepoint) to characters
 	for arg in "$@"
 	do
 		codesCount=$((codesCount + 1))
-		if ! [[ $arg =~ '^[0-9a-fA-F]+$' ]]; then
+		if ! [[ $arg =~ ^[0-9a-fA-F]+$ ]]; then
 			err="The $codesCount""th arg '$arg' is not hexdecimal" && break
 			break
 		elif [[ 0x$arg -lt 0x0 || 0x$arg -gt 0x10FFFF ]]; then
@@ -514,7 +541,7 @@ function hex2dec() { #? convert hexadecimal to decimal
 	local out=""
 	for arg in "$@"
 	do
-		if ! [[ $arg =~ '^[0-9a-fA-F]+$' ]]; then
+		if ! [[ $arg =~ ^[0-9a-fA-F]+$ ]]; then
 			logWarn $index"th param '$arg' is not hexdecimal" && return 1
 		fi
 		out=$out"$((0x$arg)) "
@@ -527,7 +554,7 @@ function hex2dec() { #? convert hexadecimal to decimal
 
 function uni2sp() { #? convert unicode (range [10000, 10FFFF]) to surrogate pair (range [D800, DBFF] and [DC00, DFFF])
 	[ -z $1 ] && return
-	if ! [[ $1 =~ '^[0-9a-fA-F]+$' ]]; then
+	if ! [[ $1 =~ ^[0-9a-fA-F]+$ ]]; then
 		logWarn "$1 is not hexdecimal" && return
 	fi
 
@@ -571,7 +598,7 @@ function sp2uni() { #? convert surrogate pair (range [D800, DBFF] and [DC00, DFF
 function concat() { #? concat array. Usage: concat $meta $item1 $item2 $item3... -h for more
 	if [ "-h" = "$1" ]; then
 		logInfo "Usage: concat \$meta \$item1 \$item2 \$item3.... "
-		echo "  \e[34m\$meta\e[0m pattern: \e[1m-joiner-start-end (exclusive)\e[0m. The first char is the separator of meta, here it's '-' (recommanded).
+		echoe "  \e[34m\$meta\e[0m pattern: \e[1m-joiner-start-end (exclusive)\e[0m. The first char is the separator of meta, here it's '-' (recommanded).
   Start and end are optional. 
   \e[34m\$meta\e[0m could also be a single character \$c, it equivalent to -\$c or joiner
   Examples: 
@@ -682,7 +709,7 @@ function confirm() { #? ask for confirmation. Usage: confirm $flags(optional) $m
 	if [ "W" = "$type" ]; then
 		[ -z "$prefix" ] && prefix="!" || :
 		logWarn "$message \e[90mInput yes/Yes to confirm.\e[0m" $prefix
-		vared yn
+		yn=$(_readAndEcho)
 		if [[ 'yes' = "$yn" || 'Yes' = "$yn" ]]; then
 			return 0
 		fi
@@ -692,7 +719,7 @@ function confirm() { #? ask for confirmation. Usage: confirm $flags(optional) $m
 		else
 			logInfo "$message \e[90mInput y/Y for Yes, others for No.\e[0m" $prefix
 		fi
-		vared yn
+		yn=$(_readAndEcho)
 		if [[ 'Y' = "$yn" || 'y' = "$yn" || 'yes' = "$yn" || 'Yes' = "$yn" ]] || [[ $enterForYes && -z "$yn" ]]; then
 			return 0
 		fi

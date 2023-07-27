@@ -161,16 +161,16 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
             found=1
             case ${cpt[$cpi]} in
 		        O)
-                    echo "\e[34mO:\e[0mObject"
+                    echoe "\e[34mO:\e[0mObject"
                 ;;
                 A)
-                    echo "\e[34mA:\e[0mArray"
+                    echoe "\e[34mA:\e[0mArray"
                 ;;
                 S|I|F)
-                    echo "\e[34m${cpt[$cpi]}:\e[0m$s"
+                    echoe "\e[34m${cpt[$cpi]}:\e[0m$s"
                 ;;
                 TRUE|FALSE|NULL)
-                    echo "\e[34m${cpt[$cpi]}\e[0m"
+                    echoe "\e[34m${cpt[$cpi]}\e[0m"
                 ;;
                 *)
                     err="Internal logic error (E5). Unexpected type ${cpt[$cpi]}"
@@ -371,7 +371,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
         if [ $cpi -ne $arrayBase ]; then
             logError "Invalid json (x0000), stopped at depth: $(($tpi - $arrayBase)) (path: $(concat -.-1-$cpi $cp))" && return 1
         else
-            echo "\e[1mNot found\e[0m"
+            echoe "\e[1mNot found\e[0m"
         fi
     fi
 }

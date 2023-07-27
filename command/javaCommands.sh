@@ -5,10 +5,10 @@ function jrun() { #? java compile then run, jrun Hello => javac Hello.java && ja
     [ ! -f "$1" ] && logError "File does not exist !" && return
 
     local file=$1
-    local fileSuffix=`echo $file | awk -F '.' '{print $2}'`
+    local fileSuffix=$(echo $file | awk -F '.' '{print $2}')
     [ "java" != "$fileSuffix" ] && logWarn "File is not end with .java" && return
 
-    local simpleName=`echo $file | awk -F '.' '{print $1}'`
+    local simpleName=$(echo $file | awk -F '.' '{print $1}')
     javac $file
 
     # return if javac failed

@@ -296,7 +296,7 @@ function gcof() { #? git checkout --- fuzziable edition. Usage: gcof $branch/$ta
 		declare -i formatLen
 		declare -i curLen=0
 		local formatted_number formatted_name colored_text
-		[ ${#branches[@]} -gt 0 ] && echo "\e[32m--- \e[1mBranches\e[22m ---\e[0m" || :
+		[ ${#branches[@]} -gt 0 ] && echoe "\e[32m--- \e[1mBranches\e[22m ---\e[0m" || :
 		for ((; i<=$((${#refs[@]} - 1 + $arrayBase)); i++)); do
 			formatLen=$((maxLen - ${lenOffsets[$i]}))
 			formatted_number=$(printf "%3s" $i)
@@ -310,7 +310,7 @@ function gcof() { #? git checkout --- fuzziable edition. Usage: gcof $branch/$ta
 			fi
 			if [[ ${#branches[@]} = $((i - 1 + $arrayBase)) && ${#tags[@]} -gt 0 ]]; then
 				[ $curLen -ne 0 ] && printf "\n" || :
-				echo "\e[32m--- \e[1mTags\e[22m -------\e[0m"
+				echoe "\e[32m--- \e[1mTags\e[22m -------\e[0m"
 				curLen=0
 			fi
 		done
@@ -319,7 +319,7 @@ function gcof() { #? git checkout --- fuzziable edition. Usage: gcof $branch/$ta
 		local minI=$arrayBase
 		local maxI=$((${#refs} - 1 + $arrayBase))
 		logInfo "Choose one by the prefix number" "-"
-		local number=; vared number
+		local number; number=$(_readAndEcho)
 		if [[ $number =~ '^[0-9]+$' && $number -ge $minI && $number -le $maxI ]]; then
 			git checkout ${refs[$number]}
 		else
@@ -336,13 +336,13 @@ function _gcof() { #x
 
 	local latest="${COMP_WORDS[$COMP_CWORD]}"
 	local branches tags refs
-	IFS=$'\n' branches=($(git branch --list "$latest*")) IFS=' '
+	IFS=$'\n' branches=($(git branch --list "$latest*")); rdIFS
 
 	declare -i i=$arrayBase
 	for ((; i<=$((${#branches[@]} - 1 + $arrayBase)); i++)); do
 		branches[$i]=${branches[$i]:2}
 	done
-	IFS=$'\n' tags=($(git tag --list "$latest*")) IFS=' '
+	IFS=$'\n' tags=($(git tag --list "$latest*")); rdIFS
 	refs=("${branches[@]}" "${tags[@]}")
 
 	local str=""
@@ -378,7 +378,7 @@ function gcto() { #? commit in one line
 	# CHECK if this is a git repository
     [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
     echo commit with message '"['$1']' $2: $3'" ? (y for Yes)'
-	local oneline_commit=; vared oneline_commit
+	local oneline_commit=; oneline_commit=$(_readAndEcho)
     [ "$oneline_commit" = "y" ] && gaa && git commit -m "[$1] $2: $3"
     unset oneline_commit
 }
@@ -519,12 +519,12 @@ function gct() { #? git commit step by step
 				printf "    %-6s%s\n" "-p" "Specify the pattern"
 				printf "    %-6s%s\n" "-v" "Show more verbose info"
 				echo
-				echo "  \e[34;1mPattern Hint\e[0m:\n  Example: \e[34m<step1:default> <#step2:default option2 option3>: <step3@[^\\:]+>\e[0m. \
+				echoe "  \e[34;1mPattern Hint\e[0m:\n  Example: \e[34m<step1:default> <#step2:default option2 option3>: <step3@[^\\:]+>\e[0m. \
 The \e[1m#\e[0m in step2 behind char \e[1m<\e[0m indicates it's a branch-scope step. \
 The \e[1m[^\\:]+\e[0m in step3 behind char \e[1m@\e[0m sepcifies the regex this step value must match. \e[1m\ \e[0mescape the character behind it.\n"
-				echo "  \e[34;1mCommit Hint\e[0m:\n  Input then press \e[1mEnter\e[0m to set value for a step, \e[34mthe last-time value or default value will be appended\e[0m if the input is empty. \
+				echoe "  \e[34;1mCommit Hint\e[0m:\n  Input then press \e[1mEnter\e[0m to set value for a step, \e[34mthe last-time value or default value will be appended\e[0m if the input is empty. \
 You can also \e[34mchoose one option by input number\e[0m if there are multi options specified for current step.\n"
-				echo "  \e[34;1mRecommended pattern\e[0m:\n  $(cat $_QFIG_LOC/staff/defGctPattern)"
+				echoe "  \e[34;1mRecommended pattern\e[0m:\n  $(cat $_QFIG_LOC/staff/defGctPattern)"
 				return
 				;;
 			p) # specify pattern
@@ -562,7 +562,7 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 
     # GET pattern & cache, use default if it not exists
 	local git_toplevel=$(git rev-parse --show-toplevel)
-    local git_commit_info_cache_folder=$_QFIG_LOC/.gcache/$(echo $git_toplevel | md5)
+    local git_commit_info_cache_folder=$_QFIG_LOC/.gcache/$(echo -n $git_toplevel | md5)
 	[ ! -d "$git_commit_info_cache_folder" ] && mkdir -p $git_commit_info_cache_folder
 	local pattern_tokens_file=$git_commit_info_cache_folder/pts
 	local r_step_values_cache_file=$git_commit_info_cache_folder/rsvc # r = repository
@@ -584,7 +584,7 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 		if [ $setPattern ]; then
 			# specify local pattern
 			logInfo "Please specify the pattern(Rerun with -h to get hint):"
-			local pattern=; vared pattern
+			local pattern=; pattern=$(_readAndEcho)
 		elif [ ! -f "$pattern_tokens_file" ]; then
 			setPattern=1
 			if confirm -p "?" "Use default pattern \e[34;3;38m$(cat $_QFIG_LOC/staff/defGctPattern)\e[0m ?"; then
@@ -592,23 +592,23 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 				pattern=$(cat $_QFIG_LOC/staff/defGctPattern)
 			else
 				logInfo "Then please specify the pattern(Rerun with -p to change, -h to get hint):"
-				local pattern=; vared pattern
+				local pattern=; pattern=$(_readAndEcho)
 			fi
 		elif [ $verbose ]; then
 			logSilence "Using local pattern: ${$(head -n 1 $pattern_tokens_file):2}"
 		fi
 		#if [ $setPattern ]; then # whether save to .gctpattern
 			# logInfo "Save it in $boldRepoPattern(It may be shared through your git repo) ? \e[90mY for Yes, others for No.\e[0m" "?"
-			# local saveToRepo=; vared saveToRepo
+			# local saveToRepo=; saveToRepo=$(_readAndEcho)
 		#fi
 	fi
 
 	# RESOLVE pattern
 	if [ $setPattern ]; then
-		resolveResult=$($_QFIG_LOC/staff/resolveGctPattern.sh $pattern)
+		resolveResult=$($_QFIG_LOC/staff/resolveGctPattern.sh "$pattern")
 		if [ $? -eq 0 ]; then
 			echo "?:$pattern" > $pattern_tokens_file
-			echo $resolveResult >> $pattern_tokens_file
+			echoe "$resolveResult" >> $pattern_tokens_file
 			[ -f "$r_step_values_cache_file" ] && rm $r_step_values_cache_file
 			[ -f "$b_step_values_cache_file" ] && rm $b_step_values_cache_file
 			# [[ 'y' = "$saveToRepo" || 'Y' = "$saveToRepo" ]] && echo $pattern > $gctpattern_file && logInfo "Pattern saved in $boldRepoPattern"
@@ -624,8 +624,7 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 
 	# GET pattern tokens
 	declare -a tokens
-	IFS=$'\n' tokens=($(cat $pattern_tokens_file)) IFS=' '
-
+	IFS=$'\n' tokens=($(cat $pattern_tokens_file | _rmCr)); rdIFS # CR for Windows should be eliminated 
 	stepsCount=0
 	for t in ${tokens[@]}; do
 		if [[ "$t" = 1:* ]]; then
@@ -640,8 +639,8 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 	declare -i bCurStepNum=$((arrayBase - 1)) # branch scope step count
 	local rStepValues
 	local bStepValues
-	[ -f $r_step_values_cache_file ] && IFS=$'\n' rStepValues=($(cat $r_step_values_cache_file)) IFS=' ' || rStepValues=()
-	[ -f $b_step_values_cache_file ] && IFS=$'\n' bStepValues=($(cat $b_step_values_cache_file)) IFS=' ' || bStepValues=()
+	[ -f $r_step_values_cache_file ] && IFS=$'\n' rStepValues=($(cat $r_step_values_cache_file | _rmCr)); rdIFS || rStepValues=()
+	[ -f $b_step_values_cache_file ] && IFS=$'\n' bStepValues=($(cat $b_step_values_cache_file | _rmCr)); rdIFS || bStepValues=()
 	local newRStepValues=""
 	local newBStepValues=""
 	local stepKey=""
@@ -655,6 +654,7 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 	local i
 
 	i=$((arrayBase + 0))
+	[[ "$(uname -s)" =~ CYGWIN* || "$(uname -s)" =~ MINGW* ]] && NL="\r\n" || NL="\n" # Windows use \r\n as newline
 	for ((; i<=$((${#tokens[@]} - 1 + $arrayBase)); i++)); do
 		t=${tokens[$i]}
 		case $t in
@@ -681,7 +681,7 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 			;;
 			12:*)
 				if [ $stepKey ]; then
-					stepOptions=(${(@s/ /)${t:3}})
+					stepOptions=(${t:3})
 					proceedStep=1
 				fi
 			;;
@@ -705,28 +705,30 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 				stepPrompt+="\e[2m$stepRegex\e[22m "
 			fi
 			if [ ! -z "$stepOptions" ]; then
-				[ -z "$stepDefValue" ] && stepDefValue=${stepOptions[1]}
-				stepPrompt+="($stepDefValue) " 
+				[ -z "$stepDefValue" ] && stepDefValue=${stepOptions[$arrayBase]}
+				stepPrompt+="($stepDefValue) "
 				if [ 1 -lt "${#stepOptions[@]}" ]; then
 					# append option id
-					stepPrompt+="|$(echo $stepOptions | awk '{for (i = 1; i <= NF; i++) { if (i < 7) printf " \033[1;3" i "m" i ":" $i;
+					stepPrompt+="|$(echo ${stepOptions[@]} | awk '{for (i = 1; i <= NF; i++) { if (i < 7) printf " \033[1;3" i "m" i ":" $i;
 				else printf " \033[1;37m" i ":" $i;}} END{printf "\033[0m"}')"
 				fi
 			else
 				[ ! -z "$stepDefValue" ] && stepPrompt+="($stepDefValue) " 
 			fi
-			echo "$stepPrompt"
+			echoe "$stepPrompt"
 
 			# READ and record value
 			while
-				local partial=; vared partial
+				local partial=; partial=$(_readAndEcho)
 				if [ -z $partial ]; then
 					partial=$stepDefValue
 				elif [ 1 -lt "${#stepOptions[@]}" ]; then
 					# select by option id
 					if [[ $partial =~ ^[0-9]+$ && $partial -le ${#stepOptions} ]]
 					then
-						echo "\e[2mChosen:\e[0m \e[1;3${partial}m${stepOptions[$partial]}\e[0m"
+						local partial0=$partial
+						partial=$((partial - 1 + arrayBase))
+						echoe "\e[2mChosen:\e[0m \e[1;3${partial0}m${stepOptions[$partial]}\e[0m"
 						partial=${stepOptions[$partial]}
 					fi
 				fi
@@ -740,9 +742,9 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 
 			message+=$partial
 			if [ $branchScope -eq 1 ]; then
-				newBStepValues+=">$partial\n" # start width '>' to avoid empty line
+				newBStepValues+=">$partial$NL" # start width '>' to avoid empty line
 			else
-				newRStepValues+=">$partial\n" # start width '>' to avoid empty line
+				newRStepValues+=">$partial$NL" # start width '>' to avoid empty line
 			fi
 
 			# RESET step metas
@@ -754,8 +756,8 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 		fi
 	done
 
-	echo $newRStepValues > $r_step_values_cache_file
-	echo $newBStepValues > $b_step_values_cache_file
+	echoe $newRStepValues > $r_step_values_cache_file
+	echoe $newBStepValues > $b_step_values_cache_file
 
 	# COMMIT 
 	git commit -m "$message"
