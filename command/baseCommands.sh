@@ -668,8 +668,9 @@ function concat() { #? concat array. Usage: concat $meta $item1 $item2 $item3...
 	printf "\n"
 }
 
-function rdIFS() { #? restore to default IFS $' \t\n'
-	IFS=$' \t\n'
+__IFS__=$(hex2chr 20 9 a 0)
+function rdIFS() { #? restore to default IFS
+	IFS=$__IFS__
 }
 
 function confirm() { #? ask for confirmation. Usage: confirm $flags(optional) $msg(optional), -h for more

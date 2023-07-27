@@ -12,3 +12,30 @@ function flushdnscache() { #? flush dns cache
         logError "Your device is temporarily not support"
     fi
 }
+
+function allproxy() { #? set, show all proxies. -p to set all proxies to a port, -c to clear all proxies
+    if [ -z $1 ]; then
+        logInfo "ALL_PROXY=$ALL_PROXY"
+        logInfo "http_proxy=$http_proxy"
+        logInfo "https_proxy=$https_proxy"
+    elif [ "-p" = $1 ]; then
+        if [[ $2 =~ [0-9]+ ]]; then
+            export ALL_PROXY=socks5://127.0.0.1:$2
+            export http_proxy=http://127.0.0.1:$2
+            export https_proxy=http://127.0.0.1:$2
+            logSuccess "Set all proxies to: 127.0.0.1:$2"
+        else
+            logError "Please specify a valid port"
+        fi
+    elif [ "-c" = $1 ]; then
+        unset ALL_PROXY
+        unset http_proxy
+        unset https_proxy
+        logInfo "Unset all proxies"
+    else
+        export ALL_PROXY=socks5://$1
+        export http_proxy=http://$1
+        export https_proxy=http://$1
+        logSuccess "Set all proxies to: $1"
+    fi
+}
