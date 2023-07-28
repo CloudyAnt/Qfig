@@ -17,7 +17,7 @@ function _getCurrentHead() { #x
 	echo ${parts[$arrayBase]} # dash doesn't support such grammar
 }
 
-function _readTemp() { #? read a value to _TEMP_VAR
+function _readTemp() { #x
 	_TEMP=
 	if [[ "$_CURRENT_SHELL" = "zsh" ]]; then
 		vared _TEMP
@@ -217,22 +217,6 @@ function editfile() { #? edit a file using preferedTextEditor
 function qmap() { #? view or edit a map(which may be recognized by Qfig commands)
 	[ -z "$1" ] && logError "Which map ?" && return 1
 	editfile "$_QFIG_LOC/$1MappingFile"
-}
-
-function defaultGV() { #? set default global value for variable
-    local value_name=$1
-    local default_value=$2
-
-    [ -z "$value_name" ] && return
-
-    eval "local real_value=\$$value_name"
-
-    [ -z "$real_value" ] && eval "$value_name='$default_value'"
-}
-
-function unsetFunctionsInFile() { #x unset functions in file 
-    [ -z $1 ] && logError "trying to unsert functions, but no file was provided" && return 
-    unset -f $(cat $1 | awk '/^function /{print $2}' | awk '{sub("\\(\\)", "")} 1')
 }
 
 ### Log
