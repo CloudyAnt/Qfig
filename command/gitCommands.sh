@@ -319,7 +319,7 @@ function gcof() { #? git checkout --- fuzziable edition. Usage: gcof $branch/$ta
 		local minI=$arrayBase
 		local maxI=$((${#refs} - 1 + $arrayBase))
 		logInfo "Choose one by the prefix number" "-"
-		local number; number=$(_readAndEcho)
+		_readTemp && local number=$_TEMP || return 1
 		if [[ $number =~ '^[0-9]+$' && $number -ge $minI && $number -le $maxI ]]; then
 			git checkout ${refs[$number]}
 		else
@@ -378,7 +378,7 @@ function gcto() { #? commit in one line
 	# CHECK if this is a git repository
     [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
     echo commit with message '"['$1']' $2: $3'" ? (y for Yes)'
-	local oneline_commit=; oneline_commit=$(_readAndEcho)
+	_readTemp; local oneline_commit=$_TEMP
     [ "$oneline_commit" = "y" ] && gaa && git commit -m "[$1] $2: $3"
     unset oneline_commit
 }
@@ -584,7 +584,7 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 		if [ $setPattern ]; then
 			# specify local pattern
 			logInfo "Please specify the pattern(Rerun with -h to get hint):"
-			local pattern=; pattern=$(_readAndEcho)
+			_readTemp && local pattern=$_TEMP || return 1
 		elif [ ! -f "$pattern_tokens_file" ]; then
 			setPattern=1
 			if confirm -p "?" "Use default pattern \e[34;3;38m$(cat $_QFIG_LOC/staff/defGctPattern)\e[0m ?"; then
@@ -592,14 +592,14 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 				pattern=$(cat $_QFIG_LOC/staff/defGctPattern)
 			else
 				logInfo "Then please specify the pattern(Rerun with -p to change, -h to get hint):"
-				local pattern=; pattern=$(_readAndEcho)
+				_readTemp && local pattern=$_TEMP || return 1
 			fi
 		elif [ $verbose ]; then
 			logSilence "Using local pattern: ${$(head -n 1 $pattern_tokens_file):2}"
 		fi
 		#if [ $setPattern ]; then # whether save to .gctpattern
 			# logInfo "Save it in $boldRepoPattern(It may be shared through your git repo) ? \e[90mY for Yes, others for No.\e[0m" "?"
-			# local saveToRepo=; saveToRepo=$(_readAndEcho)
+			# _readTemp && local saveToRepo=$_TEMP || return 1
 		#fi
 	fi
 
@@ -681,7 +681,7 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 			;;
 			12:*)
 				if [ $stepKey ]; then
-					stepOptions=(${t:3})
+					stepOptions=($(echo ${t:3}))
 					proceedStep=1
 				fi
 			;;
@@ -719,7 +719,7 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 
 			# READ and record value
 			while
-				local partial=; partial=$(_readAndEcho)
+				_readTemp && local partial=$_TEMP || return 1
 				if [ -z $partial ]; then
 					partial=$stepDefValue
 				elif [ 1 -lt "${#stepOptions[@]}" ]; then

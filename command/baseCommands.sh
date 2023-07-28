@@ -17,14 +17,13 @@ function _getCurrentHead() { #x
 	echo ${parts[$arrayBase]} # dash doesn't support such grammar
 }
 
-function _readAndEcho() { #x
-	local v
+function _readTemp() { #? read a value to _TEMP_VAR
+	_TEMP=
 	if [[ "$_CURRENT_SHELL" = "zsh" ]]; then
-		vared v
+		vared _TEMP
 	else
-		read v
+		read _TEMP
 	fi
-	echo $v
 }
 
 function echoe() { #? echo with escapes
@@ -36,7 +35,7 @@ function echoe() { #? echo with escapes
 	fi
 }
 
-function md5x() { #x
+function md5x() { #? same as md5 in zsh, optimized md5sum of bash
 	local str
 	read str
 	if [[ "$_CURRENT_SHELL" = "zsh" ]]; then
@@ -466,7 +465,7 @@ function chr2uni8() { #? convert characters to unicodes(4 digits with '\u' prefi
 
 #? 'echo' convert '\u' or '\U' prefixed hexdecimals to chars, makes a function 'unicode2char' unnecessary
 
-function hex2chr() { #? convert unicodes(hex codepoint) to characters
+function hex2chr() { #? convert hex unicode code points to characters
 	declare -i codesCount=0;
 	declare -i charsCount=0;
 	local ls=""
@@ -521,7 +520,7 @@ function chr2hex() { #? convert characters to unicodes(hex codepoint)
 	printf "\n"
 }
 
-function dec2hex() { #? convert decimal to hexadecimal
+function dec2hex() { #? convert decimals to hexadecimals
 	local arg
 	declare -i index=1
 	local out=""
@@ -538,7 +537,7 @@ function dec2hex() { #? convert decimal to hexadecimal
 	fi
 }
 
-function hex2dec() { #? convert hexadecimal to decimal
+function hex2dec() { #? convert hex unicode code points to decimals
 	local arg
 	declare -i index=1
 	local out=""
@@ -555,7 +554,7 @@ function hex2dec() { #? convert hexadecimal to decimal
 	fi
 }
 
-function uni2sp() { #? convert unicode (range [10000, 10FFFF]) to surrogate pair (range [D800, DBFF] and [DC00, DFFF])
+function uni2sp() { #? convert 1 unicode (range [10000, 10FFFF]) to surrogate pair (range [D800, DBFF] and [DC00, DFFF])
 	[ -z $1 ] && return
 	if ! [[ $1 =~ ^[0-9a-fA-F]+$ ]]; then
 		logWarn "$1 is not hexdecimal" && return
@@ -578,7 +577,7 @@ function uni2sp() { #? convert unicode (range [10000, 10FFFF]) to surrogate pair
 	fi
 }
 
-function sp2uni() { #? convert surrogate pair (range [D800, DBFF] and [DC00, DFFF]) to unicode (range [10000, 10FFFF])
+function sp2uni() { #? convert 1 surrogate pair (range [D800, DBFF] and [DC00, DFFF]) to unicode (range [10000, 10FFFF])
 	[[ -z $1 || -z $2 ]] && logWarn "A surrogate pair needs 2 units" && return
 	if ! [[ $1 =~ ^[0-9a-fA-F]+$ && $2 =~ ^[0-9a-fA-F]+$ ]]; then
 		logWarn "$1 or $2 is not hexdecimal" && return
@@ -713,7 +712,7 @@ function confirm() { #? ask for confirmation. Usage: confirm $flags(optional) $m
 	if [ "W" = "$type" ]; then
 		[ -z "$prefix" ] && prefix="!" || :
 		logWarn "$message \e[90mInput yes/Yes to confirm.\e[0m" $prefix
-		yn=$(_readAndEcho)
+		_readTemp && yn=$_TEMP || return 1
 		if [[ 'yes' = "$yn" || 'Yes' = "$yn" ]]; then
 			return 0
 		fi
@@ -723,7 +722,7 @@ function confirm() { #? ask for confirmation. Usage: confirm $flags(optional) $m
 		else
 			logInfo "$message \e[90mInput y/Y for Yes, others for No.\e[0m" $prefix
 		fi
-		yn=$(_readAndEcho)
+		_readTemp && yn=$_TEMP || return 1
 		if [[ 'Y' = "$yn" || 'y' = "$yn" || 'yes' = "$yn" || 'Yes' = "$yn" ]] || [[ $enterForYes && -z "$yn" ]]; then
 			return 0
 		fi
@@ -760,16 +759,14 @@ function _getStringWidth() { #x
 	echo $width
 }
 
-function hex2utf8() { #? covert unicode code point to utf8 encoding, -s to add space between bytes
-	local arg
+function hex2utf8() { #? covert unicode code points to utf8 code units, -s to add space between bytes
+	local arg out part bytesInterval
 	declare -i index=1
-	local out part
-	declare -i uni
-	local bytesInterval
 	if [ "-s" = "$1" ]; then
 		bytesInterval=" "
 		shift 1
 	fi
+	declare -i uni
 	for arg in "$@"
 	do
 		if ! [[ $arg =~ ^[0-9a-fA-F]+$ ]]; then
@@ -777,9 +774,11 @@ function hex2utf8() { #? covert unicode code point to utf8 encoding, -s to add s
 		fi
 		uni=0x$arg
 		[ $index -eq 1 ] && part="" || part=" "
-		if [[ 0x$arg -le 0x007F ]]; then
+		if [[ 0x$arg -le 0xF ]]; then
+			part="${part}0$arg"
+		elif [[ 0x$arg -le 0x7F ]]; then
 			part="$part$arg"
-		elif [[ 0x$arg -le 0x07FF ]]; then
+		elif [[ 0x$arg -le 0x7FF ]]; then
 			part="$part$(dec2hex $((0xC0 + ($uni >> 6))))$bytesInterval"
 			part="$part$(dec2hex $((0x80 + ($uni & 0x3F))))"
 		elif [[ 0x$arg -le 0xFFFF ]]; then
@@ -797,6 +796,73 @@ function hex2utf8() { #? covert unicode code point to utf8 encoding, -s to add s
 		out=$out$part
 		index=$((index + 1))
 	done
+	echo $out
+}
+
+function hex2utf16() { #? covert hex unicode code points to utf16 code units, -h for more
+	local bytesInterval le
+	while getopts ":hsl" opt; do
+        case $opt in
+			h)
+				logInfo "Usage: confirm \$flags(optional) \$msg(optional).\n  Flags:\n"
+				printf "    %-5s%s\n" "h" "Print this help message"
+				printf "    %-5s%s\n" "s" "Add spaces between bytes"
+				printf "    %-5s%s\n" "l" "Change to litte endian"
+				return 0
+				;;
+            s)
+				bytesInterval=" "
+                ;;
+			l)
+				le=1
+				;;
+            \?)
+                echo "Invalid option: -$OPTARG" && return
+                ;;
+        esac
+    done
+	shift "$((OPTIND - 1))"
+
+	local arg out prefix byte1 byte2 sp
+	declare -i index=1
+	declare -i byteIndex=1
+	declare -i uni
+	declare -i arrayBase=$(_getArrayBase)
+
+	function _process() {
+		[ $byteIndex -eq 1 ] && prefix="" || prefix=" "
+		byte1=$(dec2hex $(($uni >> 8)))
+		byte2=$(dec2hex $(($uni & 0xFF)))
+		[[ 0x$byte1 -le 0xF ]] && byte1="0$byte1" || :
+		[[ 0x$byte2 -le 0xF ]] && byte2="0$byte2" || :
+		[ $le ] && out+="$prefix$byte2$bytesInterval$byte1" || out+="$prefix$byte1$bytesInterval$byte2"
+	}
+
+	for arg in "$@"
+	do
+		if ! [[ $arg =~ ^[0-9a-fA-F]+$ ]]; then
+			logError $index"th param '$arg' is not decimal" && unset -f _process && return 1
+		fi
+
+		if [[ 0x$arg -le 0xFFFF ]]; then
+			uni=0x$arg
+			_process
+			byteIndex=$((byteIndex + 1))
+		elif [[ 0x$arg -le 0x10FFFF ]]; then
+			sp=($(echo $(uni2sp $arg)))
+			uni=0x${sp[$arrayBase]}
+			_process
+			byteIndex=$((byteIndex + 1))
+
+			uni=0x${sp[$((arrayBase + 1))]}
+			_process
+			byteIndex=$((byteIndex + 1))
+		else
+			logError $index"th param '$arg' is out of range" && unset -f _process && return 1
+		fi
+		index=$((index + 1))
+	done
+	unset -f _process
 	echo $out
 }
 
