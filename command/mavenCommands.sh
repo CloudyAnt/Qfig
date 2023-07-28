@@ -4,6 +4,7 @@ alias mfresh='mvn clean && mvn compile'
 alias minst='mvn clean && mvn install'
 
 function mpkg() { #? maven package & tell the size of jar in ./target
+    OPTIND=1
     while getopts ":p:s" opt; do
         case $opt in
             s) # Skip tset

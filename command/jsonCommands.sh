@@ -2,7 +2,7 @@
 #? No 3rd program needed.
 
 function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h for more
-    if [ "-h" = $1 ]; then
+    if [ "-h" = "$1" ]; then
         logInfo "For json \e[34m{\"users\": [{\"name\": \"chai\"}]}\e[0m, you can get the 1st user's name like: \e[1mjsonget json users.0.name\e[0m
   For json \e[34m[{\"name\": \"chai\"}]\e[0m, then the operation be like: \e[1mjsonget json 0.name\e[0m
   Use '\.' to escape .
@@ -10,11 +10,11 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
   Use -t to remove type indication"
         return 0
     fi
-    if [ "-t" = $1 ]; then
+    if [ "-t" = "$1" ]; then
         local notype=1
         shift 1
     fi
-    [[ -z $1 || -z $2 ]] && logError "Usage: jsonget json targetPath. -h for more" && return 1
+    [[ -z "$1" || -z "$2" ]] && logError "Usage: jsonget json targetPath. -h for more" && return 1
     # --- CHECK options ---
 	declare -i arrayBase=$(_getArrayBase)
 
@@ -341,7 +341,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
                 fi
             ;;
             5) # waiting comma
-                checkMatch
+                checkMatch || break
                 if [ ',' = "$c" ]; then
                     meetComma || break
                 elif [ '}' = "$c" ]; then
@@ -383,7 +383,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
 }
 
 function jsoncheck() { #? json checking. Usage: jsoncheck $json
-    [ -z $1 ] && return
+    [ -z "$1" ] && return
     local res
     res=$(jsonget "!$1" "-")
     if [ 0 -ne $? ]; then

@@ -26,6 +26,16 @@ function _readTemp() { #x
 	fi
 }
 
+function _alignLeft() { #x
+	[[ -z "$1" || -z "$2" || -z "$3" ]] && return
+	declare -i len=$3
+	local s=$1
+	while [ ${#s} -lt $len ]; do
+		s="$2$s"
+	done
+	echo $s
+}
+
 function echoe() { #? echo with escapes
 	[ -z "$1" ] && return 0 || :
 	if [[ "$_CURRENT_SHELL" = "zsh" ]]; then # csh, tcsh, etc. are the same
@@ -122,6 +132,7 @@ function qfig() { #? Qfig preserved command
 
 function qcmds() { #? operate available commands. Usage: qcmds $commandsPrefix $subcommands. -h for more
 	local help
+	OPTIND=1
 	while getopts "h" opt; do
         case $opt in
             h)
@@ -297,7 +308,7 @@ function unsetAlias() { #x unset alias
 ### 
 
 function mktouch() { #? make dirs & touch file
-    [ -z $1 ] && return
+    [ -z "$1" ] && return
     for f in "$@"; do
         mkdir -p -- "$(dirname -- "$f")"
         touch -- "$f"
@@ -407,44 +418,41 @@ function findindex() { #? find 1st target index in provider. Usage: findindex pr
 }
 
 function chr2uni() { #? convert characters to unicodes(4 digits with '\u' prefix)
-	[ -z $1 ] && return
-	local all c
-	all=$@
-	for (( i=0 ; i<${#all}; i++ )); do
-		c=${all:$i:1}
-		local hex=$(printf "%x" "'$c")
-		declare -a codes
-		codes=($(uni2sp $hex -p))
-		for code in $codes; do
-			while [ ${#code} -lt 4 ]; do
-				code="0$code"
-			done
-			printf "\\\u$code"
-		done
+	[ -z "$1" ] && return
+	local hexes
+	hexes=($(echo $(chr2hex "$1")))
+	for hex in "${hexes[@]}"; do
+		hex=$(_alignLeft $hex 0 4)
+		printf "\\\u$hex"
 	done
 	printf "\n"
 }
 
 function chr2uni8() { #? convert characters to unicodes(4 digits with '\u' prefix or 8 digits with '\U' prefix)
-	[ -z $1 ] && return
-	local all c
-	all=$@
-	for (( i=0 ; i<${#all}; i++ )); do
-		c=${all:$i:1}
-		local code=$(printf "%x" "'$c")
-		if [ ${#code} -gt 4 ]; then
-			while [ ${#code} -lt 8 ]; do
-				code="0$code"
-			done
-			printf "\\\U$code"
+	[ -z "$1" ] && return
+	local hexes lps
+	hexes=($(echo $(chr2hex "$1")))
+	for hex in "${hexes[@]}"; do
+		if [ $lps ]; then
+			if [[ 0x$hex -ge 0xDC00 && 0x$hex -le 0xDFFF ]]; then
+				hex=$(sp2uni $lps $hex)
+				hex=$(_alignLeft $hex 0 8)
+				printf "\\\U$hex"
+			else
+				printf "\\\u$lps\\\u$hex"
+			fi
+			lps=""
+		elif [[ 0x$hex -ge 0xD800 && 0x$hex -le 0xDBFF ]]; then
+			lps="$hex"
+		elif [ ${#hex} -gt 4 ]; then
+			hex=$(_alignLeft $hex 0 8)
+			printf "\\\U$hex"
 		else
-			while [ ${#code} -lt 4 ]; do
-				code="0$code"
-			done
-			printf "\\\u$code"
+			hex=$(_alignLeft $hex 0 4)
+			printf "\\\u$hex"
 		fi
+		printf "\n"
 	done
-	printf "\n"
 }
 
 #? 'echo' convert '\u' or '\U' prefixed hexdecimals to chars, makes a function 'unicode2char' unnecessary
@@ -493,9 +501,10 @@ function hex2chr() { #? convert hex unicode code points to characters
 	fi
 }
 
+
 function chr2hex() { #? convert characters to unicodes(hex codepoint)
-	[ -z $1 ] && return
-	local all c
+	[ -z "$1" ] && return
+	local all c i
 	all=$@
 	for (( i=0 ; i<${#all}; i++ )); do
 		c=${all:$i:1}
@@ -539,7 +548,7 @@ function hex2dec() { #? convert hex unicode code points to decimals
 }
 
 function uni2sp() { #? convert 1 unicode (range [10000, 10FFFF]) to surrogate pair (range [D800, DBFF] and [DC00, DFFF])
-	[ -z $1 ] && return
+	[ -z "$1" ] && return
 	if ! [[ $1 =~ ^[0-9a-fA-F]+$ ]]; then
 		logWarn "$1 is not hexdecimal" && return
 	fi
@@ -663,6 +672,7 @@ function confirm() { #? ask for confirmation. Usage: confirm $flags(optional) $m
 	local type="N" # N=normal, W=warning
 	local enterForYes=""
 	local prefix=""
+	OPTIND=1
 	while getopts ":hwep:" opt; do
         case $opt in
 			h)
@@ -784,7 +794,8 @@ function hex2utf8() { #? covert unicode code points to utf8 code units, -s to ad
 }
 
 function hex2utf16() { #? covert hex unicode code points to utf16 code units, -h for more
-	local bytesInterval le
+	local bytesInterval le opt
+	OPTIND=1
 	while getopts ":hsl" opt; do
         case $opt in
 			h)
@@ -851,18 +862,21 @@ function hex2utf16() { #? covert hex unicode code points to utf16 code units, -h
 }
 
 function enurlp() { #? encode url param.
-	[ -z $1 ] && return
+	[ -z "$1" ] && return
 	local all c hex out
 	all=$@
 	for (( i=0 ; i<${#all}; i++ )); do
 		c=${all:$i:1}
 		hex=$(printf "%x " "'$c")
-		if [[ 0x$hex -ge 0x5a && 0x$hex -le 0x41 ]] || [[ 0x$hex -ge 0x61 && 0x$hex -le 0x7a ]] \
+		if [[ 0x$hex -eq 0x20 ]]; then
+			out=$out%20
+		elif [[ 0x$hex -ge 0x41 && 0x$hex -le 0x5A ]] || [[ 0x$hex -ge 0x61 && 0x$hex -le 0x7a ]] \
 		|| [[ 0x$hex -ge 0x30 && 0x$hex -le 0x39 ]] \
 		|| [[ 0x$hex -eq 0x2A || 0x$hex -eq 0x2D || 0x$hex -eq 0x2E || 0x$hex -eq 0x5F ]]; then
 			out=$out$c
 		else
-			for byte in $(hex2utf8 -s $(chr2hex $c)); do
+			local bytes=($(echo $(hex2utf8 -s $hex)))
+			for byte in "${bytes[@]}"; do
 				out="$out%$byte"
 			done
 		fi

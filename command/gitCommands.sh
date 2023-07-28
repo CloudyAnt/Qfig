@@ -242,7 +242,7 @@ complete -F _gb gb
 function gcof() { #? git checkout --- fuzziable edition. Usage: gcof $branch/$tag(fuzziable)
 	# CHECK if this is a git repository
     [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
-	[ -z $1 ] && return
+	[ -z "$1" ] && return
 
 	declare -i arrayBase=$(_getArrayBase)
 	declare -i i=$arrayBase
@@ -357,7 +357,7 @@ function _gcof() { #x
 complete -F _gcof gcof
 
 function gaaf() { #? git add files in pattern
-    [ -z $1 ] && return
+    [ -z "$1" ] && return
     git add "*$1*"
 }
 
