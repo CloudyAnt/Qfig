@@ -122,7 +122,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
                 cpm[$cpi]=-3
             fi
         else
-            err="Internal login error (E4). Unexpected previous path type $prevType"
+            err="Internal login error (E4). Unexpected previous path type $prevType" && return 1
         fi
     }
 
@@ -132,7 +132,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
             cpi=$((cpi - 1))
             x=5
         else
-            err="Invalid json (x0002): not expecting '}' at index $i (path: $(concatCP))" && break
+            err="Invalid json (x0002): not expecting '}' at index $i (path: $(concatCP))" && return 1
         fi
     }
 
@@ -141,7 +141,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
         if [ "A" = ${cpt[$preCpi]} ]; then
             if [ "" = "$s" ]; then
                 if [ $ai -gt 0 ]; then
-                    err="Invalid json (x0004): not expecting ']' at index $i (path: $(concatCP))" && break
+                    err="Invalid json (x0004): not expecting ']' at index $i (path: $(concatCP))" && return 1
                 else
                     cpm[$cpi]=-51
                 fi
@@ -157,7 +157,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
             cpi=$((cpi - 1))
             x=5
         else
-            err="Invalid json (x0003): not expecting ']' at index $i (path: $(concatCP))" && break
+            err="Invalid json (x0003): not expecting ']' at index $i (path: $(concatCP))" && return 1
         fi
     }
 
@@ -167,19 +167,19 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
             [ $notype ] && local prefix="" || local prefix="${cpt[$cpi]}:"
             case ${cpt[$cpi]} in
 		        O)
-                    echoe "\e[34m$prefix\e[0mObject"
+                    echoe "\e[34m$prefix\e[0mObject" && return 1 # to break loop
                 ;;
                 A)
-                    echoe "\e[34m$prefix\e[0mArray"
+                    echoe "\e[34m$prefix\e[0mArray" && return 1
                 ;;
                 S|I|F)
-                    echoe "\e[34m$prefix\e[0m$s"
+                    echoe "\e[34m$prefix\e[0m$s" && return 1
                 ;;
                 TRUE|FALSE|NULL)
-                    echoe "\e[34m${cpt[$cpi]}\e[0m"
+                    echoe "\e[34m${cpt[$cpi]}\e[0m" && return 1
                 ;;
                 *)
-                    err="Internal logic error (E5). Unexpected type ${cpt[$cpi]}"
+                    err="Internal logic error (E5). Unexpected type ${cpt[$cpi]}" && return 1
                 ;;
             esac
             break;
@@ -195,7 +195,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
                 if [ '"' = "$c" ]; then
                     x=1
                 elif [ '}' = "$c" ]; then
-                    meetObjectEnd
+                    meetObjectEnd || break
                 elif ! [[ ' ' = "$c" || $'\t' = "$c" || $'\n' = "$c" ]]; then
                     err="Invalid json (00000): expecting '\"' at index $i (after path: $(concatCP)), but got '$c'" && break
                 fi
@@ -281,7 +281,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
                     cpt[$cpi]="O"
                     cpi=$((cpi + 1))
                 elif [ ']' = "$c" ]; then
-                    meetArrayEnd
+                    meetArrayEnd || break
                 elif ! [[ ' ' = "$c" || $'\t' = "$c" || $'\n' = "$c" ]]; then
                     err="Invalid json (30002): expecting '\"' at index $i (path: $(concatCP)), but got '$c'" && break
                 fi
@@ -304,17 +304,17 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
                 elif [[ ' ' = "$c" || $'\t' = "$c" || $'\n' = "$c" ]]; then
                     x=5
                 elif [ "," = "$c" ]; then
-                    meetComma
-                    checkMatch
+                    meetComma || break
+                    checkMatch || break
                 elif [ "." = "$c" ]; then
                     x=42
                     s=$s$c
                     cpt[$cpi]="F"
                 elif [ '}' = "$c" ]; then
-                    checkMatch
-                    meetObjectEnd
+                    checkMatch || break
+                    meetObjectEnd || break
                 elif [ ']' = "$c" ]; then
-                    meetArrayEnd
+                    meetArrayEnd || break
                 else
                     err="Invalid json (41001): expecting digit at index $i (path: $(concatCP)), but got '$c'" && break
                 fi
@@ -327,15 +327,15 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
                     x=5
                 elif [ "," = "$c" ]; then
                     [ $fc -eq 0 ] && err="Invalid json (42002): expecting digit (fractional part) at index $i (path: $(concatCP)), but got '$c'" && break
-                    meetComma
-                    checkMatch
+                    meetComma || break
+                    checkMatch || break
                 elif [ '}' = "$c" ]; then
                     [ $fc -eq 0 ] && err="Invalid json (42003): expecting digit (fractional part) at index $i (path: $(concatCP)), but got '$c'" && break
-                    checkMatch
-                    meetObjectEnd
+                    checkMatch || break
+                    meetObjectEnd || break
                 elif [ ']' = "$c" ]; then
                     [ $fc -eq 0 ] && err="Invalid json (42004): expecting digit (fractional part) at index $i (path: $(concatCP)), but got '$c'" && break
-                    meetArrayEnd
+                    meetArrayEnd || break
                 else
                     err="Invalid json (42001): expecting digit at index $i (path: $(concatCP)), but got '$c'" && break
                 fi
@@ -343,11 +343,11 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
             5) # waiting comma
                 checkMatch
                 if [ ',' = "$c" ]; then
-                    meetComma
+                    meetComma || break
                 elif [ '}' = "$c" ]; then
-                    meetObjectEnd
+                    meetObjectEnd || break
                 elif [ ']' = "$c" ]; then
-                    meetArrayEnd
+                    meetArrayEnd || break
                 elif ! [[ ' ' = "$c" || $'\t' = "$c" || $'\n' = "$c" ]]; then
                     err="Invalid json (50000): expecting ',' (or '}', ']) at index $i (path: $(concatCP)), but got '$c'" && break
                 fi
