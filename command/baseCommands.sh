@@ -777,12 +777,12 @@ function hex2utf8() { #? covert unicode code points to utf8 code units, -s to ad
 			part="$part$(dec2hex $((0x80 + ($uni & 0x3F))))"
 		elif [[ 0x$arg -le 0xFFFF ]]; then
 			part="$part$(dec2hex $((0xE0 + ($uni >> 12))))$bytesInterval"
-			part="$part$(dec2hex $((0x80 + ($uni >> 6) & 0x3F)))$bytesInterval"
+			part="$part$(dec2hex $((0x80 + ($uni >> 6 & 0x3F))))$bytesInterval"
 			part="$part$(dec2hex $((0x80 + ($uni & 0x3F))))"
 		elif [[ 0x$arg -le 0x10FFFF ]]; then
 			part="$part$(dec2hex $((0xE0 + ($uni >> 18))))$bytesInterval"
-			part="$part$(dec2hex $((0x80 + ($uni >> 12) & 0x3F)))$bytesInterval"
-			part="$part$(dec2hex $((0x80 + ($uni >> 6) & 0x3F)))$bytesInterval"
+			part="$part$(dec2hex $((0x80 + ($uni >> 12 & 0x3F))))$bytesInterval"
+			part="$part$(dec2hex $((0x80 + ($uni >> 6 & 0x3F))))$bytesInterval"
 			part="$part$(dec2hex $((0x80 + ($uni & 0x3F))))"
 		else
 			logError $index"th param '$arg' is out of range" && return 1

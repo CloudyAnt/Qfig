@@ -33,13 +33,8 @@ function bdts() { #? Translate use Baidu Fanyi api. Sample usage: bdts hello
     q=$(enurlp $1)
     url="$api?q=$q&from=$from&to=$to&appid=$appId&salt=$salt&sign=$sign"
     response=$(echoe "$(curl -s $url)")
-    result=$(jsonget -t "$response" "trans_result.0.dst")
-    if [ $? -eq 0 ]; then
-        echo $result
-    else
-        logError "Something wrong:"
-        echo $response
-    fi
+
+    _outputTransResult $response "trans_result.0.dst"
 }
 
 
@@ -70,11 +65,22 @@ function ggts() { #? Translate use Google Cloud Translation api. Sample usage: g
     -d "$data" \
     "https://translation.googleapis.com/language/translate/v2")
 
-    result=$(jsonget -t "$response" "data.translations.0.translatedText")
-    if [ $? -eq 0 ]; then
-        echo $result
+    _outputTransResult $response "data.translations.0.translatedText"
+}
+
+_outputTransResult() { #x
+    local response=$1
+    local resultPath=$2
+    if type jsonget >/dev/null 2>&1; then
+        result=$(jsonget -t "$response" "$resultPath")
+        if [ $? -eq 0 ]; then
+            echo $result
+        else
+            logError "Something wrong:"
+            echo $response
+        fi
     else
-        logError "Something wrong:"
+        logSilence "Enable 'json' commands for breifly output"
         echo $response
     fi
 }

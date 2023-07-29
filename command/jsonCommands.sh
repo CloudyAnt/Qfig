@@ -18,7 +18,8 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
     # --- CHECK options ---
 	declare -i arrayBase=$(_getArrayBase)
 
-    local s c
+    local json s c
+    json="$1"
     local escaping=""
     # --- RESOLVE path ---
     declare -a tp # target path sections
@@ -76,10 +77,10 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
     declare -i fc=0 # current float fractional part digits count
     local finding=1
 
-    local firstC=${1:0:1}
+    local firstC=${json:0:1}
     if [ '!' = $firstC ]; then
         finding=""
-        firstC=${1:1:1}
+        firstC=${json:1:1}
         i=2
     else
         i=1
@@ -186,8 +187,8 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
         fi
     }
 
-    for (( ; i<${#1}; i++)); do
-        c=${1:$i:1}
+    for (( ; i<${#json}; i++)); do
+        c=${json:$i:1}
         
         case $x in
             0) # waiting key
@@ -231,7 +232,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
                 if [ '"' = "$c" ]; then
                     x=4
                     cpt[$cpi]="S"
-                elif [[ "$c" =~ '^[0-9]$' ]]; then
+                elif [[ "$c" =~ ^[0-9]$ ]]; then
                     x=41
                     fc=0
                     s=$s$c
@@ -299,7 +300,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
                 fi
             ;;
             41) # appending int value
-                if [[ "$c" =~ '^[0-9]$' ]]; then
+                if [[ "$c" =~ ^[0-9]$ ]]; then
                     s=$s$c
                 elif [[ ' ' = "$c" || $'\t' = "$c" || $'\n' = "$c" ]]; then
                     x=5
@@ -320,7 +321,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
                 fi
             ;;
             42) # appending float value
-                if [[ "$c" =~ '^[0-9]$' ]]; then
+                if [[ "$c" =~ ^[0-9]$ ]]; then
                     s=$s$c
                     fc=$((fc + 1))
                 elif [[ ' ' = "$c" || $'\t' = "$c" || $'\n' = "$c" ]]; then
@@ -364,8 +365,8 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
     unset -f checkMatch
     unset -f concatCP
 
-    if [ $err ]; then
-        logError $err && return 1
+    if [ "$err" ]; then
+        logError "$err" && return 1
     elif [ "${cpm[$tpi]}" -gt 0 ]; then
         if [ ! $found ]; then
             logError "Invalid json (x0005), matched but stopped (value resolvation not finished) at depth: $(($tpi - $arrayBase)) (path: $(concat -.-1-$tpi $tp))" && return 1
