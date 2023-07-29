@@ -29,7 +29,7 @@ preferTextEditor=vim
 if [ -f "$_QFIG_LOC/config" ]; then
 	[[ "true" = $(sed -rn 's|<showVerboseInitMsg>(.+)</showVerboseInitMsg>|\1|p' $_QFIG_LOC/config) ]] && verbose=1 || verbose=""
 	enabledCommands=""
-	initMsg=""
+	_INIT_MSG=""
 	while read -r cmds; do
 		cmdsFile="$_QFIG_LOC/command/${cmds}Commands.sh"
 		if [ -f "$cmdsFile" ]; then
@@ -39,16 +39,16 @@ if [ -f "$_QFIG_LOC/config" ]; then
 			logWarn "$cmdsFile Not Exists!"
 		fi
 	done < <(awk '/<enabledCommands>/{f = 1; next} /<\/enabledCommands>/{f = 0} f' $_QFIG_LOC/config)
-	[ "$enabledCommands" ] && initMsg+="Enabled commands:$enabledCommands. " || initMsg+="None enabled commands. "
+	[ "$enabledCommands" ] && _INIT_MSG+="Enabled commands:$enabledCommands. " || _INIT_MSG+="None enabled commands. "
     
     _preferTextEditor=$(sed -rn 's|<preferTextEditor>(.+)</preferTextEditor>|\1|p' $_QFIG_LOC/config)
     if [ ! -z "$_preferTextEditor" ]
     then
         preferTextEditor=$_preferTextEditor
     fi
-	[ $_preferTextEditor ] && initMsg+="Using prefer text editor: $preferTextEditor. " || initMsg+="Using default text editor: $preferTextEditor. "
+	[ $_preferTextEditor ] && _INIT_MSG+="Text editor: $preferTextEditor. " || _INIT_MSG+="Text editor: $preferTextEditor(default). "
 	if [ $verbose ]; then
-		logInfo $initMsg
+		logInfo $_INIT_MSG
 	fi
 
 	unset cmdsFile

@@ -8,7 +8,7 @@ function qfig { #? Qfig preserved command. -h(help) for more
         "    {0,-10}{1}" -f "update", "Update Qfig"
         "    {0,-10}{1}" -f "into", "Go into Qfig project folder"
         "    {0,-10}{1}" -f "config", "Edit config to enable commands, etc."
-        "    {0,-10}{1}" -f "im", "Show initiation message again"
+        "    {0,-10}{1}" -f "report", "Show initiation message, and current shell/terminal info."
         "    {0,-10}{1}" -f "v/version", "Show current version"
     } ElseIf ("into".Equals($command)) {
         Set-Location $Qfig_loc
@@ -53,8 +53,9 @@ function qfig { #? Qfig preserved command. -h(help) for more
             logInfo "Copied config from configTemplate"
         }
         editFile $Qfig_loc/config
-    } ElseIf ("im".Equals($command)) {
-        logInfo $initMsg
+    } ElseIf ("report".Equals($command)) {
+        $msg = "$initMsg`n  OsType: $Env:OS"
+        logInfo $msg
     } ElseIf ("v".Equals($command) -Or "version".Equals($command)) {
         $curHead = (git -C $Qfig_loc log --oneline --decorate -1).Split(" ")[0]
         $branch = git -C $Qfig_loc symbolic-ref --short HEAD

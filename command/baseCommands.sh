@@ -71,7 +71,7 @@ function qfig() { #? Qfig preserved command
 			printf "    %-10s%s\n" "update" "Update Qfig"
 			printf "    %-10s%s\n" "into" "Go into Qfig project folder"
 			printf "    %-10s%s\n" "config" "Edit config to enable commands, etc."
-			printf "    %-10s%s\n" "im" "Show initiation message again"
+			printf "    %-10s%s\n" "report" "Show initiation message, and current shell/terminal info."
 			printf "    %-10s%s\n" "v/version" "Show current version"
 			printf "\n  \e[2mTips:\n"
 			printf "    Command 'qcmds' perform operations about tool commands. Run 'qcmds -h' for more\n"
@@ -116,8 +116,9 @@ function qfig() { #? Qfig preserved command
 		into)
 			cd $_QFIG_LOC
 			;;
-		im)
-			logInfo "$initMsg"
+		report)
+			local msg="$_INIT_MSG\n  OsType: $OSTYPE. Simulator: $TERM. Shell: $_CURRENT_SHELL"
+			logInfo "$msg"
 			;;
 		v|version)
 			local curHead=$(_getCurrentHead)

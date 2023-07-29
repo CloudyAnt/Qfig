@@ -47,9 +47,9 @@ If (Test-Path $Qfig_loc/config) {
 	}
 
 	If ($_preferTextEditor) {
-		$initMsg += "Using prefer text editor: $preferTextEditor. "
+		$initMsg += "Text editor: $preferTextEditor. "
 	} Else {
-		$initMsg += "Using default text editor: $preferTextEditor. "
+		$initMsg += "Text editor: $preferTextEditor(default). "
 	}
 
 	If ($verbose) {
