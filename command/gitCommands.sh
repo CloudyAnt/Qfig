@@ -727,7 +727,7 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 			# READ and record value
 			while
 				_readTemp && local partial=$_TEMP || return 1
-				if [ -z $partial ]; then
+				if [ -z "$partial" ]; then
 					partial=$stepDefValue
 				elif [ 1 -lt "${#stepOptions[@]}" ]; then
 					# select by option id
