@@ -52,7 +52,7 @@ function md5x() { #? same as md5 in zsh, optimized md5sum of bash
 		echo -n $str | md5
 	else
 		local sum=($(echo -n $str | md5sum))
-		echo ${sum[0]}
+		echo ${sum[$(_getArrayBase)]}
 	fi
 }
 
