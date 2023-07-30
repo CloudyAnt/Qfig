@@ -605,6 +605,13 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 
 	# RESOLVE pattern
 	if [ $setPattern ]; then
+		# The script do not support early sh, better use the current shell
+        if [[ "$_CURRENT_SHELL" = "zsh" ]]; then
+			resolveResult=$(zsh $_QFIG_LOC/staff/resolveGctPattern.sh "$pattern")
+		else
+			# Since only zsh and bash are supported, I assert it's bash
+			resolveResult=$(bash $_QFIG_LOC/staff/resolveGctPattern.sh "$pattern")
+		fi
 		resolveResult=$($_QFIG_LOC/staff/resolveGctPattern.sh "$pattern")
 		if [ $? -eq 0 ]; then
 			echo "?:$pattern" > $pattern_tokens_file
@@ -756,8 +763,8 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 		fi
 	done
 
-	echoe $newRStepValues > $r_step_values_cache_file
-	echoe $newBStepValues > $b_step_values_cache_file
+	echoe "$newRStepValues" > $r_step_values_cache_file
+	echoe "$newBStepValues" > $b_step_values_cache_file
 
 	# COMMIT 
 	git commit -m "$message"

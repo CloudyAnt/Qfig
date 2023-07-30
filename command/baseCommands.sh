@@ -868,7 +868,7 @@ function enurlp() { #? encode url param.
 	all=$@
 	for (( i=0 ; i<${#all}; i++ )); do
 		c=${all:$i:1}
-		hex=$(printf "%x " "'$c")
+		hex=$(printf "%x" "'$c")
 		if [[ 0x$hex -eq 0x20 ]]; then
 			out=$out%20
 		elif [[ 0x$hex -ge 0x41 && 0x$hex -le 0x5A ]] || [[ 0x$hex -ge 0x61 && 0x$hex -le 0x7a ]] \
