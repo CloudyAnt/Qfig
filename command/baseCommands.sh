@@ -39,16 +39,16 @@ function _alignLeft() { #x
 function echoe() { #? echo with escapes
 	[ -z "$1" ] && return 0 || :
 	if [[ "$_CURRENT_SHELL" = "zsh" ]]; then # csh, tcsh, etc. are the same
-		echo $1
+		echo "$1"
 	else
-		echo -e $1
+		echo -e "$1"
 	fi
 }
 
 function md5x() { #? same as md5 in zsh, optimized md5sum of bash
 	local str
 	read str
-	if [[ "$_CURRENT_SHELL" = "zsh" ]]; then
+	if [ "$_IS_BSD" ]; then
 		echo -n $str | md5
 	else
 		local sum=($(echo -n $str | md5sum))

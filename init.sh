@@ -61,3 +61,5 @@ fi
 if [ -f "$_QFIG_LOC/command/localCommands.sh" ]; then
 	source $_QFIG_LOC/command/localCommands.sh
 fi
+
+_IS_BSD=$(grep --version | awk '/BSD grep/{print "1"}') # otherwise it's GNU
