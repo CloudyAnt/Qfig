@@ -1,6 +1,12 @@
 #? commands to operate colors
 
-function rgb2hsl() { #? convert RGB(integers) to HSL(integers)
+function rgb2hsl() { #? convert RGB(integers) to HSL(integers). -s to show the rgb color
+    local show
+    if [ "-s" = "$1" ]; then
+        show=1
+        shift 1
+        [[ "$COLORTERM" = "truecolor" || "$COLORTERM" = "24bit" ]] && logInfo "This terminal may not support 24-bit color (truecolor) !" || :
+    fi
     local r=$1
     local g=$2
     local b=$3
@@ -36,15 +42,15 @@ function rgb2hsl() { #? convert RGB(integers) to HSL(integers)
         if [ $(echo "$L" | awk '{print ($1 <= 0.5)}') -eq 1 ]; then
             S=$(echo "$max $min" | awk '{printf "%.3f\n", ($1-$2)/($1+$2)}')
         else
-            S=$(echo "$max $min" | awk '{printf "%.3f\n", ($1-$2)/(2.0-$1+$2)}')
+            S=$(echo "$max $min" | awk '{printf "%.3f\n", ($1-$2)/(2.0-$1-$2)}')
         fi
 
         if [ $maxC = "R" ]; then
-            H=$(echo "$gg $bb $max $min" | awk '{printf "%.3f\n", ($1-$2)/($3+$4)}')
+            H=$(echo "$gg $bb $max $min" | awk '{printf "%.3f\n", ($1-$2)/($3-$4)}')
         elif [ $maxC = "G" ]; then
-            H=$(echo "$bb $rr $max $min" | awk '{printf "%.3f\n", 2.0+($1-$2)/($3+$4)}')
+            H=$(echo "$bb $rr $max $min" | awk '{printf "%.3f\n", 2.0+($1-$2)/($3-$4)}')
         else
-            H=$(echo "$rr $gg $max $min" | awk '{printf "%.3f\n", 4.0+($1-$2)/($3+$4)}')
+            H=$(echo "$rr $gg $max $min" | awk '{printf "%.3f\n", 4.0+($1-$2)/($3-$4)}')
         fi
 
         H=$(echo "$H" | awk '{h=($1 * 60); if (h < 0) {h += 360}; printf "%.0f\n", h}')
@@ -52,10 +58,16 @@ function rgb2hsl() { #? convert RGB(integers) to HSL(integers)
 
     S=$(echo $S | awk '{print $1*100}')
     L=$(echo $L | awk '{print $1*100}')
-    echo "$H $S $L"
+    [ $show ] && printf "$H $S $L \e[48;2;$r;$g;${b}m  \e[0m\n" || echo "$H $S $L"
 }
 
-function hsl2rgb() { #? convert HSL(integers) to RGB(integers)
+function hsl2rgb() { #? convert HSL(integers) to RGB(integers). -s to show the rgb color
+    local show
+    if [ "-s" = "$1" ]; then
+        show=1
+        shift 1
+        [[ "$COLORTERM" = "truecolor" || "$COLORTERM" = "24bit" ]] && logInfo "This terminal may not support 24-bit color (truecolor) !" || :
+    fi
     local h=$1
     local s=$2
     local l=$3
@@ -96,5 +108,5 @@ function hsl2rgb() { #? convert HSL(integers) to RGB(integers)
     R=$(echo "$hue 2" | awk "$awkPattern")
     G=$(echo "$hue 0" | awk "$awkPattern")
     B=$(echo "$hue -2" | awk "$awkPattern")
-    echo "$R $G $B"
+    [ $show ] && printf "$R $G $B \e[48;2;$R;$G;${B}m  \e[0m\n" || echo "$R $G $B"
 }

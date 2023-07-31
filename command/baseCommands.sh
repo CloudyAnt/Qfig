@@ -38,7 +38,7 @@ function _alignLeft() { #x
 
 function echoe() { #? echo with escapes
 	[ -z "$1" ] && return 0 || :
-	if [[ "$_CURRENT_SHELL" = "zsh" ]]; then # csh, tcsh, etc. are the same
+	if [[ "$_CURRENT_SHELL" = "zsh" ]]; then # zsh use built-in echo
 		echo "$1"
 	else
 		echo -e "$1"
