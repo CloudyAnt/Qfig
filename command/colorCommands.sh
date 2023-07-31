@@ -5,7 +5,7 @@ function rgb2hsl() { #? convert RGB(integers) to HSL(integers). -s to show the r
     if [ "-s" = "$1" ]; then
         show=1
         shift 1
-        [[ "$COLORTERM" = "truecolor" || "$COLORTERM" = "24bit" ]] && logInfo "This terminal may not support 24-bit color (truecolor) !" || :
+        [[ "$COLORTERM" = "truecolor" || "$COLORTERM" = "24bit" ]] && : || logSilence "This terminal may not support 24-bit color (truecolor)"
     fi
     local r=$1
     local g=$2
@@ -66,7 +66,7 @@ function hsl2rgb() { #? convert HSL(integers) to RGB(integers). -s to show the r
     if [ "-s" = "$1" ]; then
         show=1
         shift 1
-        [[ "$COLORTERM" = "truecolor" || "$COLORTERM" = "24bit" ]] && logInfo "This terminal may not support 24-bit color (truecolor) !" || :
+        [[ "$COLORTERM" = "truecolor" || "$COLORTERM" = "24bit" ]] && : || logSilence "This terminal may not support 24-bit color (truecolor)"
     fi
     local h=$1
     local s=$2

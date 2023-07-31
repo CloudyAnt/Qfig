@@ -19,6 +19,7 @@ function exunixt() { #? explain an unix timestamp, -m to indicate a millisencond
     fi
 
     declare -i curStamp d h m s
+    d=0;h=0;m=0;s=0
     local str
     curStamp=$(date +%s)
     echo "Current stamp: $curStamp"
