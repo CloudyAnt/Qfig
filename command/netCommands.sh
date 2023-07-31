@@ -13,7 +13,22 @@ function flushdnscache() { #? flush dns cache
     fi
 }
 
+_SAVED_PROXIES_FILE=$_QFIG_LOC/savedProxies
+if [ -f "$_SAVED_PROXIES_FILE" ]; then
+    eval $(awk -F '=' 'BEGIN { s="" } {
+        if (NF >= 2) {
+            s = s "export " $1 "=" $2 ";";
+        }
+    } END { print s }' $_SAVED_PROXIES_FILE)
+fi
+
+
 function allproxy() { #? set, show all proxies. -p to set all proxies to a port, -c to clear all proxies
+    function _saveProxiesToFile() {
+        echo "ALL_PROXY=$ALL_PROXY" > $_SAVED_PROXIES_FILE
+        echo "http_proxy=$http_proxy" >> $_SAVED_PROXIES_FILE
+        echo "https_proxy=$https_proxy" >> $_SAVED_PROXIES_FILE
+    }
     if [ -z $1 ]; then
         logInfo "ALL_PROXY=$ALL_PROXY"
         logInfo "http_proxy=$http_proxy"
@@ -23,6 +38,7 @@ function allproxy() { #? set, show all proxies. -p to set all proxies to a port,
             export ALL_PROXY=socks5://127.0.0.1:$2
             export http_proxy=http://127.0.0.1:$2
             export https_proxy=http://127.0.0.1:$2
+            _saveProxiesToFile
             logSuccess "Set all proxies to: 127.0.0.1:$2"
         else
             logError "Please specify a valid port"
@@ -31,11 +47,14 @@ function allproxy() { #? set, show all proxies. -p to set all proxies to a port,
         unset ALL_PROXY
         unset http_proxy
         unset https_proxy
+        rm $_SAVED_PROXIES_FILE 2>/dev/null
         logInfo "Unset all proxies"
     else
         export ALL_PROXY=socks5://$1
         export http_proxy=http://$1
         export https_proxy=http://$1
+        _saveProxiesToFile
         logSuccess "Set all proxies to: $1"
     fi
+    unset -f _saveProxiesToFile
 }
