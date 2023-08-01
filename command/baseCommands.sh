@@ -223,7 +223,7 @@ function qcmds() { #? operate available commands. Usage: qcmds $commandsPrefix $
 function editfile() { #? edit a file using preferedTextEditor
 	[ -z $1 ] && logError "Which file ?" && return
 	[ -d $1 ] && logError "Target is a directory !" && return
-    eval "$preferTextEditor $1"
+    eval "$_PREFER_TEXT_EDITOR $1"
 }
 
 function qmap() { #? view or edit a map(which may be recognized by Qfig commands)

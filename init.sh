@@ -25,7 +25,7 @@ export _CURRENT_SHELL
 source $_QFIG_LOC/command/baseCommands.sh
 
 ## Custom configs 
-preferTextEditor=vim
+_PREFER_TEXT_EDITOR=vim
 if [ -f "$_QFIG_LOC/config" ]; then
 	[[ "true" = $(sed -rn 's|<showVerboseInitMsg>(.+)</showVerboseInitMsg>|\1|p' $_QFIG_LOC/config) ]] && verbose=1 || verbose=""
 	enabledCommands=""
@@ -41,12 +41,12 @@ if [ -f "$_QFIG_LOC/config" ]; then
 	done < <(awk '/<enabledCommands>/{f = 1; next} /<\/enabledCommands>/{f = 0} f' $_QFIG_LOC/config)
 	[ "$enabledCommands" ] && _INIT_MSG+="Enabled commands:$enabledCommands. " || _INIT_MSG+="None enabled commands. "
     
-    _preferTextEditor=$(sed -rn 's|<preferTextEditor>(.+)</preferTextEditor>|\1|p' $_QFIG_LOC/config)
-    if [ ! -z "$_preferTextEditor" ]
+    preferTextEditor=$(sed -rn 's|<preferTextEditor>(.+)</preferTextEditor>|\1|p' $_QFIG_LOC/config)
+    if [ ! -z "$preferTextEditor" ]
     then
-        preferTextEditor=$_preferTextEditor
+        _PREFER_TEXT_EDITOR=$preferTextEditor
     fi
-	[ $_preferTextEditor ] && _INIT_MSG+="Text editor: $preferTextEditor. " || _INIT_MSG+="Text editor: $preferTextEditor(default). "
+	[ $preferTextEditor ] && _INIT_MSG+="Text editor: $_PREFER_TEXT_EDITOR. " || _INIT_MSG+="Text editor: $_PREFER_TEXT_EDITOR(default). "
 	if [ $verbose ]; then
 		logInfo $_INIT_MSG
 	fi
@@ -54,7 +54,7 @@ if [ -f "$_QFIG_LOC/config" ]; then
 	unset cmdsFile
 	unset verbose
 	unset enabledCommands
-	unset _preferTextEditor
+	unset preferTextEditor
 fi
 
 ## Load functions that only works on current computer
