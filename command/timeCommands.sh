@@ -45,11 +45,13 @@ function eut() { #? epoch unix timestamp, -m to indicate a millisenconds
 
     declare -i curStamp y d h m s
     y=0;d=0;h=0;m=0;s=0
-    local str ago
+    local str ago z
+    # GitBash based on MinGW which doesn't support %Z
+    [[ "$OSTYPE" == "msys" ]] && z=%z || z="%Z, %z"
     curStamp=$(date +%s)
     if [ "$cur" ]; then
         echo "Current stamp: $curStamp"
-        date +'LOCAL: %Y-%m-%d %H:%M:%S (%Z)'
+        date +"LOCAL: %Y-%m-%d %H:%M:%S ($z)"
         date -u +'  GMT: %Y-%m-%d %H:%M:%S'
         return
     fi
@@ -84,11 +86,11 @@ function eut() { #? epoch unix timestamp, -m to indicate a millisenconds
     echo $str
 
     if [ $_IS_BSD ]; then
-        date -r $stamp +'LOCAL: %Y-%m-%d %H:%M:%S (%Z)'
+        date -r $stamp +"LOCAL: %Y-%m-%d %H:%M:%S ($z)"
         date -u -r $stamp +'  GMT: %Y-%m-%d %H:%M:%S'
     else
         # GNU
-        date -d @$stamp +'LOCAL: %Y-%m-%d %H:%M:%S  (%Z)'
+        date -d @$stamp +"LOCAL: %Y-%m-%d %H:%M:%S ($z)"
         date -u -d @$stamp +'  GMT: %Y-%m-%d %H:%M:%S'
     fi
 }
