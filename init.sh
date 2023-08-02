@@ -29,16 +29,41 @@ _PREFER_TEXT_EDITOR=vim
 if [ -f "$_QFIG_LOC/config" ]; then
 	[[ "true" = $(sed -rn 's|<showVerboseInitMsg>(.+)</showVerboseInitMsg>|\1|p' $_QFIG_LOC/config) ]] && verbose=1 || verbose=""
 	enabledCommands=""
-	_INIT_MSG=""
+	declare -A enabledCommandsMap
 	while read -r cmds; do
+		configEnabledCmds+=($cmds)
+	done < <(awk '/<enabledCommands>/{f = 1; next} /<\/enabledCommands>/{f = 0} f' $_QFIG_LOC/config)
+
+	function _enableCommands() {
+		local cmds rcmds cmdsFile
+		cmds=$1
+		[ ${enabledCommandsMap[$cmds]} ] && return || :
+		enabledCommandsMap[$cmds]=1
 		cmdsFile="$_QFIG_LOC/command/${cmds}Commands.sh"
 		if [ -f "$cmdsFile" ]; then
+			# Add this file required commands
+			while read -r line; do
+				if [[ $line =~ ^#R:[0-9a-zA-Z]+$ ]]; then
+					rcmds=${line:3}
+					_enableCommands $rcmds
+				fi
+			done < $cmdsFile
+
 			source $cmdsFile
 			enabledCommands="$enabledCommands $cmds"
 		else
 			logWarn "$cmdsFile Not Exists!"
 		fi
+	}
+
+	while read -r cmds; do
+		_enableCommands $cmds
 	done < <(awk '/<enabledCommands>/{f = 1; next} /<\/enabledCommands>/{f = 0} f' $_QFIG_LOC/config)
+
+	unset -f _enableCommands
+	unset enabledCommandsMap
+
+	_INIT_MSG=""
 	[ "$enabledCommands" ] && _INIT_MSG+="Enabled commands:$enabledCommands. " || _INIT_MSG+="None enabled commands. "
     
     preferTextEditor=$(sed -rn 's|<preferTextEditor>(.+)</preferTextEditor>|\1|p' $_QFIG_LOC/config)
@@ -51,7 +76,6 @@ if [ -f "$_QFIG_LOC/config" ]; then
 		logInfo $_INIT_MSG
 	fi
 
-	unset cmdsFile
 	unset verbose
 	unset enabledCommands
 	unset preferTextEditor
@@ -63,3 +87,4 @@ if [ -f "$_QFIG_LOC/command/localCommands.sh" ]; then
 fi
 
 _IS_BSD=$(grep --version | awk '/BSD grep/{print "1"}') # otherwise it's GNU
+[ -z "$_DEF_IFS" ] && _DEF_IFS=$IFS || :

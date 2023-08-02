@@ -1,4 +1,6 @@
 #? Commands to do translation. These commands are still in very early stages.
+#R:json
+#R:encoding
 
 _TRANS_MAPPING_FILE=$_QFIG_LOC/translationMappingFile
 [ ! -f $_TRANS_MAPPING_FILE ] && touch $_TRANS_MAPPING_FILE || :
@@ -20,7 +22,7 @@ function bdts() { #? Translate use Baidu Fanyi api. Sample usage: bdts hello
     appId=${mapping[$((arrayBase))]}
     key=${mapping[$((arrayBase + 1))]}
 
-    u=$(chr2hex ${1:0:1})
+    u=$(chr2ucp ${1:0:1})
     if [[ 0x$u -ge 0x41 && 0x$u -le 0x5A ]] || [[ 0x$u -ge 0x61 && 0x$u -le 0x7A ]]; then
         from="en"
         to="zh"
@@ -47,7 +49,7 @@ function ggts() { #? Translate use Google Cloud Translation api. Sample usage: g
     fi
 
     local u source target
-    u=$(chr2hex ${1:0:1})
+    u=$(chr2ucp ${1:0:1})
     if [[ 0x$u -ge 0x41 && 0x$u -le 0x5A ]] || [[ 0x$u -ge 0x61 && 0x$u -le 0x7A ]]; then
         source="en"
         target="zh"
@@ -71,16 +73,11 @@ function ggts() { #? Translate use Google Cloud Translation api. Sample usage: g
 _outputTransResult() { #x
     local response="$1"
     local resultPath="$2"
-    if type jsonget >/dev/null 2>&1; then
-        result=$(jsonget -t "$response" "$resultPath")
-        if [ $? -eq 0 ]; then
-            echo "$result"
-        else
-            logError "Something wrong:"
-            echo "$response"
-        fi
+    result=$(jsonget -t "$response" "$resultPath")
+    if [ $? -eq 0 ]; then
+        echo "$result"
     else
-        logSilence "Enable 'json' commands for breifly output"
+        logError "Something wrong:"
         echo "$response"
     fi
 }

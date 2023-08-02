@@ -1,3 +1,4 @@
+#? Basic support of Qfig. String related commands are here.
 #? These commands only requires Powershell built-in commands
 
 function qfig { #? Qfig preserved command. -h(help) for more
@@ -8,7 +9,7 @@ function qfig { #? Qfig preserved command. -h(help) for more
         "    {0,-10}{1}" -f "update", "Update Qfig"
         "    {0,-10}{1}" -f "into", "Go into Qfig project folder"
         "    {0,-10}{1}" -f "config", "Edit config to enable commands, etc."
-        "    {0,-10}{1}" -f "report", "Show initiation message, and current shell/terminal info."
+        "    {0,-10}{1}" -f "report", "Report zsh cared environment."
         "    {0,-10}{1}" -f "v/version", "Show current version"
     } ElseIf ("into".Equals($command)) {
         Set-Location $Qfig_loc
