@@ -14,21 +14,10 @@ function chr2uni() { #? convert characters to unicodes(4 digits with '\u' prefix
 
 function chr2uni8() { #? convert characters to unicodes(4 digits with '\u' prefix or 8 digits with '\U' prefix)
 	[ -z "$1" ] && return
-	local hexes lps
-	hexes=($(echo $(chr2ucp "$1")))
+	local hexes
+	hexes=($(echo $(chr2ucpx "$1")))
 	for hex in "${hexes[@]}"; do
-		if [ $lps ]; then
-			if [[ 0x$hex -ge 0xDC00 && 0x$hex -le 0xDFFF ]]; then
-				hex=$(sp2ucp $lps $hex)
-				hex=$(_alignLeft $hex 0 8)
-				printf "\\\U$hex"
-			else
-				printf "\\\u$lps\\\u$hex"
-			fi
-			lps=""
-		elif [[ 0x$hex -ge 0xD800 && 0x$hex -le 0xDBFF ]]; then
-			lps="$hex"
-		elif [ ${#hex} -gt 4 ]; then
+		if [ ${#hex} -gt 4 ]; then
 			hex=$(_alignLeft $hex 0 8)
 			printf "\\\U$hex"
 		else
@@ -85,7 +74,29 @@ function ucp2chr() { #? convert unicode code points to characters
 	fi
 }
 
-function chr2ucp() { #? convert characters to unicodes code points
+function chr2ucpx() { #? convert characters to unicode code points (try to elimiate surrogate pairs)
+	[ -z "$1" ] && return
+	local hexes lps
+	hexes=($(echo $(chr2ucp "$1")))
+	for hex in "${hexes[@]}"; do
+		if [ $lps ]; then
+			if [[ 0x$hex -ge 0xDC00 && 0x$hex -le 0xDFFF ]]; then
+				hex=$(sp2ucp $lps $hex)
+				printf "$hex "
+			else
+				printf "$lps $hex "
+			fi
+			lps=""
+		elif [[ 0x$hex -ge 0xD800 && 0x$hex -le 0xDBFF ]]; then
+			lps="$hex"
+		else
+			printf "$hex "
+		fi
+	done
+    printf "\n"
+}
+
+function chr2ucp() { #? convert characters to unicode code points (may contain surrogate pair under GitBash and Cygwin)
 	[ -z "$1" ] && return
 	local all c i
 	all=$@
@@ -254,7 +265,7 @@ function utf82ucp() { #? covert utf8 bytes (2 letters hex) to unicode code point
     [ -z "$1" ] && return
     local arg hex out
     declare -i i bn bc n offs
-    i=0
+    i=0;bn=0;bc=0;n=0;offs=0
     for arg in "$@"; do
         i=$((i + 1))
         if [[ "$arg" =~ [0-9a-zA-Z][0-9a-zA-Z] ]]; then
@@ -304,7 +315,7 @@ function enurlp() { #? encode url param.
 			out=$out$c
 		else
 			hex=$(printf "%x" "'$c")
-			bytes=($(echo $(hex2utf8 $hex)))
+			bytes=($(echo $(ucp2utf8 $hex)))
 			for byte in "${bytes[@]}"; do
 				out="$out%$byte"
 			done
@@ -339,8 +350,8 @@ function deurlp() { #? decode url param
 			collecting1=1
 			continue
 		elif [[ "$c" =~ [0-9a-zA-Z*._-] ]]; then
-            if [ ${#bytes[@]}  -gt 0 ]; then
-                ucp=$(utf82ucp "${bytes[@]}")
+            if [ ${#bytes[@]} -gt 0 ]; then
+                ucp=$(utf82ucp ${bytes[@]})
                 bytes=()
                 if [ $? -eq 0 ]; then
                     out=$out$(ucp2chr $ucp)
@@ -356,8 +367,8 @@ function deurlp() { #? decode url param
 
     [[ "$collecting1" || "$collecting2" ]] && logError "Badly end! It's recording a byte." && return 1
 
-    if [ ${#bytes[@]}  -gt 0 ]; then
-        ucp=$(utf82ucp "${bytes[@]}")
+    if [ ${#bytes[@]} -gt 0 ]; then
+        ucp=$(utf82ucp ${bytes[@]})
         bytes=()
         if [ $? -eq 0 ]; then
             out=$out$(ucp2chr $ucp)

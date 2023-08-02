@@ -43,7 +43,9 @@ if [ -f "$_QFIG_LOC/config" ]; then
 		if [ -f "$cmdsFile" ]; then
 			# Add this file required commands
 			while read -r line; do
-				if [[ $line =~ ^#R:[0-9a-zA-Z]+$ ]]; then
+				line=${line//$'\r'/}
+				line=${line//$'\n'/}
+				if [[ "$line" =~ ^#R:[0-9a-zA-Z]+$ ]]; then
 					rcmds=${line:3}
 					_enableCommands $rcmds
 				fi
