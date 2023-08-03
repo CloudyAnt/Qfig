@@ -1,6 +1,6 @@
 #? commands to operate colors
 
-function rgb2hsl() { #? convert RGB(integers) to HSL(integers). -s to show the rgb color
+function rgb2hsl() { #? convert RGB(integers) to HSL(floats). -s to show the rgb color
     local show
     if [ "-s" = "$1" ]; then
         show=1
@@ -61,20 +61,22 @@ function rgb2hsl() { #? convert RGB(integers) to HSL(integers). -s to show the r
     [ $show ] && printf "$H $S $L \e[48;2;$r;$g;${b}m  \e[0m\n" || echo "$H $S $L"
 }
 
-function hsl2rgb() { #? convert HSL(integers) to RGB(integers). -s to show the rgb color
+function hsl2rgb() { #? convert HSL(floats) to RGB(integers). -s to show the rgb color
     local show
     if [ "-s" = "$1" ]; then
         show=1
         shift 1
         [[ "$COLORTERM" = "truecolor" || "$COLORTERM" = "24bit" ]] && : || logSilence "This terminal may not support 24-bit color (truecolor)"
     fi
-    local h=$1
-    local s=$2
-    local l=$3
+    local h s l h_ s_ l_
+    h=$1;s=$2;l=$3
     declare -a errComp
-    [[ ! "$h" =~ ^[0-9]+$ || $h -lt 0 || $h -gt 360 ]] && errComp+="Hue(0~360)"
-    [[ ! "$s" =~ ^[0-9]+$ || $s -lt 0 || $s -gt 100 ]] && errComp+="Saturation(0~100)"
-    [[ ! "$l" =~ ^[0-9]+$ || $l -lt 0 || $l -gt 100 ]] && errComp+="Lightness(0~100)"
+    h_=$(echo $h | awk '{if((/^[0-9]+$/ || /^[0-9]+\.[0-9]+$/) && $1 >= 0 && $1 <= 360){print 0}}')
+    s_=$(echo $s | awk '{if((/^[0-9]+$/ || /^[0-9]+\.[0-9]+$/) && $1 >= 0 && $1 <= 100){print 0}}')
+    l_=$(echo $l | awk '{if((/^[0-9]+$/ || /^[0-9]+\.[0-9]+$/) && $1 >= 0 && $1 <= 100){print 0}}')
+    [ $h_ -ne 0 ] && errComp+="Hue(0~360)"
+    [ $s_ -ne 0 ] && errComp+="Saturation(0~100)"
+    [ $l_ -ne 0 ] && errComp+="Lightness(0~100)"
 
     if [ ${#errComp} -gt 0 ]; then
         local err=$(concat '-, -' $errComp)

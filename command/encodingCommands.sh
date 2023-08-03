@@ -268,7 +268,7 @@ function utf82ucp() { #? covert utf8 bytes (2 letters hex) to unicode code point
     i=0;bn=0;bc=0;n=0;offs=0
     for arg in "$@"; do
         i=$((i + 1))
-        if [[ "$arg" =~ [0-9a-zA-Z][0-9a-zA-Z] ]]; then
+        if [[ "$arg" =~ [0-9a-fA-F][0-9a-fA-F] ]]; then
             if [ $bn -gt $bc ]; then
                 if [ $((0x$arg >> 6)) -eq 2 ]; then
                     offs=$(((bn - bc - 1) * 6))
@@ -295,7 +295,7 @@ function utf82ucp() { #? covert utf8 bytes (2 letters hex) to unicode code point
 				logError "Invalid 1st byte '0x$arg' (before index $i)! Should be one of 0xxxxxx, 110xxxxx, 1110xxxx, 11110xx" && return 1
 			fi
         else
-            logError "The ${i}th byte '$arg' is not match [0-9a-zA-Z][0-9a-zA-Z]!" && return 1
+            logError "The ${i}th byte '$arg' is not match [0-9a-fA-F][0-9a-fA-F]!" && return 1
         fi
     done
     echo $out
@@ -311,7 +311,7 @@ function enurlp() { #? encode url param.
 		c=${all:$i:1}
 		if [[ "$c" = " " ]]; then
 			out=$out%20
-		elif [[ "$c" =~ [0-9a-zA-Z*._-] ]]; then
+		elif [[ "$c" =~ [0-9a-fA-F*._-] ]]; then
 			out=$out$c
 		else
 			hex=$(printf "%x" "'$c")
@@ -334,14 +334,14 @@ function deurlp() { #? decode url param
 	for (( i=0 ; i<${#all}; i++ )); do
 		c=${all:$i:1}
 		if [ "$collecting1" ]; then
-			if ! [[ "$c" =~ [0-9a-zA-Z] ]]; then
+			if ! [[ "$c" =~ [0-9a-fA-F] ]]; then
 				logError "Bad char '$c' at index $i! There should be 2 hex digits behind a %" && return 1
 			fi
 			b_=$c
 			collecting1=""
 			collecting2=1
 		elif [ "$collecting2" ]; then
-			if ! [[ "$c" =~ [0-9a-zA-Z] ]]; then
+			if ! [[ "$c" =~ [0-9a-fA-F] ]]; then
 				logError "Bad char '$c' at index $i! There should be 2 hex digits behind a %" && return 1
 			fi
 			bytes+=($b_$c)
@@ -349,7 +349,7 @@ function deurlp() { #? decode url param
 		elif [[ "$c" = "%" ]]; then
 			collecting1=1
 			continue
-		elif [[ "$c" =~ [0-9a-zA-Z*._-] ]]; then
+		elif [[ "$c" =~ [0-9a-fA-F*._-] ]]; then
             if [ ${#bytes[@]} -gt 0 ]; then
                 ucp=$(utf82ucp ${bytes[@]})
                 bytes=()
@@ -361,7 +361,7 @@ function deurlp() { #? decode url param
             fi
 			out="$out$c"
 		else
-			logError "Bad char '$c' at index $i! Chars not match [0-9a-zA-Z*._-] should be encoded" && return 1
+			logError "Bad char '$c' at index $i! Chars not match [0-9a-fA-F*._-] should be encoded" && return 1
 		fi
 	done
 

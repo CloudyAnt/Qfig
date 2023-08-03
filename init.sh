@@ -3,7 +3,7 @@ if [ $? -ne 0 ]; then
 	_CURRENT_SHELL=$(ps -p $$ comm= 2>/dev/null) # elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]]
 fi
 if [ $? -ne 0 ]; then
-	echo "Qfig is activated, but cannot determine the current shell."
+	echo "Cannot determine the current shell."
 	return 1
 fi
 
@@ -16,7 +16,7 @@ elif [[ "$_CURRENT_SHELL" =~ ^.*bash$ ]]; then
 	_CURRENT_SHELL="bash"
 else
 	unset _CURRENT_SHELL
-	echo "Qfig is activated, but only zsh and bash are supported now."
+	echo "Only zsh and bash are supported now."
 	return 1
 fi
 export _CURRENT_SHELL
@@ -30,9 +30,6 @@ if [ -f "$_QFIG_LOC/config" ]; then
 	[[ "true" = $(sed -rn 's|<showVerboseInitMsg>(.+)</showVerboseInitMsg>|\1|p' $_QFIG_LOC/config) ]] && verbose=1 || verbose=""
 	enabledCommands=""
 	declare -A enabledCommandsMap
-	while read -r cmds; do
-		configEnabledCmds+=($cmds)
-	done < <(awk '/<enabledCommands>/{f = 1; next} /<\/enabledCommands>/{f = 0} f' $_QFIG_LOC/config)
 
 	function _enableCommands() {
 		local cmds rcmds cmdsFile
