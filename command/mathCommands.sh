@@ -58,7 +58,7 @@ function rebase() { #? convert integer to another base. base should in [2-36]. U
 
     for ((i=0; i<$len; i++)); do
         c=${num:$i:1}
-        v=$_LETTER_VALUE_MAP[$c]
+        v=${_LETTER_VALUE_MAP[$c]}
         if [ $v -ge $ob ]; then
             logError "'$c' at index $i is not a value number for base $ob!"
             return 1
@@ -70,7 +70,7 @@ function rebase() { #? convert integer to another base. base should in [2-36]. U
     decNum=0;digitBase=1
     for ((i=$((len - 1)); i>=0; i--)); do
         c=${num:$i:1}
-        v=$_LETTER_VALUE_MAP[$c]
+        v=${_LETTER_VALUE_MAP[$c]}
         decNum=$(((v * digitBase) + decNum))
         digitBase=$((digitBase * ob))
     done
