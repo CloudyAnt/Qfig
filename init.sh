@@ -79,7 +79,7 @@ if [ -f "$_QFIG_LOC/config" ]; then
 	unset enabledCommands
 	unset preferTextEditor
 else
-	_INIT_MSG+="None enabled cmds. Text editor: $_PREFER_TEXT_EDITOR(default). "
+	_INIT_MSG="";_INIT_MSG+="None enabled cmds. Text editor: $_PREFER_TEXT_EDITOR(default). "
 fi
 
 ## Load functions that only works on current computer
