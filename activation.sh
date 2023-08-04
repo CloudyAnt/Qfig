@@ -8,16 +8,6 @@ if [ $? -ne 0 ]; then
 	exit 1
 fi
 
-if [ "$OSTYPE" = "cygwin" ]; then
-	if ! type dos2unix 2>/dev/null; then
-		echo "Please install dos2unix so that we can resolve potential CRLF problems (cygwin doesn't auto fix them)"
-		exit 1
-	fi
-	rm -rf peer 2>/dev/null; mkdir peer
-	cp -r command peer; cp -r script peer; cp init.sh peer
-	dos2unix peer/command/*; dos2unix peer/script/*; dos2unix peer/init.sh
-fi
-
 if [[ "$currentShell" =~ ^.*zsh$ ]]; then
 	sysConfigFile="$HOME/.zshrc" # .zshrc will always be loaded
 elif [[ "$currentShell" =~ ^.*bash$ ]]; then
@@ -34,7 +24,6 @@ fi
 
 currentLoc="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 baseConfig=$currentLoc/init.sh
-[ "$OSTYPE" = "cygwin" ] && baseConfig=$currentLoc/peer/init.sh || baseConfig=$currentLoc/init.sh
 
 # Check if actived
 activationSegment=$(cat $sysConfigFile | awk -v f="$baseConfig" '$0 ~ f')

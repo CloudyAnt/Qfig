@@ -8,6 +8,7 @@
 !script
 !staff
 !activation.sh
+!activation-cygwin.sh
 !activation.ps1
 !init.sh
 !init.ps1
