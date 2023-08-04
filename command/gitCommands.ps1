@@ -98,7 +98,7 @@ function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'creat
         "    {0,-18}{1}" -f "df/delete-fetch", "delete local tag & fetch remote. meant to align local tag with remote"
     } ElseIf ($tag.Length -Eq 0) {
         git tag --points-at
-    } ElseIf (git check-ref-format "tags/$tag") {
+    } ElseIf (git check-ref-format "tags/$tag" && $?) {
         If ($tag -match "^-.*$") {
             logError "A tag should not starts with '-'"
             Return
@@ -138,7 +138,7 @@ function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'creat
             }
             { "m", "move", "mr", "move-remote", "mmr" -contains $_ } {
                 $newTag = $cmdArg
-                If ((-Not (git check-ref-format "tags/$newTag") -Or ($tag -match "^-.*$"))) {
+                If ((-Not (git check-ref-format "tags/$newTag" && $?) -Or ($tag -match "^-.*$"))) {
                     logError "Please specify a valid new tag name!"
                     Return
                 }
@@ -163,8 +163,7 @@ function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'creat
                 Return
             }
         }
-    }
-    Else {
+    } Else {
         logError "$tag is not a valid tag name"
         Return
     }
@@ -186,7 +185,7 @@ function gb() { #? operate branch. Usage: gb $branch(optional, . stands for curr
         "    {0,-19}{1}" -f "t/track", "Show current track or track a remote branch"
     } ElseIf ($branch.Length -Eq 0) {
         git branch --show-current
-    } ElseIf (git check-ref-format --branch $branch 2>$null) {
+    } ElseIf (git check-ref-format --branch $branch 2>$null && $?) {
         If ($tag -match "^-.*$") {
             logError "A branch name should not starts with '-'"
             Return
@@ -213,7 +212,7 @@ function gb() { #? operate branch. Usage: gb $branch(optional, . stands for curr
             }
             { "m", "move" -contains $_ } {
                 $newB = $cmdArg
-                If ((-Not (git check-ref-format --branch "$newB" 2>$null) -Or ($newB -match "^-.*$"))) {
+                If ((-Not (git check-ref-format --branch "$newB" 2>$null && $?) -Or ($newB -match "^-.*$"))) {
                     logError "Please specify a valid new branch name!"
                     Return
                 }

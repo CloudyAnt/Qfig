@@ -64,6 +64,20 @@ function _rmCr() { #x
 	rdIFS
 }
 
+if [ "$_CURRENT_SHELL" = "bash" ]; then
+	function -() {
+		cd -
+	}
+
+	function ~~() { #? go to home directory
+		cd $HOME
+	}
+
+	function ..() { #? go to upper level directory
+		cd ..
+	}
+fi
+
 function qfig() { #? Qfig preserved command
 	case $1 in
 		-h|help)
@@ -72,7 +86,7 @@ function qfig() { #? Qfig preserved command
 			printf "    %-10s%s\n" "update" "Update Qfig"
 			printf "    %-10s%s\n" "into" "Go into Qfig project folder"
 			printf "    %-10s%s\n" "config" "Edit config to enable commands, etc."
-			printf "    %-10s%s\n" "report" "Report zsh cared environment."
+			printf "    %-10s%s\n" "report" "Report Qfig cared environment."
 			printf "    %-10s%s\n" "v/version" "Show current version"
 			printf "\n  \e[2mTips:\n"
 			printf "    Command 'qcmds' perform operations about tool commands. Run 'qcmds -h' for more\n"
