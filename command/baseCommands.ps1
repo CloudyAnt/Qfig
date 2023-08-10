@@ -9,7 +9,7 @@ function qfig { #? Qfig preserved command. -h(help) for more
         "    {0,-10}{1}" -f "update", "Update Qfig"
         "    {0,-10}{1}" -f "into", "Go into Qfig project folder"
         "    {0,-10}{1}" -f "config", "Edit config to enable commands, etc."
-        "    {0,-10}{1}" -f "report", "Report Qfig cared environment."
+        "    {0,-10}{1}" -f "report", "Report Qfig cared environment"
         "    {0,-10}{1}" -f "v/version", "Show current version"
     } ElseIf ("into".Equals($command)) {
         Set-Location $Qfig_loc

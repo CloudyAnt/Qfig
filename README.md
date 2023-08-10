@@ -1,9 +1,9 @@
 # Qfig
 
-This's my libray of ***zsh/bash/PowerShell*** scripts and also customizable tool commands provider.
+This's my libray of ***shell/PowerShell*** scripts and also customizable tool commands provider.
 
 Activate Qfig by running the script **activation.sh/ps1** (run **activation-cygwin.sh** on cygwin).
-**Note** that the PowerShell scripts are compatible with PowerShell 7+. shell scripts are compatible with zsh 5+ and bash 5+.
+**Note** that the PowerShell scripts are compatible with PowerShell 7+. shell scripts are compatible with zsh 5+ or bash 5+.
 
 ## Basic Support
 - Commands in **baseCommands.sh/ps1** are always availabe. Run `qcmds base` to check.

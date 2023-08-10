@@ -8,7 +8,7 @@ _MYSQL_MAPPING_FILE=$_QFIG_LOC/mysqlMappingFile
 
 [ ! -f $_MYSQL_MAPPING_FILE ] && touch $_MYSQL_MAPPING_FILE || :
 eval $(awk -F '=' 'BEGIN { s="declare -g -A _MYSQL_MAPPING;" } {
-    if (NF >= 3) {
+    if (NF >= 2) {
         split($2, parts, "#");
         s = s "_MYSQL_MAPPING[" $1 "]=\"" parts[1] " " parts[2] " " parts[3] "\";";
     }

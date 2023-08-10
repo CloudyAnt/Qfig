@@ -29,11 +29,13 @@ function allproxy() { #? set, show all proxies. -p to set all proxies to a port,
         echo "ALL_PROXY=$ALL_PROXY" > $_SAVED_PROXIES_FILE
         echo "http_proxy=$http_proxy" >> $_SAVED_PROXIES_FILE
         echo "https_proxy=$https_proxy" >> $_SAVED_PROXIES_FILE
+        echo "ftp_proxy=$https_proxy" >> $_SAVED_PROXIES_FILE
     }
     if [ -z $1 ]; then
         logInfo "ALL_PROXY=$ALL_PROXY"
         logInfo "http_proxy=$http_proxy"
         logInfo "https_proxy=$https_proxy"
+        logInfo "ftp_proxy=$ftp_proxy"
     elif [ "-p" = $1 ]; then
         if [[ $2 =~ [0-9]+ ]]; then
             export ALL_PROXY=socks5://127.0.0.1:$2
@@ -48,12 +50,14 @@ function allproxy() { #? set, show all proxies. -p to set all proxies to a port,
         unset ALL_PROXY
         unset http_proxy
         unset https_proxy
+        unset ftp_proxy
         rm $_SAVED_PROXIES_FILE 2>/dev/null
         logInfo "Unset all proxies"
     else
         export ALL_PROXY=socks5://$1
         export http_proxy=http://$1
         export https_proxy=http://$1
+        export ftp_proxy=ftp://$1
         _saveProxiesToFile
         logSuccess "Set all proxies to: $1"
     fi
