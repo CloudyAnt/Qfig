@@ -17,12 +17,13 @@ function bdts() { #? Translate use Baidu Fanyi api. Sample usage: bdts hello
   For appId, key, please refer to Baidu Fanyi open platform."  && return
     declare -a mapping=($(echo ${_TRANS_MAPPING[baidu]}))
     declare -i arrayBase=$(_getArrayBase)
-    local q api appId key salt sign url response result u from to
+    local q api appId key salt sign url response result u from to text
+    text=$@
     api="https://fanyi-api.baidu.com/api/trans/vip/translate"
     appId=${mapping[$((arrayBase))]}
     key=${mapping[$((arrayBase + 1))]}
 
-    u=$(chr2ucp ${1:0:1})
+    u=$(chr2ucp ${text:0:1})
     if [[ 0x$u -ge 0x41 && 0x$u -le 0x5A ]] || [[ 0x$u -ge 0x61 && 0x$u -le 0x7A ]]; then
         from="en"
         to="zh"
@@ -31,8 +32,8 @@ function bdts() { #? Translate use Baidu Fanyi api. Sample usage: bdts hello
         to="en"
     fi
     salt=$RANDOM
-    sign=$(echo -n "$appId$1$salt$key" | md5x)
-    q=$(enurlp $1)
+    sign=$(echo -n "$appId$text$salt$key" | md5x)
+    q=$(enurlp $text)
     url="$api?q=$q&from=$from&to=$to&appid=$appId&salt=$salt&sign=$sign"
     response=$(echoe "$(curl -s $url)")
 
@@ -48,8 +49,9 @@ function ggts() { #? Translate use Google Cloud Translation api. Sample usage: g
         logError "Please set enviroment variable \e[1mGOOGLE_APPLICATION_CREDENTIALS\e[0m as path of your private key file" && return 1
     fi
 
-    local u source target
-    u=$(chr2ucp ${1:0:1})
+    local u source target text
+    text=$@
+    u=$(chr2ucp ${text:0:1})
     if [[ 0x$u -ge 0x41 && 0x$u -le 0x5A ]] || [[ 0x$u -ge 0x61 && 0x$u -le 0x7A ]]; then
         source="en"
         target="zh"
@@ -59,7 +61,7 @@ function ggts() { #? Translate use Google Cloud Translation api. Sample usage: g
     fi
 
     local data response result
-    data="{\"q\":\"$1\",\"source\":\"$source\",\"target\":\"$target\",\"format\":\"text\"}"
+    data="{\"q\":\"$text\",\"source\":\"$source\",\"target\":\"$target\",\"format\":\"text\"}"
 
     response=$(curl -s -X POST \
     -H "Authorization: Bearer $(gcloud auth application-default print-access-token)" \
