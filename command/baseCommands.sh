@@ -27,33 +27,12 @@ function _readTemp() { #x
 	fi
 }
 
-function _alignLeft() { #x
-	[[ -z "$1" || -z "$2" || -z "$3" ]] && return
-	declare -i len=$3
-	local s=$1
-	while [ ${#s} -lt $len ]; do
-		s="$2$s"
-	done
-	echo $s
-}
-
 function echoe() { #? echo with escapes
 	[ -z "$1" ] && return 0 || :
 	if [[ "$_CURRENT_SHELL" = "zsh" ]]; then # zsh use built-in echo
 		echo "$1"
 	else
 		echo -e "$1"
-	fi
-}
-
-function md5x() { #? same as md5 in zsh, optimized md5sum of bash
-	local str
-	read str
-	if [ "$_IS_BSD" ]; then
-		echo -n $str | md5
-	else
-		local sum=($(echo -n $str | md5sum))
-		echo ${sum[$(_getArrayBase)]}
 	fi
 }
 
@@ -331,23 +310,6 @@ function mktouch() { #? make dirs & touch file
     done
 }
 
-
-###
-
-function replaceWord() { #? backup file with pointed suffix & replace word in file 
-    [ $# -lt 4 ] && logError "required params: file placeholder replacement backupSuffix" && return
-
-    [ ! -z = "$4" ] &&  cp "$1" "$1.$4"
-
-    cat $1 | awk -v placeholder="$2" -v replacement="$3" '$0 ~ placeholder{sub(placeholder, replacement)} 1' | tee "$1" | printf ""
-}
-
-
-function undoReplaceWord() { #? recovery file with pointed suffix 
-    [ $# -lt 2 ] && logError "required params: sourceFile suffix" && return
-    [ -f "$1.$2" ] && mv "$1.$2" $1
-}
-
 ###
 
 function assertExist() { #? check file existence 
@@ -404,6 +366,103 @@ function ps2port() { #? get port which listening by process id
 function port2ps() { #? get process which listening to port
 	[ -z "$1" ] && logError "Which port ?" && return 1
 	lsof -nP -iTCP -sTCP:LISTEN | grep $1
+}
+
+function rdIFS() { #? restore to default IFS
+	IFS=$_DEF_IFS
+}
+
+function confirm() { #? ask for confirmation. Usage: confirm $flags(optional) $msg(optional), -h for more
+	local type="N" # N=normal, W=warning
+	local enterForYes=""
+	local prefix=""
+	OPTIND=1
+	while getopts ":hwep:" opt; do
+        case $opt in
+			h)
+				logInfo "Usage: confirm \$flags(optional) \$msg(optional).\n  Flags:\n"
+				printf "    %-5s%s\n" "h" "Print this help message"
+				printf "    %-5s%s\n" "w" "Raise to warning level"
+				printf "    %-5s%s\n" "e" "Treat Enter as yes when it's normal level"
+				printf "    %-5s%s\n" "p:" "Specific the prefix. default is $Qfig_log_prefix"
+				return 0
+				;;
+            w)
+				type="W"
+                ;;
+			e)
+				enterForYes="1"
+				;;
+			p)
+				prefix=$OPTARG
+				;;
+			:)
+                ;;
+			\?)
+				;;
+        esac
+    done
+	shift "$((OPTIND - 1))"
+
+	local message
+	[[ -z "$1" ]] && message="Are you sure ?" || message=$1
+	local yn="";
+	if [ "W" = "$type" ]; then
+		[ -z "$prefix" ] && prefix="!" || :
+		logWarn "$message \e[90mInput yes/Yes to confirm.\e[0m" $prefix
+		_readTemp && yn=$_TEMP || return 1
+		if [[ 'yes' = "$yn" || 'Yes' = "$yn" ]]; then
+			return 0
+		fi
+	else
+		if [[ $enterForYes ]]; then
+			logInfo "$message \e[90mPress Enter or Input y/Y for Yes, others for No.\e[0m" $prefix
+		else
+			logInfo "$message \e[90mInput y/Y for Yes, others for No.\e[0m" $prefix
+		fi
+		_readTemp && yn=$_TEMP || return 1
+		if [[ 'Y' = "$yn" || 'y' = "$yn" || 'yes' = "$yn" || 'Yes' = "$yn" ]] || [[ $enterForYes && -z "$yn" ]]; then
+			return 0
+		fi
+	fi
+	return 1
+}
+
+#? Following are commands about string
+
+function _alignLeft() { #x
+	[[ -z "$1" || -z "$2" || -z "$3" ]] && return
+	declare -i len=$3
+	local s=$1
+	while [ ${#s} -lt $len ]; do
+		s="$2$s"
+	done
+	echo $s
+}
+
+function md5x() { #? same as md5 in zsh, optimized md5sum of bash
+	local str
+	read str
+	if [ "$_IS_BSD" ]; then
+		echo -n $str | md5
+	else
+		local sum=($(echo -n $str | md5sum))
+		echo ${sum[$(_getArrayBase)]}
+	fi
+}
+
+function replaceWord() { #? backup file with pointed suffix & replace word in file
+    [ $# -lt 4 ] && logError "required params: file placeholder replacement backupSuffix" && return
+
+    [ ! -z = "$4" ] &&  cp "$1" "$1.$4"
+
+    cat $1 | awk -v placeholder="$2" -v replacement="$3" '$0 ~ placeholder{sub(placeholder, replacement)} 1' | tee "$1" | printf ""
+}
+
+
+function undoReplaceWord() { #? recovery file with pointed suffix
+    [ $# -lt 2 ] && logError "required params: sourceFile suffix" && return
+    [ -f "$1.$2" ] && mv "$1.$2" $1
 }
 
 function findindex() { #? find 1st target index in provider. Usage: findindex provider target
@@ -507,67 +566,7 @@ function concat() { #? concat array. Usage: concat $meta $item1 $item2 $item3...
 	printf "\n"
 }
 
-function rdIFS() { #? restore to default IFS
-	IFS=$_DEF_IFS
-}
-
-function confirm() { #? ask for confirmation. Usage: confirm $flags(optional) $msg(optional), -h for more
-	local type="N" # N=normal, W=warning
-	local enterForYes=""
-	local prefix=""
-	OPTIND=1
-	while getopts ":hwep:" opt; do
-        case $opt in
-			h)
-				logInfo "Usage: confirm \$flags(optional) \$msg(optional).\n  Flags:\n"
-				printf "    %-5s%s\n" "h" "Print this help message"
-				printf "    %-5s%s\n" "w" "Raise to warning level"
-				printf "    %-5s%s\n" "e" "Treat Enter as yes when it's normal level"
-				printf "    %-5s%s\n" "p:" "Specific the prefix. default is $Qfig_log_prefix"
-				return 0
-				;;
-            w)
-				type="W"
-                ;;
-			e)
-				enterForYes="1"
-				;;
-			p)
-				prefix=$OPTARG
-				;;
-			:)
-                ;;
-			\?)
-				;;
-        esac
-    done
-	shift "$((OPTIND - 1))"
-
-	local message
-	[[ -z "$1" ]] && message="Are you sure ?" || message=$1
-	local yn="";
-	if [ "W" = "$type" ]; then
-		[ -z "$prefix" ] && prefix="!" || :
-		logWarn "$message \e[90mInput yes/Yes to confirm.\e[0m" $prefix
-		_readTemp && yn=$_TEMP || return 1
-		if [[ 'yes' = "$yn" || 'Yes' = "$yn" ]]; then
-			return 0
-		fi
-	else
-		if [[ $enterForYes ]]; then
-			logInfo "$message \e[90mPress Enter or Input y/Y for Yes, others for No.\e[0m" $prefix
-		else
-			logInfo "$message \e[90mInput y/Y for Yes, others for No.\e[0m" $prefix
-		fi
-		_readTemp && yn=$_TEMP || return 1
-		if [[ 'Y' = "$yn" || 'y' = "$yn" || 'yes' = "$yn" || 'Yes' = "$yn" ]] || [[ $enterForYes && -z "$yn" ]]; then
-			return 0
-		fi
-	fi
-	return 1
-}
-
-function _getStringWidth() { #x
+function _getStringWidth() { #x the return value is only valid for monospaced fonts
 	if [[ $_CURRENT_SHELL = "zsh" ]]; then
 		echo $(($#1 * 3 - ${#${(ml[$#1 * 2])1}})) # zsh can use this method to get width faster
 		return

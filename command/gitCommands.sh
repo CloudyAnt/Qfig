@@ -155,6 +155,7 @@ function gb() { #? operate branch. Usage: gb $branch(optional, . stands for curr
 		printf "    %-19s%s\n" "dr/delete-remote" "Delete the remote branch, \$branch is the remote branch name here"
 		printf "    %-19s%s\n" "m/move" "Rename the branch"
 		printf "    %-19s%s\n" "t/track" "Show current track or track a remote branch"
+		printf "    %-19s%s\n" "ut/untrack" "Unset remote tracking"
 	elif git check-ref-format --branch "$branch" >/dev/null 2>&1 ; then
 		if [[ $branch = -* ]]; then
 			logError "A branch name should not starts with '-'" && return 1
@@ -194,6 +195,9 @@ function gb() { #? operate branch. Usage: gb $branch(optional, . stands for curr
 				else
 					git branch -u $upstream $branch
 				fi
+			;;
+			ut)
+				git branch --unset-upstream $branch
 			;;
 			*)
 				logError "Unknown command: $cmd"

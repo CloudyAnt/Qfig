@@ -23,8 +23,7 @@ if [ -f "$_SAVED_PROXIES_FILE" ]; then
     } END { print s }' $_SAVED_PROXIES_FILE)
 fi
 
-
-function allproxy() { #? set, show all proxies. -p to set all proxies to a port, -c to clear all proxies
+function shellproxy() { #? operate shell proxies. -p to set shell proxies to a port, -c to clear shell proxies
     function _saveProxiesToFile() {
         echo "ALL_PROXY=$ALL_PROXY" > $_SAVED_PROXIES_FILE
         echo "http_proxy=$http_proxy" >> $_SAVED_PROXIES_FILE
@@ -41,6 +40,7 @@ function allproxy() { #? set, show all proxies. -p to set all proxies to a port,
             export ALL_PROXY=socks5://127.0.0.1:$2
             export http_proxy=http://127.0.0.1:$2
             export https_proxy=http://127.0.0.1:$2
+            export ftp_proxy=http://127.0.0.1:$2
             _saveProxiesToFile
             logSuccess "Set all proxies to: 127.0.0.1:$2"
         else

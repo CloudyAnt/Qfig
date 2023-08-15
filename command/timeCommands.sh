@@ -1,6 +1,6 @@
 #? Commands about time
 
-function isLeapYear() { #? judge whether a year (current year if no specify) if leap year
+function isLeapYear() { #? judge whether it's a leap year (default this year)
     declare -i year
     if [ -z $1 ]; then
         year=$(date +%Y)
@@ -25,7 +25,7 @@ function isLeapYear() { #? judge whether a year (current year if no specify) if 
     fi
 }
 
-function eut() { #? epoch unix timestamp, -m to indicate a millisenconds
+function eut() { #? describe an epoch unix timestamp (default now), -m to indicate a millisenconds
     local millis
     if [ "-m" = "$1" ]; then
         millis=1
