@@ -1,85 +1,24 @@
 #? Git related commands
 
-function gco-() {
-    gco -
-}
-
-function glo {
-    git log --oneline
-}
-
-function glog {
-    git log --oneline --abbrev-commit --graph
-}
-
-
-function gamd {
-    git commit --amend
-}
-
-function gamdn {
-    git commit --amend --no-edit
-}
-
-function gaa {
-    git add -A
-}
-
-function gaap {
-    git add -p
-}
-
-function glo {
-    git log --oneline
-}
-
-function gst {
-    git status
-}
-
-function glist {
-    git stash list
-}
-
-function gfa() {
-    git fetch --all
-}
-
-function grb() {
-    git rebase
-}
-
-function grbc() {
-    git rebase --continue
-}
-
-function grb-() {
-    git rebase -
-}
-
-function gmg() {
-    git merge
-}
-
-function gmgc() {
-    git merge --continue
-}
-
-function gmg-() {
-    git merge -
-}
-
-function gcp() {
-    git cherry-pick
-}
-
-function gcpc() {
-    git cherry-pick --continue
-}
-
-function gcp-() {
-    git cherry-pick -
-}
+funAlias gco- "gco -"
+funAlias glo "git log --oneline"
+funAlias glog "git log --oneline --abbrev-commit --graph"
+funAlias gamd "git commit --amend"
+funAlias gamdn "git commit --amend --no-edit"
+funAlias gaa "git add -A"
+funAlias gaap "git add -p"
+funAlias gst "git status"
+funAlias glist "git stash list"
+funAlias gfa "git fetch --all"
+funAlias grb "git rebase"
+funAlias grbc "git rebase --continue"
+funAlias grb- "git rebase -"
+funAlias gmg "git merge"
+funAlias gmgc "git merge --continue"
+funAlias gmg- "git merge -"
+funAlias gcp "git cherry-pick"
+funAlias gcpc "git cherry-pick --continue"
+funAlias gcp- "git cherry-pick -"
 
 function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'create') $cmdArg(optional). gtag -h for more
     param([string]$tag, [string]$cmd, [string]$cmdArg, [switch]$help = $false)
