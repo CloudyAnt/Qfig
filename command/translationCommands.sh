@@ -16,7 +16,7 @@ function bdts() { #? Translate use Baidu Fanyi api. Sample usage: bdts hello
     [ -z "${_TRANS_MAPPING[baidu]}" ] && logError "Run 'qmap translation' to add a mapping in form baidu=appId#key.
   For appId, key, please refer to Baidu Fanyi open platform."  && return
     declare -a mapping=($(echo ${_TRANS_MAPPING[baidu]}))
-    declare -i arrayBase=$(_getArrayBase)
+    declare -i arrayBase=$(getArrayBase)
     local q api appId key salt sign url response result u from to text
     text=$@
     api="https://fanyi-api.baidu.com/api/trans/vip/translate"
@@ -37,14 +37,18 @@ function bdts() { #? Translate use Baidu Fanyi api. Sample usage: bdts hello
     url="$api?q=$q&from=$from&to=$to&appid=$appId&salt=$salt&sign=$sign"
     response=$(echoe "$(curl -s $url)")
 
-    _outputTransResult "$response" "trans_result.0.dst"
+    +outputTransResult "$response" "trans_result.0.dst"
 }
 
 
 function ggts() { #? Translate use Google Cloud Translation api. Sample usage: ggts hi
     [[ -z $1 ]] && logError "Sample usage: ggts hello" && return 1
     if ! type gcloud >/dev/null 2>&1; then
-        logError "\e[1mgcloud\e[0m CLI is required! Install from https://cloud.google.com/sdk/docs/install" && return 1
+        logError "\e[1mgcloud\e[0m CLI is required! Install from https://cloud.google.com/sdk/docs/install" && 
+        if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]]; then
+            echoe "  \e[1mNOTE\e[0m that you should choose the Windows version"
+        fi
+        return 1
     elif [ -z "$GOOGLE_APPLICATION_CREDENTIALS" ]; then
         logError "Please set enviroment variable \e[1mGOOGLE_APPLICATION_CREDENTIALS\e[0m as path of your private key file" && return 1
     fi
@@ -69,10 +73,10 @@ function ggts() { #? Translate use Google Cloud Translation api. Sample usage: g
     -d "$data" \
     "https://translation.googleapis.com/language/translate/v2")
 
-    _outputTransResult "$response" "data.translations.0.translatedText"
+    +outputTransResult "$response" "data.translations.0.translatedText"
 }
 
-_outputTransResult() { #x
+function +outputTransResult() { #x
     local response="$1"
     local resultPath="$2"
     result=$(jsonget -t "$response" "$resultPath")

@@ -17,7 +17,7 @@ function jrun() { #? java compile then run, jrun Hello => javac Hello.java && ja
     java $simpleName
 }
 
-function _jrun() { #x
+function +jrun() { #x
     declare -i arrayBase
 	[[ -o ksharrays ]] && arrayBase=0 || arrayBase=1 # if KSH_ARRAYS option set, array based on 0, and '{}' are required to access index
 	if [ $COMP_CWORD -gt $(($arrayBase + 1)) ]; then
@@ -30,4 +30,4 @@ function _jrun() { #x
 	return 0
 }
 
-complete -F _jrun jrun
+complete -F +jrun jrun

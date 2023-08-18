@@ -6,7 +6,7 @@ function chr2uni() { #? convert characters to unicodes(4 digits with '\u' prefix
 	local hexes
 	hexes=($(echo $(chr2ucp "$1")))
 	for hex in "${hexes[@]}"; do
-		hex=$(_alignLeft $hex 0 4)
+		hex=$(alignLeft $hex 0 4)
 		printf "\\\u$hex"
 	done
 	printf "\n"
@@ -18,10 +18,10 @@ function chr2uni8() { #? convert characters to unicodes(4 digits with '\u' prefi
 	hexes=($(echo $(chr2ucpx "$1")))
 	for hex in "${hexes[@]}"; do
 		if [ ${#hex} -gt 4 ]; then
-			hex=$(_alignLeft $hex 0 8)
+			hex=$(alignLeft $hex 0 8)
 			printf "\\\U$hex"
 		else
-			hex=$(_alignLeft $hex 0 4)
+			hex=$(alignLeft $hex 0 4)
 			printf "\\\u$hex"
 		fi
 	done
@@ -222,7 +222,7 @@ function ucp2utf16() { #? covert hex unicode code points to utf16 code units, -h
 	declare -i index=1
 	declare -i byteIndex=1
 	declare -i uni
-	declare -i arrayBase=$(_getArrayBase)
+	declare -i arrayBase=$(getArrayBase)
 
 	function _process() {
 		[ $byteIndex -eq 1 ] && prefix="" || prefix=" "
@@ -327,7 +327,7 @@ function enurlp() { #? encode url param.
 function deurlp() { #? decode url param
 	[ -z "$1" ] && return
 	local i all c hex out collecting1 b_ collecting2 bytes chr ucp
-	declare -i arrayBase=$(_getArrayBase) bn n
+	declare -i arrayBase=$(getArrayBase) bn n
 	declare -a bytes
 	all=$@
 

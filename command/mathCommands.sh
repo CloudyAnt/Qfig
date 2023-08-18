@@ -77,7 +77,7 @@ function rebase() { #? convert integer to another base. base should in [2-36]. U
 
     # calculae max digital base
     local out arrayBase
-    arrayBase=$(_getArrayBase)
+    arrayBase=$(getArrayBase)
     declare -i digitBase_
     digitBase_=$nb;digitBase=$digitBase_
     while [ $digitBase_ -le $decNum ]; do

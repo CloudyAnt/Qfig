@@ -16,7 +16,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
     fi
     [[ -z "$1" || -z "$2" ]] && logError "Usage: jsonget json targetPath. -h for more" && return 1
     # --- CHECK options ---
-	declare -i arrayBase=$(_getArrayBase)
+	declare -i arrayBase=$(getArrayBase)
 
     local json s c
     json="$1"

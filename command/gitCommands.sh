@@ -119,8 +119,8 @@ function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'creat
 	fi
 }
 
-function _gtag() { #x
-	declare -i arrayBase=$(_getArrayBase)
+function +gtag() { #x
+	declare -i arrayBase=$(getArrayBase)
 	if [ $COMP_CWORD -eq $(($arrayBase + 1)) ]; then
 		local p2="${COMP_WORDS[$(($arrayBase + 1))]}"
 		local tags
@@ -132,7 +132,7 @@ function _gtag() { #x
 	return 0
 }
 
-complete -F _gtag gtag
+complete -F +gtag gtag
 
 function gb() { #? operate branch. Usage: gb $branch(optional, . stands for current branch) $cmd(default 'create') $cmdArg(optional). gb -h for more
 	# CHECK if this is a git repository
@@ -210,8 +210,8 @@ function gb() { #? operate branch. Usage: gb $branch(optional, . stands for curr
 	fi
 }
 
-function _gb() { #x
-	declare -i arrayBase=$(_getArrayBase)
+function +gb() { #x
+	declare -i arrayBase=$(getArrayBase)
 	if [ $COMP_CWORD -eq $(($arrayBase + 1)) ]; then
 		local p2="${COMP_WORDS[$(($arrayBase + 1))]}"
 		local tags
@@ -241,14 +241,14 @@ function _gb() { #x
 	return 0
 }
 
-complete -F _gb gb
+complete -F +gb gb
 
 function gcof() { #? git checkout --- fuzziable edition. Usage: gcof $branch/$tag(fuzziable)
 	# CHECK if this is a git repository
     [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
 	[ -z "$1" ] && return
 
-	declare -i arrayBase=$(_getArrayBase)
+	declare -i arrayBase=$(getArrayBase)
 	declare -i i=$arrayBase
 	local branches tags refs
 	IFS=$'\n'
@@ -289,7 +289,7 @@ function gcof() { #? git checkout --- fuzziable edition. Usage: gcof $branch/$ta
 		declare -i maxLen=0
 		declare -a lenOffsets
 		for ((; i<=$((${#refs[@]} - 1 + $arrayBase)); i++)); do
-			local len=$(_getStringWidth ${refs[$i]})
+			local len=$(getStringWidth ${refs[$i]})
 			lenOffsets[$i]=$((len - ${#refs[$i]}))
 			if [ $len -gt $maxLen ]; then
 				maxLen=$len
@@ -323,7 +323,7 @@ function gcof() { #? git checkout --- fuzziable edition. Usage: gcof $branch/$ta
 		local minI=$arrayBase
 		local maxI=$((${#refs} - 1 + $arrayBase))
 		logInfo "Choose one by the prefix number" "-"
-		_readTemp && local number=$_TEMP || return 1
+		readTemp && local number=$_TEMP || return 1
 		if [[ $number =~ '^[0-9]+$' && $number -ge $minI && $number -le $maxI ]]; then
 			git checkout ${refs[$number]}
 		else
@@ -332,8 +332,8 @@ function gcof() { #? git checkout --- fuzziable edition. Usage: gcof $branch/$ta
 	fi
 }
 
-function _gcof() { #x
-	declare -i arrayBase=$(_getArrayBase)
+function +gcof() { #x
+	declare -i arrayBase=$(getArrayBase)
 	if [ $COMP_CWORD -ne $(($arrayBase + 1)) ]; then
 		return 0
 	fi
@@ -358,7 +358,7 @@ function _gcof() { #x
 	return 0
 }
 
-complete -F _gcof gcof
+complete -F +gcof gcof
 
 function gaaf() { #? git add files in pattern
     [ -z "$1" ] && return
@@ -382,7 +382,7 @@ function gcto() { #? commit in one line
 	# CHECK if this is a git repository
     [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
     echo commit with message '"['$1']' $2: $3'" ? (y for Yes)'
-	_readTemp; local oneline_commit=$_TEMP
+	readTemp; local oneline_commit=$_TEMP
     [ "$oneline_commit" = "y" ] && gaa && git commit -m "[$1] $2: $3"
     unset oneline_commit
 }
@@ -562,7 +562,7 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 	fi
 
 	# CHECK options
-	declare -i arrayBase=$(_getArrayBase)
+	declare -i arrayBase=$(getArrayBase)
 
     # GET pattern & cache, use default if it not exists
 	local git_toplevel=$(git rev-parse --show-toplevel)
@@ -588,7 +588,7 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 		if [ $setPattern ]; then
 			# specify local pattern
 			logInfo "Please specify the pattern(Rerun with -h to get hint):"
-			_readTemp && local pattern=$_TEMP || return 1
+			readTemp && local pattern=$_TEMP || return 1
 		elif [ ! -f "$pattern_tokens_file" ]; then
 			setPattern=1
 			if confirm -p "?" "Use default pattern \e[34;3;38m$(cat $_QFIG_LOC/staff/defGctPattern)\e[0m ?"; then
@@ -596,14 +596,14 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 				pattern=$(cat $_QFIG_LOC/staff/defGctPattern)
 			else
 				logInfo "Then please specify the pattern(Rerun with -p to change, -h to get hint):"
-				_readTemp && local pattern=$_TEMP || return 1
+				readTemp && local pattern=$_TEMP || return 1
 			fi
 		elif [ $verbose ]; then
 			logSilence "Using local pattern: ${$(head -n 1 $pattern_tokens_file):2}"
 		fi
 		#if [ $setPattern ]; then # whether save to .gctpattern
 			# logInfo "Save it in $boldRepoPattern(It may be shared through your git repo) ? \e[90mY for Yes, others for No.\e[0m" "?"
-			# _readTemp && local saveToRepo=$_TEMP || return 1
+			# readTemp && local saveToRepo=$_TEMP || return 1
 		#fi
 	fi
 
@@ -635,7 +635,7 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 
 	# GET pattern tokens
 	declare -a tokens
-	IFS=$'\n' tokens=($(cat $pattern_tokens_file | _rmCr)); rdIFS # CR for Windows should be eliminated 
+	IFS=$'\n' tokens=($(cat $pattern_tokens_file | rmCr)); rdIFS # CR for Windows should be eliminated 
 	stepsCount=0
 	for t in ${tokens[@]}; do
 		if [[ "$t" = 1:* ]]; then
@@ -650,8 +650,8 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 	declare -i bCurStepNum=$((arrayBase - 1)) # branch scope step count
 	local rStepValues
 	local bStepValues
-	[ -f $r_step_values_cache_file ] && IFS=$'\n' rStepValues=($(cat $r_step_values_cache_file | _rmCr)); rdIFS || rStepValues=()
-	[ -f $b_step_values_cache_file ] && IFS=$'\n' bStepValues=($(cat $b_step_values_cache_file | _rmCr)); rdIFS || bStepValues=()
+	[ -f $r_step_values_cache_file ] && IFS=$'\n' rStepValues=($(cat $r_step_values_cache_file | rmCr)); rdIFS || rStepValues=()
+	[ -f $b_step_values_cache_file ] && IFS=$'\n' bStepValues=($(cat $b_step_values_cache_file | rmCr)); rdIFS || bStepValues=()
 	local newRStepValues=""
 	local newBStepValues=""
 	local stepKey=""
@@ -730,7 +730,7 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 
 			# READ and record value
 			while
-				_readTemp && local partial=$_TEMP || return 1
+				readTemp && local partial=$_TEMP || return 1
 				if [ -z "$partial" ]; then
 					partial=$stepDefValue
 				elif [ 1 -lt "${#stepOptions[@]}" ]; then

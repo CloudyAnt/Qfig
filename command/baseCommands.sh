@@ -1,48 +1,6 @@
 #? Basic support of Qfig. String related commands are here.
 #? These commands only requires sh built-in commands.
 
-## commands with '_' prefix weren't designed to be shown by 'qcmds' or to be used directly (though you can)
-function _getArrayBase() { #x
-	if [[ -o ksharrays ]] 2>/dev/null; then
-		echo 0
-	elif [[ "$_CURRENT_SHELL" = "zsh" ]]; then # Besides, fish is the same
-		echo 1
-	else
-		echo 0
-	fi
-}
-
-function _getCurrentHead() { #x
-	declare -i arrayBase=$(_getArrayBase)
-	local parts=($(echo $(git -C $_QFIG_LOC log --oneline --decorate -1)))
-	echo ${parts[$arrayBase]} # dash doesn't support such grammar
-}
-
-function _readTemp() { #x
-	_TEMP=
-	if [[ "$_CURRENT_SHELL" = "zsh" ]]; then
-		vared _TEMP
-	else
-		read _TEMP
-	fi
-}
-
-function echoe() { #? echo with escapes
-	[ -z "$1" ] && return 0 || :
-	if [[ "$_CURRENT_SHELL" = "zsh" ]]; then # zsh use built-in echo
-		echo "$1"
-	else
-		echo -e "$1"
-	fi
-}
-
-function _rmCr() { #x
-	while IFS= read -r str; do
-        echo "${str//$'\r'/}"
-    done
-	rdIFS
-}
-
 if [ "$_CURRENT_SHELL" = "bash" ]; then
 	function -() {
 		cd -
@@ -74,7 +32,7 @@ function qfig() { #? Qfig preserved command
 			echo ""
 			;;
 		update)
-			local curHead=$(_getCurrentHead)
+			local curHead=$(getCurrentHead)
 			local pullMessage=$(git -C $_QFIG_LOC pull --rebase 2>&1)
             if [[ $? != 0 || "$pullMessage" = *"error"* || "$pullMessage" = *"fatal"* ]]; then
                 logError "Cannot update Qfig:\n$pullMessage" && return
@@ -82,7 +40,7 @@ function qfig() { #? Qfig preserved command
 				logSuccess "Qfig is already up to date" && return
 			else
 				logInfo "Updating Qfig.."
-				local newHead=$(_getCurrentHead)
+				local newHead=$(getCurrentHead)
 				echoe "\nUpdate head \e[1m$curHead\e[0m -> \e[1m$newHead\e[0m:\n"
 				git -C $_QFIG_LOC log --oneline --decorate -10 | awk -v ch=$curHead 'BEGIN{
 					tc["refactor"] = 31; tc["fix"] = 32; tc["feat"] = 33; tc["chore"] = 34; tc["doc"] = 35; tc["test"] = 36;
@@ -115,7 +73,7 @@ function qfig() { #? Qfig preserved command
 			logInfo "$msg"
 			;;
 		v|version)
-			local curHead=$(_getCurrentHead)
+			local curHead=$(getCurrentHead)
 			local branch=$(git -C $_QFIG_LOC symbolic-ref --short HEAD)
 			echo "$branch ($curHead)"
 			;;
@@ -225,6 +183,48 @@ function qmap() { #? view or edit a map(which may be recognized by Qfig commands
 	editfile "$_QFIG_LOC/$1MappingFile"
 }
 
+function getArrayBase() { #x
+	if [[ -o ksharrays ]] 2>/dev/null; then
+		echo 0
+	elif [[ "$_CURRENT_SHELL" = "zsh" ]]; then # Besides, fish is the same
+		echo 1
+	else
+		echo 0
+	fi
+}
+
+function getCurrentHead() { #x
+	declare -i arrayBase=$(getArrayBase)
+	local parts=($(echo $(git -C $_QFIG_LOC log --oneline --decorate -1)))
+	echo ${parts[$arrayBase]} # dash doesn't support such grammar
+}
+
+function readTemp() { #x
+	_TEMP=
+	if [[ "$_CURRENT_SHELL" = "zsh" ]]; then
+		vared _TEMP
+	else
+		read _TEMP
+	fi
+}
+
+function echoe() { #? echo with escapes
+	[ -z "$1" ] && return 0 || :
+	if [[ "$_CURRENT_SHELL" = "zsh" ]]; then # zsh use built-in echo
+		echo "$1"
+	else
+		echo -e "$1"
+	fi
+}
+
+function rmCr() { #x
+	while IFS= read -r str; do
+        echo "${str//$'\r'/}"
+    done
+	rdIFS
+}
+
+
 ### Log
 #? About colorful output, refer to https://en.wikipedia.org/wiki/ANSI_escape_code#SGR
 
@@ -333,11 +333,17 @@ function resh() { #? re-source .zshrc/.bashrc
 	# unset all alias
 	unalias -a
 	# unset all functions
+	declare -a allFunctions
 	if [ $_CURRENT_SHELL = "zsh" ]; then
-		unset -f -m '*'
-	elif [[ $_CURRENT_SHELL = "bash" && ! "$OSTYPE" = "msys" ]]; then # msys = Git Bash, some functions in it should not be unset
-		for f in $(declare -F -p | cut -d " " -f 3); do unset -f $f; done
+		allFunctions=${(ok)functions}
+	elif [[ $_CURRENT_SHELL = "bash" ]]; then
+		allFunctions=$(declare -F | awk '{print $3}')
 	fi
+	for fn in $allFunctions; do
+		if [[ $fn != _* ]]; then # unset all function not prefixed with '_'
+			unset -f $fn
+		fi
+	done
     source "$HOME/.${_CURRENT_SHELL}rc"
 	[ -z "$2" ] && logSuccess "Refreshed $_CURRENT_SHELL" || logSuccess "$2"
 
@@ -410,7 +416,7 @@ function confirm() { #? ask for confirmation. Usage: confirm $flags(optional) $m
 	if [ "W" = "$type" ]; then
 		[ -z "$prefix" ] && prefix="!" || :
 		logWarn "$message \e[90mInput yes/Yes to confirm.\e[0m" $prefix
-		_readTemp && yn=$_TEMP || return 1
+		readTemp && yn=$_TEMP || return 1
 		if [[ 'yes' = "$yn" || 'Yes' = "$yn" ]]; then
 			return 0
 		fi
@@ -420,7 +426,7 @@ function confirm() { #? ask for confirmation. Usage: confirm $flags(optional) $m
 		else
 			logInfo "$message \e[90mInput y/Y for Yes, others for No.\e[0m" $prefix
 		fi
-		_readTemp && yn=$_TEMP || return 1
+		readTemp && yn=$_TEMP || return 1
 		if [[ 'Y' = "$yn" || 'y' = "$yn" || 'yes' = "$yn" || 'Yes' = "$yn" ]] || [[ $enterForYes && -z "$yn" ]]; then
 			return 0
 		fi
@@ -430,7 +436,7 @@ function confirm() { #? ask for confirmation. Usage: confirm $flags(optional) $m
 
 #? Following are commands about string
 
-function _alignLeft() { #x
+function alignLeft() { #x
 	[[ -z "$1" || -z "$2" || -z "$3" ]] && return
 	declare -i len=$3
 	local s=$1
@@ -447,7 +453,7 @@ function md5x() { #? same as md5 in zsh, optimized md5sum of bash
 		echo -n $str | md5
 	else
 		local sum=($(echo -n $str | md5sum))
-		echo ${sum[$(_getArrayBase)]}
+		echo ${sum[$(getArrayBase)]}
 	fi
 }
 
@@ -523,7 +529,7 @@ function concat() { #? concat array. Usage: concat $meta $item1 $item2 $item3...
 		if [ ${#metas[@]} -lt 1 ]; then
 			logError "Meta must have at least 1 parts (joiner)" && return 1
 		else
-			declare -i arrayBase=$(_getArrayBase)
+			declare -i arrayBase=$(getArrayBase)
 			start=${metas[$(($arrayBase + 2))]}
 			if [ -z $start ]; then
 				start=2
@@ -566,7 +572,7 @@ function concat() { #? concat array. Usage: concat $meta $item1 $item2 $item3...
 	printf "\n"
 }
 
-function _getStringWidth() { #x the return value is only valid for monospaced fonts
+function getStringWidth() { #x the return value is only valid for monospaced fonts
 	if [[ $_CURRENT_SHELL = "zsh" ]]; then
 		echo $(($#1 * 3 - ${#${(ml[$#1 * 2])1}})) # zsh can use this method to get width faster
 		return
