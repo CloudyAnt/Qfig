@@ -1,18 +1,40 @@
 #? Basic support of Qfig. String related commands are here.
 #? These commands only requires sh built-in commands.
 
+# This function is the first to be loaded, so that Qfig can always be reloaded in current session
+function resh() { #? re-source .zshrc/.bashrc
+	[[ -o ksharrays ]] && local ksharrays=1 || local ksharrays=""
+	# If ksharrays was set, arrays would based on 0, array items can only be accessed like '${arr[1]}' not '$arr[1]',
+	# array size can only be accesse like '${#arr[@]}' not '${#arr}'. Some programs may not expect this option
+	[ $ksharrays ] && set +o ksharrays || :
+
+	if [ ! "-" = "$1" ]; then
+		[ -z "$1" ] && logInfo "Refreshing $_CURRENT_SHELL..." || logInfo "$1..."
+	fi
+	# unset all alias
+	unalias -a
+	# unset all functions
+	declare -a allFunctions
+	if [ $_CURRENT_SHELL = "zsh" ]; then
+		allFunctions=${(ok)functions}
+	elif [[ $_CURRENT_SHELL = "bash" ]]; then
+		allFunctions=$(declare -F | awk '{print $3}')
+	fi
+	for fn in $allFunctions; do
+		if [[ $fn != _* ]]; then # unset all function not prefixed with '_'
+			unset -f $fn
+		fi
+	done
+    source "$HOME/.${_CURRENT_SHELL}rc"
+	[ -z "$2" ] && logSuccess "Refreshed $_CURRENT_SHELL" || logSuccess "$2"
+
+	[ $ksharrays ] && set -o ksharrays || :
+}
+
 if [ "$_CURRENT_SHELL" = "bash" ]; then
-	function -() {
-		cd -
-	}
-
-	function ~~() { #? go to home directory
-		cd $HOME
-	}
-
-	function ..() { #? go to upper level directory
-		cd ..
-	}
+	function -() { cd -; } # use alias here is illegal
+	alias ~~="cd $HOME" # go to home directory
+	alias ..="cd .." # go to upper level directory
 fi
 
 function qfig() { #? Qfig preserved command
@@ -186,7 +208,7 @@ function qmap() { #? view or edit a map(which may be recognized by Qfig commands
 function getArrayBase() { #x
 	if [[ -o ksharrays ]] 2>/dev/null; then
 		echo 0
-	elif [[ "$_CURRENT_SHELL" = "zsh" ]]; then # Besides, fish is the same
+	elif [[ "$_CURRENT_SHELL" = "zsh" ]]; then
 		echo 1
 	else
 		echo 0
@@ -319,35 +341,6 @@ function assertExist() { #? check file existence
         [ ! -f "$file" ] && logError "Missing file: $file" && return
     done
     echo "checked"
-}
-
-function resh() { #? re-source .zshrc/.bashrc
-	[[ -o ksharrays ]] && local ksharrays=1 || local ksharrays=""
-	# If ksharrays was set, arrays would based on 0, array items can only be accessed like '${arr[1]}' not '$arr[1]',
-	# array size can only be accesse like '${#arr[@]}' not '${#arr}'. Some programs may not expect this option
-	[ $ksharrays ] && set +o ksharrays || :
-
-	if [ ! "-" = "$1" ]; then
-		[ -z "$1" ] && logInfo "Refreshing $_CURRENT_SHELL..." || logInfo "$1..."
-	fi
-	# unset all alias
-	unalias -a
-	# unset all functions
-	declare -a allFunctions
-	if [ $_CURRENT_SHELL = "zsh" ]; then
-		allFunctions=${(ok)functions}
-	elif [[ $_CURRENT_SHELL = "bash" ]]; then
-		allFunctions=$(declare -F | awk '{print $3}')
-	fi
-	for fn in $allFunctions; do
-		if [[ $fn != _* ]]; then # unset all function not prefixed with '_'
-			unset -f $fn
-		fi
-	done
-    source "$HOME/.${_CURRENT_SHELL}rc"
-	[ -z "$2" ] && logSuccess "Refreshed $_CURRENT_SHELL" || logSuccess "$2"
-
-	[ $ksharrays ] && set -o ksharrays || :
 }
 
 function targz() { #? compress folder to tar.gz using option -czvf
@@ -599,4 +592,10 @@ function getStringWidth() { #x the return value is only valid for monospaced fon
         fi
 	done
 	echo $width
+}
+
+function isExportedVar() {
+	if [[ $(declare -p "$1" 2>/dev/null) != 'declare -x'* ]]; then
+		return 1
+	fi
 }

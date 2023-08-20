@@ -49,8 +49,8 @@ function ggts() { #? Translate use Google Cloud Translation api. Sample usage: g
             echoe "  \e[1mNOTE\e[0m that you should choose the Windows version"
         fi
         return 1
-    elif [ -z "$GOOGLE_APPLICATION_CREDENTIALS" ]; then
-        logError "Please set enviroment variable \e[1mGOOGLE_APPLICATION_CREDENTIALS\e[0m as path of your private key file" && return 1
+    elif ! isExportedVar GOOGLE_APPLICATION_CREDENTIALS; then
+        logError "Please export enviroment variable \e[1mGOOGLE_APPLICATION_CREDENTIALS\e[0m as path of your private key file" && return 1
     fi
 
     local u source target text
