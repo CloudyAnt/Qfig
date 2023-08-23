@@ -595,7 +595,9 @@ function getStringWidth() { #x the return value is only valid for monospaced fon
 }
 
 function isExportedVar() {
-	if [[ $(declare -p "$1" 2>/dev/null) != 'declare -x'* ]]; then
-		return 1
+	if [ "$_CURRENT_SHELL" = "zsh" ]; then
+		[[ $(declare -p "$1" 2>/dev/null) != 'export '* ]] && return 1 || :
+	else
+		[[ $(declare -p "$1" 2>/dev/null) != 'declare -x'* ]] && return 1 || :
 	fi
 }
