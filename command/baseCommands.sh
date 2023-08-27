@@ -427,6 +427,12 @@ function confirm() { #? ask for confirmation. Usage: confirm $flags(optional) $m
 	return 1
 }
 
+function isExportedVar() { #? check whether it's exported var
+	if [[ $(declare -p "$1" 2>/dev/null) != 'declare -x'* ]]; then
+		return 1
+	fi
+}
+
 #? Following are commands about string
 
 function alignLeft() { #x
@@ -594,10 +600,24 @@ function getStringWidth() { #x the return value is only valid for monospaced fon
 	echo $width
 }
 
-function isExportedVar() {
-	if [ "$_CURRENT_SHELL" = "zsh" ]; then
-		[[ $(declare -p "$1" 2>/dev/null) != 'export '* ]] && return 1 || :
-	else
-		[[ $(declare -p "$1" 2>/dev/null) != 'declare -x'* ]] && return 1 || :
-	fi
+function trimString() { #? trim string
+	[ -z "$1" ] && return
+	local i s begin end len
+	s=$1
+	for (( i=0 ; i<${#s}; i++ )); do
+		c=${s:$i:1}
+		if ! [[ ' ' = "$c" || $'\t' = "$c" || $'\n' = "$c" || $'\r' = "$c" ]]; then
+			begin=$i
+			break
+		fi
+	done
+	for (( i=$((${#s} - 1)) ; i>$begin; i-- )); do
+		c=${s:$i:1}
+		if ! [[ ' ' = "$c" || $'\t' = "$c" || $'\n' = "$c" || $'\r' = "$c" ]]; then
+			end=$i
+			break
+		fi
+	done
+	len=$((end - begin + 1))
+	echo ${s:begin:len}
 }
