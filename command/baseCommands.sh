@@ -33,7 +33,7 @@ function resh() { #? re-source .zshrc/.bashrc
 
 if [ "$_CURRENT_SHELL" = "bash" ]; then
 	function -() { cd -; } # use alias here is illegal
-	alias ~~="cd $HOME" # go to home directory
+	alias ~="cd $HOME" # go to home directory
 	alias ..="cd .." # go to upper level directory
 fi
 

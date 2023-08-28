@@ -66,17 +66,14 @@ function qfig { #? Qfig preserved command. -h(help) for more
     }
 }
 
-function =() {
-    Set-Location -
+function funAlias() { #? works like bash 'alias', note that it would spent more time due to usage of Invoke-Expression
+    param ([Parameter(Mandatory = $true)][string]$alias, [Parameter(Mandatory = $true)][string]$original)
+    "function global:$alias() {$original}" | Invoke-Expression
 }
 
-function ~() { #? go to home directory
-    Set-Location $HOME
-}
-
-function ..() { #? go to upper level directory
-   Set-Location ../
-}
+funAlias = "Set-Location -"
+funAlias ~ "Set-Location $HOME"
+funAlias .. "Set-Location ../"
 
 function open() {
     param([string]$dir)
@@ -326,7 +323,7 @@ function confirm() {
         logWarn "$msg `e[90mInput yes/Yes to confirm.`e[0m" $prefix
         $yn = Read-Host
         If ("yes".Equals($yn) -Or "Yes".Equals($yn)) {
-            $true
+            return $true
         }
     } Else {
         If ($enterForYes) {
@@ -336,14 +333,8 @@ function confirm() {
         }
         $yn = Read-Host
         If (("Y", "y", "Yes", "yes" -contains $yn) -Or ($enterForYes -And [string]::IsNullOrEmpty($yn))) {
-            $true
+            return $true
         }
-
     }
-    $false
-}
-
-function funAlias() { #? works like bash 'alias', note that it would spent more time due to usage of Invoke-Expression
-    param ([Parameter(Mandatory = $true)][string]$alias, [Parameter(Mandatory = $true)][string]$original)
-    "function global:$alias() {$original}" | Invoke-Expression
+    return $false
 }

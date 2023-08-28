@@ -57,11 +57,11 @@ function eut() { #? describe an epoch unix timestamp (default now), -m to indica
     # calculate relative
     if [ $curStamp -ge $stamp ]; then
         s=$((curStamp - stamp))
-        str="Ago"
+        str="before now ($curStamp)"
         ago=1
     else
         s=$((stamp - curStamp))
-        str="From now"
+        str="from now ($curStamp)"
     fi
 
     if [ $s -ge 60 ]; then
