@@ -22,7 +22,7 @@ fi
 [ ! -f "$sysConfigFile" ] && touch $sysConfigFile || :
 [[ ! -z "$sysConfigFile1" && ! -f "$sysConfigFile1" ]] && touch $sysConfigFile1 || :
 
-currentLoc="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+currentLoc=$( cd $( dirname ${BASH_SOURCE[0]} ) >/dev/null 2>&1 && pwd )
 baseConfig=$currentLoc/init.sh
 
 # Check if actived

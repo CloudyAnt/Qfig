@@ -8,6 +8,7 @@ if [ $? -ne 0 ]; then
 fi
 
 ## Get the location of Qfig project
+## If script X source this script, in bash "$0" is path of X, in zsh it's path of this script
 if [[ "$_CURRENT_SHELL" =~ ^.*zsh$ ]]; then
 	_QFIG_LOC=$(dirname "$0")
 	_CURRENT_SHELL="zsh"

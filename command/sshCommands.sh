@@ -75,7 +75,7 @@ function cprt() { #? recursively copy entire directories to server. Usage: cprt 
 }
 
 function cpf() { #? copy from server. Usage: cpf remoteFile mapping localFile identification[optional]
-    [ -z "$1" ] || [ -z ${_SSH_MAPPING[$1]} ] && logWarn "No ssh Mapping For: $1" && return # need mapping
+    [ -z "$1" ] || [ -z ${_SSH_MAPPING[$1]} ] && logWarn "No ssh mapping for: $1" && return # need mapping
     local _SshEndpoint=${_SSH_MAPPING[$1]}
 
     if [[ -z "$4" || ! -f "$4" ]] 
@@ -87,7 +87,7 @@ function cpf() { #? copy from server. Usage: cpf remoteFile mapping localFile id
 }
 
 function cpfi() { #? copy from server with identification. Usage: cpfi romoteFile mapping localFile
-    [ -z "$1" ] || [ -z ${_SSH_MAPPING[$1]} ] || [ -z ${_PEM_MAPPING[$1]} ] && logWarn "No ssh/pem Mapping For: $1" && return # need mapping
+    [ -z "$1" ] || [ -z ${_SSH_MAPPING[$1]} ] || [ -z ${_PEM_MAPPING[$1]} ] && logWarn "No ssh/pem mapping for: $1" && return # need mapping
     local _SshEndpoint=${_SSH_MAPPING[$1]}
     local _PemFile=${_PEM_MAPPING[$1]}
 
@@ -95,7 +95,7 @@ function cpfi() { #? copy from server with identification. Usage: cpfi romoteFil
 }
 
 function cprf() { #! [UNTESTED] copy folder from sever
-    [ -z "$1" ] || [ -z ${_SSH_MAPPING[$1]} ] && logWarn "No ssh Mapping For: $1" && return # need mapping
+    [ -z "$1" ] || [ -z ${_SSH_MAPPING[$1]} ] && logWarn "No ssh mapping for: $1" && return # need mapping
     local _SshEndpoint=${_SSH_MAPPING[$1]}
 
     if [[ -z "$4" || ! -f "$4" ]] 
@@ -107,7 +107,7 @@ function cprf() { #! [UNTESTED] copy folder from sever
 }
 
 function cprfi() { #! [UNTESTED] copy folder from sever
-    [ -z "$1" ] || [ -z ${_SSH_MAPPING[$1]} ] && logWarn "No ssh/pem Mapping For: $1" && return # need mapping
+    [ -z "$1" ] || [ -z ${_SSH_MAPPING[$1]} ] && logWarn "No ssh/pem mapping for: $1" && return # need mapping
     local _SshEndpoint=${_SSH_MAPPING[$1]}
     local _PemFile=${_PEM_MAPPING[$1]}
 
@@ -117,4 +117,11 @@ function cprfi() { #! [UNTESTED] copy folder from sever
     else
         scp -r -i $_PemFile $4 $_SshEndpoint:/$2 $3
     fi
+}
+
+function sshcopyid() { #? copy ssh id to server
+    [ -z "$1" ] || [ -z ${_SSH_MAPPING[$1]} ] && logWarn "No ssh mapping for: $1" && return # need mapping
+    local _SshEndpoint=${_SSH_MAPPING[$1]}
+
+    ssh-copy-id $_SshEndpoint
 }
