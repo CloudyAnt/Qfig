@@ -124,11 +124,12 @@ function gb() { #? operate branch. Usage: gb $branch(optional, . stands for curr
     If ($help) {
         logInfo "Usage: gb `$branch(optional) `$cmd(default 'create') `cmdArg(optional).`n  `e[1mIf no params specified, then show the current branch name`e[0m`n  Available commands:`n"
         "    {0,-19}{1}" -f "c/create", "Default. Create a branch"
-        "    {0,-19}{1}" -f "co/create-checkout", "Create a branch and checkout it"
+        "    {0,-19}{1}" -f "cc/create-checkout", "Create a branch and checkout it"
         "    {0,-19}{1}" -f "d/delete", "Delete the branch"
         "    {0,-19}{1}" -f "dr/delete-remote", "Delete the remote branch, `$branch is the remote branch name here"
         "    {0,-19}{1}" -f "m/move", "Rename the branch"
         "    {0,-19}{1}" -f "t/track", "Show current track or track a remote branch"
+        "    {0,-19}{1}" -f "ut/untrack", "Unset remote tracking"
     } ElseIf ($branch.Length -Eq 0) {
         git branch --show-current
     } ElseIf (git check-ref-format --branch $branch 2>$null && $?) {
@@ -144,7 +145,7 @@ function gb() { #? operate branch. Usage: gb $branch(optional, . stands for curr
                 git branch $branch
                 If ($?) { logSuccess "Created branch: $branch" }
             }
-            { "co", "create-checkout" -contains $_ } {
+            { "cc", "create-checkout" -contains $_ } {
                 git branch $branch
                 if ($?) { git checkout $branch }
             }
@@ -172,6 +173,9 @@ function gb() { #? operate branch. Usage: gb $branch(optional, . stands for curr
                 } Else {
                     git branch -u $upstream $branch
                 }
+            }
+            { "ut", "untrack" -contains $_ } {
+                git branch --unset-upstream $branch
             }
             Default {
                 logError "Unknown command: $cmd"
@@ -315,24 +319,22 @@ function gpush() {
     if (isNotGitRepository) {
         Return
     }
-    $message = git push 2>&1 | Out-String
-    If ($?) {
-        logSuccess "$message"
-    }
-    Else {
-        If ($message -match ".*has no upstream branch.*") {
-            logInfo "'No upstream branch' was told, creating"
-            $branch = git rev-parse --abbrev-ref HEAD
-            $message = git push -u origin | Out-String
-            If ($?) {
-                logSuccess "Upstream branch just created`n$message"
-            }
-            Else {
-                logError "Failed to create upstream branch `e[1m$branch`e[0m:`n$message"
-            }
+    $current_branch=git rev-parse --abbrev-ref HEAD
+    If (git rev-parse --verify --quiet "${current_branch}@{u}" && $?) {
+        logInfo "Push starting.."
+        git push
+        If ($?) {
+            logSuccess "Push done"
+        } Else {
+            logWarn "Push seems failed, check the above message"
         }
-        Else {
-            logError "$message"
+    } Else {
+        logInfo "No upstream branch! creating.."
+        git push -u origin $current_branch
+        if ($?) {
+            logSuccess "Upstream branch just created"
+        } Else {
+            logError "Failed to create upstream branch \e[1m$current_branch\e[0m"
         }
     }
 }

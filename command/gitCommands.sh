@@ -485,13 +485,13 @@ function gpush() { #? git push with automatic branch creation
 	if git rev-parse --verify --quiet "${current_branch}@{u}"; then
 		logInfo "Push starting.."
 		git push
-		if [ $? != 0 ]; then
-			logWarn "Push seems failed, check the above message"
-		else
+		if [ $? = 0 ]; then
 			logSuccess "Push done"
+		else
+			logWarn "Push seems failed, check the above message"
 		fi
 	else
-		logInfo "No upstream branch!, creating.."
+		logInfo "No upstream branch! creating.."
 		git push -u origin $current_branch
 		if [ $? = 0 ]; then
 			logSuccess "Upstream branch just created"
