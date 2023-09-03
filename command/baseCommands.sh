@@ -54,31 +54,35 @@ function qfig() { #? Qfig preserved command
 			echo ""
 			;;
 		update)
-			local curHead=$(getCurrentHead)
-			local pullMessage=$(git -C $_QFIG_LOC pull --rebase 2>&1)
-            if [[ $? != 0 || "$pullMessage" = *"error"* || "$pullMessage" = *"fatal"* ]]; then
-                logError "Cannot update Qfig:\n$pullMessage" && return
-			elif [[ "$pullMessage" = *"Already up to date."* ]]; then
+			declare -i behindCommits
+			behindCommits=$(git -C $_QFIG_LOC rev-list --count .."master@{u}")
+			if [ $behindCommits -eq 0 ]; then
 				logSuccess "Qfig is already up to date" && return
 			else
-				logInfo "Updating Qfig.."
-				local newHead=$(getCurrentHead)
-				echoe "\nUpdate head \e[1m$curHead\e[0m -> \e[1m$newHead\e[0m:\n"
-				git -C $_QFIG_LOC log --oneline --decorate -10 | awk -v ch=$curHead 'BEGIN{
-					tc["refactor"] = 31; tc["fix"] = 32; tc["feat"] = 33; tc["chore"] = 34; tc["doc"] = 35; tc["test"] = 36;
-				} {
-					if($0 ~ ch) {
-						exit;
-					} else {
-						n = split($0, parts, ":");
-						n1 = split(parts[1], parts1, " ");
-						type = parts1[n1];
-						c = tc[type]; if(!c) c = 37;
-						printf "- [\033[1;" c "m%s\033[0m]%s\n", parts1[n1], parts[2];
-					}
-				} END {print ""}'
+				local curHead=$(getCurrentHead)
+				local pullMessage=$(git -C $_QFIG_LOC pull --rebase 2>&1)
+				if [ $? != 0 ]; then
+					logError "Cannot update Qfig:\n$pullMessage" && return
+				else
+					logInfo "Updating Qfig.."
+					local newHead=$(getCurrentHead)
+					echoe "\nUpdate head \e[1m$curHead\e[0m -> \e[1m$newHead\e[0m:\n"
+					git -C $_QFIG_LOC log --oneline --decorate -10 | awk -v ch=$curHead 'BEGIN{
+						tc["refactor"] = 31; tc["fix"] = 32; tc["feat"] = 33; tc["chore"] = 34; tc["doc"] = 35; tc["test"] = 36;
+					} {
+						if($0 ~ ch) {
+							exit;
+						} else {
+							n = split($0, parts, ":");
+							n1 = split(parts[1], parts1, " ");
+							type = parts1[n1];
+							c = tc[type]; if(!c) c = 37;
+							printf "- [\033[1;" c "m%s\033[0m]%s\n", parts1[n1], parts[2];
+						}
+					} END {print ""}'
+				fi
+				resh - "Qfig updated!"
 			fi
-			resh - "Qfig updated!"
 			;;
 		config)
 			if [ ! -f $_QFIG_LOC/config ]; then
@@ -216,9 +220,11 @@ function getArrayBase() { #x
 }
 
 function getCurrentHead() { #x
-	declare -i arrayBase=$(getArrayBase)
-	local parts=($(echo $(git -C $_QFIG_LOC log --oneline --decorate -1)))
-	echo ${parts[$arrayBase]} # dash doesn't support such grammar
+	local branch commit u
+	local branch=$(git -C $_QFIG_LOC rev-parse --abbrev-ref HEAD)
+	[ "-r" = "$1" ] && u=@{u} || :
+	local commit=$(git -C $_QFIG_LOC rev-parse "$branch$u")
+	echo ${commit:0:9}
 }
 
 function readTemp() { #x

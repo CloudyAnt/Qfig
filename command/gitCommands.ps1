@@ -19,9 +19,13 @@ funAlias gmg- "git merge -"
 funAlias gcp "git cherry-pick"
 funAlias gcpc "git cherry-pick --continue"
 funAlias gcp- "git cherry-pick -"
+funAlias gpr "git pull --rebase"
 
 function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'create') $cmdArg(optional). gtag -h for more
     param([string]$tag, [string]$cmd, [string]$cmdArg, [switch]$help = $false)
+    if (isNotGitRepository) {
+        Return
+    }
     If ($help) {
         logInfo "Usage: gtag `$tag(optional) `$cmd(default 'create') `cmdArg(optional).`n  `e[1mIf no params specified, then show the tags for current commit`e[1m`n  Available commands:`n"
         "    {0,-18}{1}" -f "c/create", "Default. Create a tag on current commit"
@@ -110,6 +114,9 @@ function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'creat
 
 function gb() { #? operate branch. Usage: gb $branch(optional, . stands for current branch) $cmd(default 'create') $cmdArg(optional). gb -h for more
     param([string]$branch, [string]$cmd, [string]$cmdArg, [switch]$help = $false)
+    if (isNotGitRepository) {
+        Return
+    }
     If (".".Equals($branch)) {
         $branch = $(git branch --show-current)
     }
@@ -214,28 +221,14 @@ function gco {
     git checkout $branch 
 }
 
-function gmergec() {
-    #? git merge --continue
-    gaa
-    git merge --continue
-}
-
-function grebasec() {
-    #? git rebase --continue
-    gaa
-    git rebase --continue
-}
-
-function gpr() {
-    #? git pull --rebase
-    git pull --rebase
-}
-
 $_git_stash_key = "_git_stash_:"
 
 function gstash() {
     #? git stash
     param($key)
+    if (isNotGitRepository) {
+        Return
+    }
 
     If ($key.Length -Eq 0) {
         git stash
@@ -248,6 +241,9 @@ function gstash() {
 function gstashunstaged() {
     #? git stash unstaged files
     param($key)
+    if (isNotGitRepository) {
+        Return
+    }
 
     If ($key.Length -Eq 0) {
         git stash --keep-index
@@ -260,6 +256,9 @@ function gstashunstaged() {
 function gapply() {
     #? git stash apply
     param($key)
+    if (isNotGitRepository) {
+        Return
+    }
 
     If ($key.Length -Eq 0) {
         git stash apply
@@ -279,6 +278,9 @@ function gapply() {
 function gpop() {
     #? git stash pop
     param($key)
+    if (isNotGitRepository) {
+        Return
+    }
 
     If ($key.Length -Eq 0) {
         git stash pop
@@ -310,8 +312,7 @@ function ghttpproxy() {
 }
 
 function gpush() {
-    If (-Not "true".Equals((git rev-parse --is-inside-work-tree 2>&1) -join "`r`n")) {
-        logError "Not a git repository!"
+    if (isNotGitRepository) {
         Return
     }
     $message = git push 2>&1 | Out-String
@@ -350,22 +351,20 @@ function gct() {
     }
 
     # CHECK if this is a git repository
-    If (-Not "true".Equals((git rev-parse --is-inside-work-tree 2>&1) -join "`r`n")) {
-        logError "Not a git repository!"
+    if (isNotGitRepository) {
         Return
     }
-    $gst = git status 2>&1
     $obstacleProgress = ""
-    If (($gst -match ".*All conflicts fixed but you are still merging.*") -Or ($gst -match ".*You have unmerged paths.*")) {
+    If (Test-Path .git/MERGE_HEAD -PathType Leaf) {
         $obstacleProgress = "Merge"
     }
-    ElseIf ($gst -match ".*interactive rebase in progress;.*") {
+    ElseIf ((Test-Path .git/rebase-apply -PathType Container) -Or (Test-Path .git/rebase-merge -PathType Container) -Or (Test-Path .git/rebasing -PathType Container)) {
         $obstacleProgress = "Rebase"
     }
-    ElseIf ($gst -match ".*You are currently cherry-picking.*") {
+    ElseIf (Test-Path .git/CHERRY_PICK_HEAD -PathType Leaf) {
         $obstacleProgress = "Cherry-pick"
     }
-    ElseIf ($gst -match ".*You are currently reverting.*") {
+    ElseIf (Test-Path .git/REVERT_HEAD -PathType Leaf) {
         $obstacleProgress = "Revert"
     }
     If ($obstacleProgress) {
@@ -453,14 +452,7 @@ function gct() {
     }
 
     # CHECK if it's need to commit
-    $needToCommit = $false
-    gst | ForEach-Object {
-        If ($_ -match "Changes to be committed.+") {
-            $needToCommit = $true
-            Return
-        }
-    }
-    If (-Not $needToCommit) {
+    If (git diff --cached --quiet --exit-code && $?) {
         logWarn "Nothing to commit!"
         Return
     }
@@ -624,4 +616,12 @@ function gct() {
     Write-Output $newBStepValues > $b_step_values_cache_file
 
     git commit -m "$message"
+}
+
+function isNotGitRepository() { #x
+	if ("true".Equals($(git rev-parse --is-inside-work-tree 2>&1))) {
+        Return $false
+    }
+    logError "Not a git repository!"
+	return $true
 }

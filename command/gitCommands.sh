@@ -33,7 +33,7 @@ unsetAlias gb
 
 function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'create') $cmdArg(optional). gtag -h for more
 	# CHECK if this is a git repository
-    [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
+    isNotGitRepository && return 1
 	if [ -z $1 ]; then
 		git tag --points-at # --points-at defaults to HEAD
 	elif [ "-h" = "$1" ]; then
@@ -136,7 +136,7 @@ complete -F +gtag gtag
 
 function gb() { #? operate branch. Usage: gb $branch(optional, . stands for current branch) $cmd(default 'create') $cmdArg(optional). gb -h for more
 	# CHECK if this is a git repository
-    [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
+    isNotGitRepository && return 1
 
 	local branch=$1
 	if [ "." = "$branch" ]; then
@@ -245,7 +245,7 @@ complete -F +gb gb
 
 function gcof() { #? git checkout --- fuzziable edition. Usage: gcof $branch/$tag(fuzziable)
 	# CHECK if this is a git repository
-    [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
+    isNotGitRepository && return 1
 	[ -z "$1" ] && return
 
 	declare -i arrayBase=$(getArrayBase)
@@ -380,7 +380,7 @@ function gctm() { #? commit with message
 
 function gcto() { #? commit in one line
 	# CHECK if this is a git repository
-    [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
+    isNotGitRepository && return 1
     echo commit with message '"['$1']' $2: $3'" ? (y for Yes)'
 	readTemp; local oneline_commit=$_TEMP
     [ "$oneline_commit" = "y" ] && gaa && git commit -m "[$1] $2: $3"
@@ -391,7 +391,7 @@ _git_stash_key="_git_stash_:"
 
 function gstash() { #? stash with specific name. Usage: gstash name(optional)
 	# CHECK if this is a git repository
-    [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
+    isNotGitRepository && return 1
     if [ -z "$1" ] 
     then
         git stash
@@ -402,7 +402,7 @@ function gstash() { #? stash with specific name. Usage: gstash name(optional)
 
 function gstashu() { #? stash unstaged files with specific name. Usage: gstashu name(optional)
 	# CHECK if this is a git repository
-    [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
+    isNotGitRepository && return 1
     if [ -z "$1" ] 
     then
         git stash --keep-index
@@ -413,7 +413,7 @@ function gstashu() { #? stash unstaged files with specific name. Usage: gstashu 
 
 function gapply() { #? apply with specific name. Usage: gapply name(optional)
 	# CHECK if this is a git repository
-    [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
+    isNotGitRepository && return 1
     if [ -z "$1" ] 
     then
         git stash apply
@@ -426,7 +426,7 @@ function gapply() { #? apply with specific name. Usage: gapply name(optional)
 
 function gpop() { #? pop with specific name. Usage: gpop $name(optional)
 	# CHECK if this is a git repository
-    [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
+    isNotGitRepository && return 1
     if [ -z "$1" ] 
     then
         git stash pop
@@ -480,28 +480,30 @@ function ghttpproxy() { #? Usage: gttpproxy proxy. unsert proxy if 'proxy' is em
 }
 
 function gpush() { #? git push with automatic branch creation
-    [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
-	logInfo "Push starting.."
-	local message=$(git push 2>&1 | tee /dev/tty)
-	if [[ $message = *"has no upstream branch"* ]]; then
-		logInfo "'No upstream branch' was told, creating"
-		local branch=$(git rev-parse --abbrev-ref HEAD)
-		local message=$(git push -u origin $branch)
+	isNotGitRepository && return 1
+	local current_branch=$(git rev-parse --abbrev-ref HEAD)
+	if git rev-parse --verify --quiet "${current_branch}@{u}"; then
+		logInfo "Push starting.."
+		git push
+		if [ $? != 0 ]; then
+			logWarn "Push seems failed, check the above message"
+		else
+			logSuccess "Push done"
+		fi
+	else
+		logInfo "No upstream branch!, creating.."
+		git push -u origin $current_branch
 		if [ $? = 0 ]; then
 			logSuccess "Upstream branch just created"
 		else
-			logError "Failed to create upstream branch \e[1m$branch\e[0m"
+			logError "Failed to create upstream branch \e[1m$current_branch\e[0m"
 		fi
-	elif [[ $message = *"fatal"* || $message = *"error"* ]]; then
-		logWarn "Push seems failed, check the above message"
-	else
-		logSuccess "Push done"
 	fi
 }
 
 function gtop() { #? go to the top level of current repo
     # CHECK if this is a git repository
-    [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
+    isNotGitRepository && return 1
 	local gitTopLevel=$(git rev-parse --show-toplevel)
 	if [[ '-g' = $1 || '-go' = $1 ]]; then
 		logInfo "Go to:\n$gitTopLevel"
@@ -544,17 +546,15 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 	done
 
     # CHECK if this is a git repository
-    [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] && logError "Not a git repository!" && return 1
+    isNotGitRepository && return 1
     # CHECK if merge, rebase, cherry-pick or revert is in progress 
-	local gitStatus=$(git status 2>&1)
-	local obstacleProgress=""
-	if [[ "$gitStatus" = *"All conflicts fixed but you are still merging"* || "$gitStatus" = *"You have unmerged paths"* ]]; then
-		obstacleProgress=Merge
-	elif [[ "$gitStatus" = *"interactive rebase in progress;"* ]]; then
+	if [ -f .git/MERGE_HEAD ]; then
+        obstacleProgress=Merge
+	elif [ -d .git/rebase-apply ] || [ -d .git/rebase-merge ] || [ -d .git/rebasing ]; then
 		obstacleProgress=Rebase
-	elif [[ "$gitStatus" = *"You are currently cherry-picking"* ]]; then
+	elif [ -f .git/CHERRY_PICK_HEAD ]; then
 		obstacleProgress=Cherry-pick
-	elif [[ "$gitStatus" = *"You are currently reverting"* ]]; then
+	elif [ -f .git/REVERT_HEAD ]; then
 		obstacleProgress=Revert
 	fi
 	if [ $obstacleProgress ]; then
@@ -630,8 +630,9 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 	fi
 
     # CHECK if it's need to commit
-    local needToCommit=`gst | awk '/Changes to be committed/{print 1}'`
-    [ -z $needToCommit ] && logWarn "Nothing to commit!" && return 1
+	if git diff --cached --quiet --exit-code; then
+		logWarn "Nothing to commit!" && return 1
+	fi
 
 	# GET pattern tokens
 	declare -a tokens
@@ -772,4 +773,11 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 
 	# COMMIT 
 	git commit -m "$message"
+}
+
+function isNotGitRepository() {
+	if [ "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ]; then
+		return 1
+	fi
+	logError "Not a git repository!"
 }
