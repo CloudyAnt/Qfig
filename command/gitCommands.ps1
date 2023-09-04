@@ -320,7 +320,7 @@ function gpush() {
         Return
     }
     $current_branch=git rev-parse --abbrev-ref HEAD
-    If (git rev-parse --verify --quiet "${current_branch}@{u}" && $?) {
+    If (git rev-parse --verify --quiet "${current_branch}@{u}" > $null && $?) {
         logInfo "Push starting.."
         git push
         If ($?) {
@@ -328,8 +328,8 @@ function gpush() {
         } Else {
             logWarn "Push seems failed, check the above message"
         }
-    } Else {
-        logInfo "No upstream branch! creating.."
+    } ElseIf (confirm "No upstream branch, create it ?") {
+        logInfo "Creating upstream branch.."
         git push -u origin $current_branch
         if ($?) {
             logSuccess "Upstream branch just created"

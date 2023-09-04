@@ -482,7 +482,7 @@ function ghttpproxy() { #? Usage: gttpproxy proxy. unsert proxy if 'proxy' is em
 function gpush() { #? git push with automatic branch creation
 	isNotGitRepository && return 1
 	local current_branch=$(git rev-parse --abbrev-ref HEAD)
-	if git rev-parse --verify --quiet "${current_branch}@{u}"; then
+	if git rev-parse --verify --quiet "${current_branch}@{u}" >/dev/null; then
 		logInfo "Push starting.."
 		git push
 		if [ $? = 0 ]; then
@@ -490,8 +490,8 @@ function gpush() { #? git push with automatic branch creation
 		else
 			logWarn "Push seems failed, check the above message"
 		fi
-	else
-		logInfo "No upstream branch! creating.."
+	elif confirm "No upstream branch, create it ?"; then
+		logInfo "Creating upstream branch.."
 		git push -u origin $current_branch
 		if [ $? = 0 ]; then
 			logSuccess "Upstream branch just created"
