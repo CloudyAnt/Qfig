@@ -70,7 +70,7 @@ function qfig { #? Qfig preserved command. -h(help) for more
 
 function funAlias() { #? works like bash 'alias', note that it would spent more time due to usage of Invoke-Expression
     param ([Parameter(Mandatory = $true)][string]$alias, [Parameter(Mandatory = $true)][string]$original)
-    "function global:$alias() {$original}" | Invoke-Expression
+    "function global:$alias() {$original `$args}" | Invoke-Expression
 }
 
 funAlias = "Set-Location -"
