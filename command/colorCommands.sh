@@ -83,10 +83,11 @@ function hsl2rgb() { #? convert HSL(floats) to RGB(integers). -s to show the rgb
         logError $err" is(are) invalid !" && return 1
     fi
 
-    local _s=$s
+    local s0
+    s0=$(echo $s | awk '{if($1 == 0) {print 0} else {print 1}}')
     s=$(echo $s | awk '{print $1/100}')
     l=$(echo $l | awk '{print $1/100}')
-    if [ $_s -eq 0 ]; then
+    if [ $s0 -eq 0 ]; then
         local G=$(echo "$l" | awk '{printf "%.0f\n", $1*255}')
         echo "$G $G $G" && return
     fi
