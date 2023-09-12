@@ -54,20 +54,21 @@ function qfig() { #? Qfig preserved command
 			echo ""
 			;;
 		update)
+			git -C $_QFIG_LOC fetch
 			declare -i behindCommits
 			behindCommits=$(git -C $_QFIG_LOC rev-list --count .."master@{u}")
 			if [ $behindCommits -eq 0 ]; then
 				logSuccess "Qfig is already up to date" && return
 			else
-				local curHead=$(getCurrentHead)
+				local curHead=$(getCurrentHead 7)
 				local pullMessage=$(git -C $_QFIG_LOC pull --rebase 2>&1)
 				if [ $? != 0 ]; then
 					logError "Cannot update Qfig:\n$pullMessage" && return
 				else
 					logInfo "Updating Qfig.."
-					local newHead=$(getCurrentHead)
+					local newHead=$(getCurrentHead 7)
 					echoe "\nUpdate head \e[1m$curHead\e[0m -> \e[1m$newHead\e[0m:\n"
-					git -C $_QFIG_LOC log --oneline --decorate -10 | awk -v ch=$curHead 'BEGIN{
+					git -C $_QFIG_LOC log --oneline --decorate --abbrev=7 -10 | awk -v ch=$curHead 'BEGIN{
 						tc["refactor"] = 31; tc["fix"] = 32; tc["feat"] = 33; tc["chore"] = 34; tc["doc"] = 35; tc["test"] = 36;
 					} {
 						if($0 ~ ch) {
@@ -220,11 +221,11 @@ function getArrayBase() { #x
 }
 
 function getCurrentHead() { #x
-	local branch commit u
+	local branch commit len
 	local branch=$(git -C $_QFIG_LOC rev-parse --abbrev-ref HEAD)
-	[ "-r" = "$1" ] && u=@{u} || :
-	local commit=$(git -C $_QFIG_LOC rev-parse "$branch$u")
-	echo ${commit:0:9}
+	[[ "$1" =~ ^[0-9]+$ && $1 -gt 0 ]] && len=$1 || len=9
+	local commit=$(git -C $_QFIG_LOC rev-parse "$branch")
+	echo ${commit:0:$len}
 }
 
 function readTemp() { #x
