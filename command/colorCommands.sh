@@ -10,15 +10,15 @@ function rgb() { #? show rgb color(rgb values or hexadecimal color value). Usage
             local err=$(concat '-, -' $errComp)
             logError $err" is(are) invalid !" && return 1
         fi
-    elif [[ $1 =~ ^[0-9a-zA-Z]{6}$ ]]; then
+    elif [[ $1 =~ ^[0-9a-fA-F]{6}$ ]]; then
         r=$(+convertHexColorUnit2Dec ${1:0:2})
         g=$(+convertHexColorUnit2Dec ${1:2:2})
         b=$(+convertHexColorUnit2Dec ${1:4:2})
     else
-        logError "Usage: rgb 100 200 255; rgb 64c8ff" && return 1
+        logError "Please specify r, g, b values like '100 200 255' or hex color name like '64c8ff'" && return 1
     fi
 
-    [[ "$COLORTERM" = "truecolor" || "$COLORTERM" = "24bit" ]] && : || logSilence "This terminal may not support 24-bit color (truecolor)"
+    [[ "$COLORTERM" = "truecolor" || "$COLORTERM" = "24bit" || "$OSTYPE" = "msys" ]] && : || logSilence "This terminal may not support 24-bit color (truecolor)"
     printf "\e[48;2;$r;$g;${b}m  \e[0m\n"
 }
 
