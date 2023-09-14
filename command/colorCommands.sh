@@ -1,4 +1,26 @@
 #? commands to operate colors
+function rgb() { #? show rgb color(rgb values or hexadecimal color value). Usage: rgb 100 200 255; rgb 64c8ff
+    local r g b
+    if [[ "$1" =~ ^[0-9]+$ && "$2" =~ ^[0-9]+$ && "$3" =~ ^[0-9]+$ ]]; then
+        r=$1;g=$2;b=$3
+        [[ $r -lt 0 || $r -gt 255 ]] && errComp+="Red(0~255)"
+        [[ $g -lt 0 || $g -gt 255 ]] && errComp+="Green(0~255)"
+        [[ $b -lt 0 || $b -gt 255 ]] && errComp+="Blue(0~255)"
+        if [ ${#errComp} -gt 0 ]; then
+            local err=$(concat '-, -' $errComp)
+            logError $err" is(are) invalid !" && return 1
+        fi
+    elif [[ $1 =~ ^[0-9a-zA-Z]{6}$ ]]; then
+        r=$(+convertHexColorUnit2Dec ${1:0:2})
+        g=$(+convertHexColorUnit2Dec ${1:2:2})
+        b=$(+convertHexColorUnit2Dec ${1:4:2})
+    else
+        logError "Usage: rgb 100 200 255; rgb 64c8ff" && return 1
+    fi
+
+    [[ "$COLORTERM" = "truecolor" || "$COLORTERM" = "24bit" ]] && : || logSilence "This terminal may not support 24-bit color (truecolor)"
+    printf "\e[48;2;$r;$g;${b}m  \e[0m\n"
+}
 
 function rgb2hsl() { #? convert RGB(integers) to HSL(floats). -s to show the rgb color
     local show
@@ -112,4 +134,21 @@ function hsl2rgb() { #? convert HSL(floats) to RGB(integers). -s to show the rgb
     G=$(echo "$hue 0" | awk "$awkPattern")
     B=$(echo "$hue -2" | awk "$awkPattern")
     [ $show ] && printf "$R $G $B \e[48;2;$R;$G;${B}m  \e[0m\n" || echo "$R $G $B"
+}
+
+function +convertHexColorUnit2Dec() { #x
+    local d1 d2
+    d2=$(+convertSingleHex2Dec ${1:0:1})
+    d1=$(+convertSingleHex2Dec ${1:1:1})
+    echo $(($d2 * 16 + $d1))
+}
+
+function +convertSingleHex2Dec() { #x
+    [[ $1 = 'a' || $1 = 'A' ]] && echo 10 && return
+    [[ $1 = 'b' || $1 = 'B' ]] && echo 11 && return
+    [[ $1 = 'c' || $1 = 'C' ]] && echo 12 && return
+    [[ $1 = 'd' || $1 = 'D' ]] && echo 13 && return
+    [[ $1 = 'e' || $1 = 'E' ]] && echo 14 && return
+    [[ $1 = 'f' || $1 = 'F' ]] && echo 15 && return
+    echo $1
 }
