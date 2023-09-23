@@ -10,13 +10,13 @@ funAlias gaap "git add -p"
 funAlias gst "git status"
 funAlias glist "git stash list"
 funAlias gfa "git fetch --all"
-funAlias grb "git rebase"
+funAlias grb "git rebase" -hasArgs
 funAlias grbc "git rebase --continue"
 funAlias grb- "git rebase -"
-funAlias gmg "git merge"
+funAlias gmg "git merge" -hasArgs
 funAlias gmgc "git merge --continue"
 funAlias gmg- "git merge -"
-funAlias gcp "git cherry-pick"
+funAlias gcp "git cherry-pick" -hasArgs
 funAlias gcpc "git cherry-pick --continue"
 funAlias gcp- "git cherry-pick -"
 funAlias gpr "git pull --rebase"
