@@ -54,7 +54,8 @@ function qfig() { #? Qfig preserved command
 			echo ""
 			;;
 		update)
-			git -C $_QFIG_LOC fetch
+			logInfo "Fetching.."
+			git -C $_QFIG_LOC fetch origin master
 			declare -i behindCommits
 			behindCommits=$(git -C $_QFIG_LOC rev-list --count .."master@{u}")
 			if [ $behindCommits -eq 0 ]; then
@@ -435,9 +436,12 @@ function confirm() { #? ask for confirmation. Usage: confirm $flags(optional) $m
 }
 
 function isExportedVar() { #? check whether it's exported var
-	if [[ $(declare -p "$1" 2>/dev/null) != 'declare -x'* ]]; then
-		return 1
+	local dp
+	dp=$(declare -p "$1" 2>/dev/null)
+	if [[ "$dp" = 'declare -x'* ]] || [[ "$dp" = 'export '* ]]; then
+		return 0
 	fi
+	return 1
 }
 
 #? Following are commands about string

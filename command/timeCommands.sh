@@ -55,7 +55,10 @@ function eut() { #? describe an epoch unix timestamp (default now), -m to indica
     fi
 
     # calculate relative
-    if [ $curStamp -ge $stamp ]; then
+	if [ $curStamp -eq $stamp ]; then
+		s=0
+		str="Now"
+    elif [ $curStamp -ge $stamp ]; then
         s=$((curStamp - stamp))
         str="before now ($curStamp)"
         ago=1
@@ -67,20 +70,38 @@ function eut() { #? describe an epoch unix timestamp (default now), -m to indica
     if [ $s -ge 60 ]; then
         m=$(($s / 60))
         s=$(($s % 60))
+	fi
+	if [ $s -ne 0 ]; then
+		str="$s seconds $str"
     fi
+
     if [ $m -ge 60 ]; then
         h=$(($m / 60))
         m=$(($m % 60))
+	fi
+	if [ $m -ne 0 ]; then
+		str="$m minutes $str"
     fi
+
     if [ $h -ge 24 ]; then
         d=$(($h / 24))
         h=$(($h % 24))
+	fi
+	if [ $h -ne 0 ]; then
+		str="$h hours $str"
     fi
+
     if [ $d -ge 365 ]; then
         y=$(($d / 365))
         d=$(($d % 365))
+	fi
+	if [ $d -ne 0 ]; then
+		str="$d days $str"
     fi
-    str="$y years $d days $h hours $m minutes $s seconds $str"
+
+	if [ $y -ne 0 ]; then
+		str="$y years $str"
+	fi
     echo $str
 
     if [ $_IS_BSD ]; then
