@@ -25,7 +25,7 @@ function resh() { #? re-source .zshrc/.bashrc
 			unset -f $fn
 		fi
 	done
-    source "$HOME/.${_CURRENT_SHELL}rc"
+    source "$_QFIG_LOC/init.sh"
 	[ -z "$2" ] && logSuccess "Refreshed $_CURRENT_SHELL" || logSuccess "$2"
 
 	[ $ksharrays ] && set -o ksharrays || :
