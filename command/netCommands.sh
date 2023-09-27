@@ -63,3 +63,7 @@ function shellproxy() { #? operate shell proxies. -p to set shell proxies to a p
     fi
     unset -f _saveProxiesToFile
 }
+
+function curld() { #? curl directly (--noproxy)
+	curl --noproxy '*' $@
+}
