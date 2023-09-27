@@ -1,5 +1,5 @@
 ## The location of Qfig project
-$Qfig_loc = $PSScriptRoot
+$_QFIG_LOC = $Qfig_loc = $PSScriptRoot
 
 ## Base configs
 . $Qfig_loc/command/baseCommands.ps1

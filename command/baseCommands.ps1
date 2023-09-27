@@ -18,35 +18,42 @@ function qfig { #? Qfig preserved command. -h(help) for more
         If ($behindCommits -Eq 0) {
             logSuccess "Qfig is up to date"
         } Else {
-            $curHead = Get-CurrentHead
-            $pullMessage = (git -C $Qfig_loc pull --rebase 2>&1) -join "`r`n"
-            if (-Not $?) {
-                logError "Cannot update Qfig:`n$pullMessage"
+            logInfo "Fetching"
+            git -C $Qfig_loc fetch
+            $behindCommits = git -C $_QFIG_LOC rev-list --count .."master@{u}"
+            If ($behindCommits -eq 0) {
+                logSuccess "Qfig is already up to date" && return
             } Else {
-                logInfo "Updateing Qfig.."
-                $newHead = Get-CurrentHead
-                Write-Host "`nUpdate head `e[1m$curHead`e[0m -> `e[1m$newHead`e[0m:`n"
-                $typeColors = @{"refactor"= 31; "fix" = 32; "feat" = 33; "chore" = 34; "doc" = 35; "test" = 36}
-                try {
-                    git -C $Qfig_loc log --oneline --decorate -10 | ForEach-Object {
-                        If ($_ -match "^$curHead.+$") {
-                            Throw "Stop print log"
-                        } Else {
-                            $parts = $_.Split(":")
-                            $parts1 = $parts[0].Split(" ")
-                            $type = $parts1.Split(" ")[$parts1.Length - 1]
-                            $color = $typeColors[$type]
-                            if (!$color) { $color = 37 }
-                            Write-Host "- [`e[1;${color}m$type`e[0m]$($parts[1])"
+                $curHead = Get-CurrentHead 7
+                $pullMessage = (git -C $Qfig_loc pull --rebase 2>&1) -join "`r`n"
+                if (-Not $?) {
+                    logError "Cannot update Qfig:`n$pullMessage"
+                } Else {
+                    logInfo "Updateing Qfig.."
+                    $newHead = Get-CurrentHead 7
+                    Write-Host "`nUpdate head `e[1m$curHead`e[0m -> `e[1m$newHead`e[0m:`n"
+                    $typeColors = @{"refactor"= 31; "fix" = 32; "feat" = 33; "chore" = 34; "doc" = 35; "test" = 36}
+                    try {
+                        git -C $Qfig_loc log --oneline --decorate -10 | ForEach-Object {
+                            If ($_ -match "^$curHead.+$") {
+                                Throw "Stop print log"
+                            } Else {
+                                $parts = $_.Split(":")
+                                $parts1 = $parts[0].Split(" ")
+                                $type = $parts1.Split(" ")[$parts1.Length - 1]
+                                $color = $typeColors[$type]
+                                if (!$color) { $color = 37 }
+                                Write-Host "- [`e[1;${color}m$type`e[0m]$($parts[1])"
+                            }
+                        }
+                    } catch {
+                        if ($_.Exception -isnot [System.Management.Automation.RuntimeException]) {
+                            throw
                         }
                     }
-                } catch {
-                    if ($_.Exception -isnot [System.Management.Automation.RuntimeException]) {
-                        throw
-                    }
+                    Write-Host
+                    logSuccess "Qfig updated!. Run '. `$profile' or open a new session to check"
                 }
-                Write-Host
-                logSuccess "Qfig updated!. Run '. `$profile' or open a new session to check"
             }
         }
     } ElseIf ("config".Equals($command)) {
@@ -288,14 +295,14 @@ function which() { #? equivalent to shell 'which'
 }
 
 function Get-CurrentHead() { #x
-    param([switch]$remote = $false)
+    param([switch]$remote = $false, [int16]$len = 9)
     $branch=git -C $_QFIG_LOC rev-parse --abbrev-ref HEAD
     If ($remote) {
         $commit=git -C $_QFIG_LOC rev-parse "$branch$u"
     } Else {
         $commit=git -C $_QFIG_LOC rev-parse "$branch"
     }
-    $commit.Substring(0, 9)
+    $commit.Substring(0, $len)
 }
 
 function Get-StringWidth() { #x
