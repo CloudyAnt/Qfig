@@ -547,6 +547,7 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 
     # CHECK if this is a git repository
     isNotGitRepository && return 1
+	local obstacleProgress
     # CHECK if merge, rebase, cherry-pick or revert is in progress 
 	if [ -f .git/MERGE_HEAD ]; then
         obstacleProgress=Merge
