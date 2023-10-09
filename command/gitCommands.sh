@@ -25,6 +25,7 @@ alias grbc='git rebase --continue'
 alias grmc='git rm --cached'
 alias gst='git status'
 alias gss='git status -s'
+alias gfa='git fetch --all'
 forbidAlias gp gpush "git push"
 forbidAlias gl "git pull"
 forbidAlias gc gct "git commit"
