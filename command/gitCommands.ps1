@@ -11,12 +11,15 @@ funAlias gst "git status"
 funAlias glist "git stash list"
 funAlias gfa "git fetch --all"
 funAlias grb "git rebase" -hasArgs
+funAlias grba "git rebase --abort"
 funAlias grbc "git rebase --continue"
 funAlias grb- "git rebase -"
 funAlias gmg "git merge" -hasArgs
+funAlias gmga "git merge --abort"
 funAlias gmgc "git merge --continue"
 funAlias gmg- "git merge -"
 funAlias gcp "git cherry-pick" -hasArgs
+funAlias gcpa "git cherry-pick --abort"
 funAlias gcpc "git cherry-pick --continue"
 funAlias gcp- "git cherry-pick -"
 funAlias gpr "git pull --rebase"
