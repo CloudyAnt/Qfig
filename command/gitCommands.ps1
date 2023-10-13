@@ -630,3 +630,10 @@ function isNotGitRepository() { #x
     logError "Not a git repository!"
 	return $true
 }
+
+function markGitSafeDir() {
+    IF (isNotGitRepository) {
+        Return
+    }
+    git config --global --add safe.directory $(Get-Location)
+}
