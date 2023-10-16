@@ -110,7 +110,9 @@ function qcmds() { #? operate available commands. Usage: qcmds commandsPrefix su
     $targetFile = "$Qfig_loc/command/${prefix}Commands.ps1"
     If (-Not (Test-Path $targetFile -PathType Leaf)) {
 		If ("local".Equals($prefix)) {
-			Write-Output "# Write your only-in-this-device commands below. This file will be ignored by .gitignore" > $targetFile
+            Write-Output "# Write your only-in-this-device commands/scripts below.
+			# Changes will be effective in new sessions, to make it effective immidiately by running command '. `$profile'
+			# This file will be ignored by .gitignore" > $targetFile
 		} Else {
 			logError "$targetFile doesn't exist"
 			qcmds

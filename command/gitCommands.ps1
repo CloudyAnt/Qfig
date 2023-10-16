@@ -141,7 +141,15 @@ function gb() { #? operate branch. Usage: gb $branch(optional, . stands for curr
             Return
         }
         If ($cmd.Length -eq 0) {
-            $cmd = "create"
+            If (-Not ((git branch) -match $branch)) {
+                If (confirm "Create non-existing branch $branch") {
+                    $cmd="c"
+                } Else {
+                    Return
+                }
+            } Else {
+                $cmd="co"
+            }
         }
         Switch ($cmd) {
             { "c", "create" -contains $_ } {
@@ -149,8 +157,10 @@ function gb() { #? operate branch. Usage: gb $branch(optional, . stands for curr
                 If ($?) { logSuccess "Created branch: $branch" }
             }
             { "cc", "create-checkout" -contains $_ } {
-                git branch $branch
-                if ($?) { git checkout $branch }
+                If (-Not ((git branch) -match $branch)) {
+                    git branch $branch
+                }
+                git checkout $branch
             }
             { "d", "delete" -contains $_ } {
                 git branch -D $branch

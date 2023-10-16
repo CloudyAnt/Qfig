@@ -164,14 +164,25 @@ function gb() { #? operate branch. Usage: gb $branch(optional, . stands for curr
 
 		local cmd=$2
 		if [ -z $cmd ]; then
-			cmd="c"
+			if ! git branch | grep -q "$branch"; then
+				if confirm "Create non-existing branch $branch"; then
+					cmd="c"
+				else
+					return 0
+				fi
+			else
+				cmd="co"
+			fi
 		fi
 		case $cmd in
 			c|create)
 				git branch $branch && logSuccess "Created branch: $branch"
 			;;
 			cc|create-checkout)
-				git branch $branch && git checkout $branch
+				if ! git branch | grep -q "$branch"; then
+					git branch $branch
+				fi
+				git checkout $branch
 			;;
 			co|checkout)
 				git checkout $branch

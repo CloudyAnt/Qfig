@@ -134,7 +134,9 @@ function qcmds() { #? operate available commands. Usage: qcmds $commandsPrefix $
     local targetFile=$_QFIG_LOC/command/$1Commands.sh
 	if [ ! -f "$targetFile" ]; then
 		if [[ "local" = $1 ]]; then
-			echo "# Write your only-in-this-device commands below. This file will be ignored by .gitignore" > $targetFile
+			echoe "# Write your only-in-this-device commands/scripts below.
+			# Changes will be effective in new sessions, to make it effective immidiately by running command 'resh'
+			# This file will be ignored by .gitignore" > $targetFile
 		else
 			logError "$targetFile dosen't exist" && qcmds && return 1
 		fi
