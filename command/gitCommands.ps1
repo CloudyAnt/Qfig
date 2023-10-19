@@ -9,6 +9,7 @@ funAlias gaa "git add -A"
 funAlias gaap "git add -p"
 funAlias gst "git status"
 funAlias glist "git stash list"
+funAlias glistp "git stash list --pretty=format:`"%C(red)%h%C(reset) - %C(dim yellow)(%C(bold magenta)%gd%C(dim yellow))%C(reset) %<(70,trunc)%s %C(green)(%cr) %C(bold blue)<%an>%C(reset)`""
 funAlias gfa "git fetch --all"
 funAlias grb "git rebase" -hasArgs
 funAlias grba "git rebase --abort"
