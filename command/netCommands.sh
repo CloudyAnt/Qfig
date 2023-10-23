@@ -5,11 +5,10 @@
 function flushdnscache() { #? flush dns cache
     if type dscacheutil >/dev/null 2>&1 && type killall >/dev/null 2>&1; then
         if sudo dscacheutil -flushcache && sudo killall -HUP mDNSResponder; then
-
             logSuccess "DNS cache just been flushed (using command \e[1mdscacheutil\e[0m and \e[1mkillall\e[0m)"
         fi
     else
-        logError "Your device is temporarily not support"
+        logError "This device is temporarily not support"
     fi
 }
 

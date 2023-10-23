@@ -634,3 +634,11 @@ function trimString() { #? trim string
 	len=$((end - begin + 1))
 	echo ${s:begin:len}
 }
+
+function filei() { #? print file info
+	if [ "$_IS_BSD" ]; then
+		file -I $1
+	else
+		file -i $1
+	fi
+}
