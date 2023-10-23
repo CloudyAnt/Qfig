@@ -59,9 +59,24 @@ If (Test-Path $Qfig_loc/config) {
 		$initMsg += "Text editor: $preferTextEditor(default). "
 	}
 
+	If ($content -match '<psTabStyle>(.+)</psTabStyle>') {
+		If ("Windows".Equals($matches[1])) {
+			Set-PSReadLineOption -EditMode Windows
+			Set-PSReadLineKeyHandler -Key Tab -Function TabCompleteNext
+			$initMsg += "Tab style: Windows. "
+		} ElseIf ("Unix".Equals($matches[1])) {
+			Set-PSReadLineOption -EditMode Emacs
+			Set-PSReadLineKeyHandler -Key Tab -Function Complete
+			$initMsg += "Tab style: Unix. "
+		} Else {
+			logWarn "Unsupported tab key action style: $(matches[1])"
+		}
+	}
+
 	If ($verbose) {
 		logInfo $initMsg
 	}
+
 	Clear-Variable verbose
 	Clear-Variable matches
 	Clear-Variable enabledCommands 
