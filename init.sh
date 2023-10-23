@@ -35,6 +35,13 @@ if [ -f "$_QFIG_LOC/config" ]; then
 	function _enableCommands() {
 		local cmds rcmds cmdsFile
 		cmds=$1
+		if [[ $cmds == *":"* ]]; then
+			if [[ $cmds == *":sh" ]]; then
+				cmds=${cmds:0:-3}
+			else
+				return
+			fi
+		fi
 		[ ${enabledCommandsMap[$cmds]} ] && return || :
 		enabledCommandsMap[$cmds]=1
 		cmdsFile="$_QFIG_LOC/command/${cmds}Commands.sh"

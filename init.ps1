@@ -21,6 +21,13 @@ If (Test-Path $Qfig_loc/config) {
 				Return
 			} Else {
 				$cmds = $_.trim()
+				If ($cmds -match ".*:.*") {
+					if ($cmds -match ".*:ps1$") {
+						$cmds = $cmds.Substring(0, $cmds.Length - 4)
+					} Else {
+						Return
+					}
+				}
 				$cmdsFile = "$Qfig_loc/command/${cmds}Commands.ps1"	
 				If (Test-Path "$cmdsFile") {
 					. $cmdsFile
