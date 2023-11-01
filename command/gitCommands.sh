@@ -404,56 +404,86 @@ _git_stash_key="_git_stash_:"
 function gstash() { #? stash with specific name. Usage: gstash name(optional)
 	# CHECK if this is a git repository
     isNotGitRepository && return 1
+
+	local ki=""
+	OPTIND=1
+	while getopts ":u" opt; do
+        case $opt in
+			u)
+				ki="--keep-index"
+				;;
+			:)
+                ;;
+			\?)
+				;;
+        esac
+    done
+	shift "$((OPTIND - 1))"
+
     if [ -z "$1" ] 
     then
-        git stash
+        git stash $ki
         return
     fi
-    git stash push -m "$_git_stash_key""$1" # stash with specific name
+    git stash push -m "$_git_stash_key""$1" $ki # stash with specific name
 }
 
-function gstashu() { #? stash unstaged files with specific name. Usage: gstashu name(optional)
+function +gitStashReadOps() {
 	# CHECK if this is a git repository
     isNotGitRepository && return 1
-    if [ -z "$1" ] 
-    then
-        git stash --keep-index
-        return
-    fi
-    git stash push -m "$_git_stash_key""$1" --keep-index # stash with specific name
-}
+	local subCommand=$1
+	local index=""
+	OPTIND=2
+	while getopts ":i:" opt; do
+        case $opt in
+			i)
+				index=$OPTARG
+				if [[ -z "$index" || ! $index =~ ^[0-9]+$ ]]; then
+					logError "Please specify a valid index (non-negative integer)" && return 1
+				fi
+				;;
+			:)
+                ;;
+			\?)
+				;;
+        esac
+    done
+	shift "$((OPTIND - 1))"
 
-function gapply() { #? apply with specific name. Usage: gapply name(optional)
-	# CHECK if this is a git repository
-    isNotGitRepository && return 1
-    if [ -z "$1" ] 
-    then
-        git stash apply
-        return
-    fi
-    local key=$(git stash list | grep "$_git_stash_key""$1" | cut -d: -f1)
-    [ -z "$key" ] && logWarn "The stash key \"$1\" doesn't exist!" && return
-    git stash apply $key # apply with specific name
-}
-
-function gpop() { #? pop with specific name. Usage: gpop $name(optional)
-	# CHECK if this is a git repository
-    isNotGitRepository && return 1
-    if [ -z "$1" ] 
-    then
-        git stash pop
-        return
-    fi
-    local key=$(git stash list | grep "$_git_stash_key""$1" | cut -d: -f1)
-    [ -z "$key" ] && logWarn "The stash key \"$1\" doesn't exist!" && return
-    git stash pop $key # pop with specific name
-}
-
-function gpopi() { #? pop stash at a specific index. Usage gpopi $index
-	if [[ -z $1 || ! $1 =~ '^[0-9]+$' ]]; then
-		logError "Please specify a valid index (non-negative integer)" && return 1
+	declare -a subCommandArray
+	if [ $_CURRENT_SHELL = "zsh" ]; then
+		subCommandArray=(${(s/ /)subCommand})
+	elif [[ $_CURRENT_SHELL = "bash" ]]; then
+		read -a subCommandArray <<< "$subCommand"
+	else
+		return 1
 	fi
-	git stash pop stash@{$1}
+	
+	if [ $index ]; then
+		git stash ${subCommandArray[@]} stash@{$index}
+	elif [ -z "$1" ]; then
+		git stash ${subCommandArray[@]}
+	else
+		local key=$(git stash list | grep "$_git_stash_key""$1" | cut -d: -f1)
+		[ -z "$key" ] && logWarn "The stash key \"$1\" doesn't exist!" && return
+		git stash ${subCommandArray[@]} $key # apply with specific name
+	fi
+}
+
+function gshow() { #? stash show. Usage: gshow $name(optional) or gshow -i $index
+	+gitStashReadOps "show" $@
+}
+
+function gshowp() { #? stash show -p. Usage: gshowp $name(optional) or gshowp -i $index
+	+gitStashReadOps "show -p" $@
+}
+
+function gapply() { #? stash applay. Usage: gapply $name(optional) or gapply -i $index
+	+gitStashReadOps apply $@
+}
+
+function gpop() { #? stash pop. Usage: gpop $name(optional) or gpop -i $index
+	+gitStashReadOps pop $@
 }
 
 function gcst() { #? check multi folder commit status
