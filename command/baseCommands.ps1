@@ -18,7 +18,8 @@ function qfig { #? Qfig preserved command. -h(help) for more
         git -C $Qfig_loc fetch
         $behindCommits = git -C $_QFIG_LOC rev-list --count .."master@{u}"
         If ($behindCommits -eq 0) {
-            logSuccess "Qfig is already up to date" && return
+            logSuccess "Qfig is already up to date"
+            Return
         } Else {
             $curHead = Get-CurrentHead 7
             $pullMessage = (git -C $Qfig_loc pull --rebase 2>&1) -join "`r`n"

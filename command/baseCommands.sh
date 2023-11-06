@@ -11,20 +11,22 @@ function resh() { #? re-source .zshrc/.bashrc
 	if [ ! "-" = "$1" ]; then
 		[ -z "$1" ] && logInfo "Refreshing $_CURRENT_SHELL..." || logInfo "$1..."
 	fi
-	# unset all alias
-	unalias -a
-	# unset all functions
-	declare -a allFunctions
-	if [ $_CURRENT_SHELL = "zsh" ]; then
-		allFunctions=${(ok)functions}
-	elif [[ $_CURRENT_SHELL = "bash" ]]; then
-		allFunctions=$(declare -F | awk '{print $3}')
-	fi
-	for fn in $allFunctions; do
-		if [[ $fn != _* ]]; then # unset all function not prefixed with '_'
-			unset -f $fn
+	if [ ! "$OSTYPE" = "msys" ]; then # msys builtin functions that cannot be filter out
+		# unset all alias
+		unalias -a
+		# unset all functions
+		declare -a allFunctions
+		if [ $_CURRENT_SHELL = "zsh" ]; then
+			allFunctions=${(ok)functions}
+		elif [[ $_CURRENT_SHELL = "bash" ]]; then
+			allFunctions=$(declare -F | awk '{print $3}')
 		fi
-	done
+		for fn in $allFunctions; do
+			if [[ $fn != _* ]]; then # unset all function not prefixed with '_', there are many in git bash
+				unset -f $fn
+			fi
+		done
+	fi
     source "$_QFIG_LOC/init.sh"
 	[ -z "$2" ] && logSuccess "Refreshed $_CURRENT_SHELL" || logSuccess "$2"
 
