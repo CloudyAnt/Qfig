@@ -28,7 +28,9 @@ function resh() { #? re-source .zshrc/.bashrc
 			fi
 		done
 	fi
-    source "$_QFIG_LOC/init.sh"
+	local qfigLocation=$_QFIG_LOC
+	_QFIG_LOC="" # tell init.sh to reload
+    source "$qfigLocation/init.sh"
 	[ -z "$2" ] && logSuccess "Refreshed $_CURRENT_SHELL" || logSuccess "$2"
 
 	[ $ksharrays ] && set -o ksharrays || :

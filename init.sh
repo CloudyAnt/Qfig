@@ -1,3 +1,5 @@
+[ "$_QFIG_LOC" ] && return || : # avoid 2nd load in bash
+
 _CURRENT_SHELL=$(ps -p $$ -o comm= 2>/dev/null) # if [[ "$OSTYPE" == "darwin"* ]] || [[ "$OSTYPE" == "linux"* ]]
 if [ $? -ne 0 ]; then
 	_CURRENT_SHELL=$(ps -p $$ comm= 2>/dev/null) # elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]]
@@ -80,7 +82,7 @@ if [ -f "$_QFIG_LOC/config" ]; then
     fi
 	[ $preferTextEditor ] && _INIT_MSG+="Text editor: $_PREFER_TEXT_EDITOR. " || _INIT_MSG+="Text editor: $_PREFER_TEXT_EDITOR(default). "
 	if [ $verbose ]; then
-		logInfo $_INIT_MSG
+		logInfo "$_INIT_MSG"
 	fi
 
 	unset verbose
