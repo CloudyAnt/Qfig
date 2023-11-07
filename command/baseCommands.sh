@@ -11,7 +11,8 @@ function resh() { #? re-source .zshrc/.bashrc
 	if [ ! "-" = "$1" ]; then
 		[ -z "$1" ] && logInfo "Refreshing $_CURRENT_SHELL..." || logInfo "$1..."
 	fi
-	if [ ! "$OSTYPE" = "msys" ]; then # msys builtin functions that cannot be filter out
+	local cleanFuncs="" # some system (like msys) contains builtin functions that should not be clean
+	if [ $cleanFuncs ]; then
 		# unset all alias
 		unalias -a
 		# unset all functions
