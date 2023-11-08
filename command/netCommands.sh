@@ -1,8 +1,17 @@
 #? Commands to operate network.
 
-#? If unable to visit website by domain, flush the dns cache, if useless, swith to google or other public dns
+function ps2port() { #? [lsof] get port which listening by process id
+	[ -z "$1" ] && logError "Which pid ?" && return 1
+	lsof -aPi -p $1
+}
 
-function flushdnscache() { #? flush dns cache
+function port2ps() { #? [lsof] get process which listening to port
+	[ -z "$1" ] && logError "Which port ?" && return 1
+	lsof -nP -iTCP -sTCP:LISTEN | grep $1
+}
+
+#? If unable to visit website by domain, flush the dns cache, if useless, swith to google or other public dns
+function flushdnscache() { #? [dscacheutil, killall] flush dns cache
     if type dscacheutil >/dev/null 2>&1 && type killall >/dev/null 2>&1; then
         if sudo dscacheutil -flushcache && sudo killall -HUP mDNSResponder; then
             logSuccess "DNS cache just been flushed (using command \e[1mdscacheutil\e[0m and \e[1mkillall\e[0m)"
@@ -63,6 +72,23 @@ function shellproxy() { #? operate shell proxies. -p to set shell proxies to a p
     unset -f _saveProxiesToFile
 }
 
-function curld() { #? curl directly (--noproxy)
+function curld() { #? [curl] curl directly (--noproxy)
 	curl --noproxy '*' $@
+}
+
+function ipt() { #? [iptables] simplified iptables ops
+    local command=$1
+    local port=$2
+    if [[ ! -z "$command" && ! "$port" =~ ^[0-9]+$ ]]; then
+        logError "Port should be decimal!" && return 1
+    fi
+    if [ -z "$command" ]; then
+        iptables -L -n --line-numbers
+    elif [ "a" = "$command" ]; then
+        iptables -A INPUT -p tcp --dport $port -j ACCEPT
+        logInfo "Added port $port to INPUT chain."
+    elif [ "d" = "$command" ]; then
+        iptables -D INPUT -p tcp --dport $port -j ACCEPT
+        logInfo "Deleted port $port from INPUT chain."
+    fi
 }
