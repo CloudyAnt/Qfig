@@ -61,15 +61,18 @@ function qfig() { #? Qfig preserved command
 		update)
 			logInfo "Fetching.."
 			git -C $_QFIG_LOC fetch origin master
+			if [ $? != 0 ]; then
+				logError "Cannot fetch." && return 1
+			fi
 			declare -i behindCommits
 			behindCommits=$(git -C $_QFIG_LOC rev-list --count .."master@{u}")
 			if [ $behindCommits -eq 0 ]; then
 				logSuccess "Qfig is already up to date" && return
 			else
 				local curHead=$(getCurrentHead 7)
-				local pullMessage=$(git -C $_QFIG_LOC pull --rebase 2>&1)
+				git -C $_QFIG_LOC pull --rebase 2>&1
 				if [ $? != 0 ]; then
-					logError "Cannot update Qfig:\n$pullMessage" && return
+					logError "Cannot update." && return
 				else
 					logInfo "Updating Qfig.."
 					local newHead=$(getCurrentHead 7)
