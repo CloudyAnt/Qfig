@@ -2,8 +2,8 @@
 #? You need to edit the ssh mapping file by execute 'qmap ssh'. A ssh mapping like: a=user@111.222.333.444:555
 #? You also need to edit the pem mapping file by execute 'qmap pem' if needed. A pem mapping like: a=/path/to/pem
 
-_SSH_MAPPING_FILE=$_QFIG_LOC/sshMappingFile
-_PEM_MAPPING_FILE=$_QFIG_LOC/pemMappingFile
+_SSH_MAPPING_FILE=$_QFIG_LOCAL/sshMappingFile
+_PEM_MAPPING_FILE=$_QFIG_LOCAL/pemMappingFile
 
 # Resolve ssh & pem mappings
 # TODO optimze these 2 mapping

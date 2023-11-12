@@ -1,15 +1,16 @@
-#? Commands to do translation. These commands are still in very early stages.
-#R:json
-#R:encoding
+#? Commands to do translation. 
+enable-qcmds json
+enable-qcmds encoding
 
-_TRANS_MAPPING_FILE=$_QFIG_LOC/translationMappingFile
+_TRANS_MAPPING_FILE=$_QFIG_LOCAL/translationMappingFile
 [ ! -f $_TRANS_MAPPING_FILE ] && touch $_TRANS_MAPPING_FILE || :
 eval $(awk -F '=' 'BEGIN { s="declare -g -A _TRANS_MAPPING;" } {
-    if (NF >= 2) {
+    if (NF == 2) {
         split($2, parts, "#");
         s = s "_TRANS_MAPPING[" $1 "]=\"" parts[1] " " parts[2] " " parts[3] "\";";
     }
 } END { print s }' $_TRANS_MAPPING_FILE)
+unset _TRANS_MAPPING_FILE
 
 function bdts() { #? Translate use Baidu Fanyi api. Sample usage: bdts hello
     [[ -z $1 ]] && logError "Sample usage: bdts hello" && return 1

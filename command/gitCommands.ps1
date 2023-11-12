@@ -362,7 +362,7 @@ function gct() {
         "    {0,-15}{1}" -f "-help", "Print this help message"
         "    {0,-15}{1}" -f "-pattern_set", "Specify the pattern"
         "    {0,-15}{1}" -f "-verbose", "Show more verbose info"
-        "`n  Recommend pattern: $(Get-Content $Qfig_loc/staff/defGctPattern)"
+        "`n  Recommend pattern: $(Get-Content $_QFIG_LOC/staff/defGctPattern)"
         Return
     }
 
@@ -391,7 +391,7 @@ function gct() {
 
     # GET pattern & cache, use default if it not exists
     $git_toplevel = git rev-parse --show-toplevel
-    $git_commit_info_cache_folder = "$Qfig_loc/.gcache/$($git_toplevel | md5)"
+    $git_commit_info_cache_folder = "$_QFIG_LOC/.gcache/$($git_toplevel | md5)"
     $null = New-Item -Path $git_commit_info_cache_folder -Force -ItemType Container
 
     $pattern_tokens_file = "$git_commit_info_cache_folder/pts"
@@ -424,9 +424,9 @@ function gct() {
         }
         ElseIf (-Not (Test-Path $pattern_tokens_file -PathType Leaf)) {
             $pattern_set = $true
-            If (confirm "Use default pattern `e[34;3;38m$(Get-Content $Qfig_loc/staff/defGctPattern)`e[0m ?") {
+            If (confirm "Use default pattern `e[34;3;38m$(Get-Content $_QFIG_LOC/staff/defGctPattern)`e[0m ?") {
                 logInfo "Using default pattern"
-                $pattern = Get-Content "$Qfig_loc/staff/defGctPattern"
+                $pattern = Get-Content "$_QFIG_LOC/staff/defGctPattern"
             }
             Else {
                 logInfo "Then please specify the pattern(Rerun with -p to change, -h to get hint):"
@@ -445,7 +445,7 @@ function gct() {
 
     # RESOLVE pattern
     If ($pattern_set) {
-        $resolveResult = . $Qfig_loc/staff/resolveGctPattern.ps1 $pattern
+        $resolveResult = . $_QFIG_LOC/staff/resolveGctPattern.ps1 $pattern
         If ($?) {
             Write-Output "?:$pattern" > $pattern_tokens_file
             Write-Output $($resolveResult -join "`r`n") >> $pattern_tokens_file

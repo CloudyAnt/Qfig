@@ -24,21 +24,30 @@ else
 fi
 export _CURRENT_SHELL
 
+## create local data folder
+_QFIG_LOCAL=$_QFIG_LOC/.local
+if [ ! -d "$_QFIG_LOCAL" ]; then
+	mkdir "$_QFIG_LOCAL"
+fi
+
 ## Base configs
 source $_QFIG_LOC/command/baseCommands.sh
 
 ## Custom configs 
 _PREFER_TEXT_EDITOR=vim
-if [ -f "$_QFIG_LOC/config" ]; then
-	[[ "true" = $(sed -rn 's|<showVerboseInitMsg>(.+)</showVerboseInitMsg>|\1|p' $_QFIG_LOC/config) ]] && verbose=1 || verbose=""
+localConfigFile=$_QFIG_LOCAL/config
+if [ -f "$localConfigFile" ]; then
+	[[ "true" = $(sed -rn 's|<showVerboseInitMsg>(.+)</showVerboseInitMsg>|\1|p' $localConfigFile) ]] && verbose=1 || verbose=""
 	enabledCommands=""
 	declare -A enabledCommandsMap
 
-	function _enableCommands() {
+   # Add line 'enable-qcmds foo' in the commands file if it requires foo commands
+	function enable-qcmds() {
 		local cmds rcmds cmdsFile
 		cmds=$1
 		if [[ $cmds == *":"* ]]; then
 			if [[ $cmds == *":sh" ]]; then
+				# only load shell commands
 				cmds=${cmds:0:-3}
 			else
 				return
@@ -48,16 +57,6 @@ if [ -f "$_QFIG_LOC/config" ]; then
 		enabledCommandsMap[$cmds]=1
 		cmdsFile="$_QFIG_LOC/command/${cmds}Commands.sh"
 		if [ -f "$cmdsFile" ]; then
-			# Add this file required commands
-			while read -r line; do
-				line=${line//$'\r'/}
-				line=${line//$'\n'/}
-				if [[ "$line" =~ ^#R:[0-9a-zA-Z]+$ ]]; then
-					rcmds=${line:3}
-					_enableCommands $rcmds
-				fi
-			done < $cmdsFile
-
 			source $cmdsFile
 			enabledCommands="$enabledCommands $cmds"
 		else
@@ -66,16 +65,13 @@ if [ -f "$_QFIG_LOC/config" ]; then
 	}
 
 	while read -r cmds; do
-		_enableCommands $cmds
-	done < <(awk '/<enabledCommands>/{f = 1; next} /<\/enabledCommands>/{f = 0} f' $_QFIG_LOC/config)
-
-	unset -f _enableCommands
-	unset enabledCommandsMap
+		enable-qcmds $cmds
+	done < <(awk '/<enabledCommands>/{f = 1; next} /<\/enabledCommands>/{f = 0} f' $localConfigFile)
 
 	_INIT_MSG=""
 	[ "$enabledCommands" ] && _INIT_MSG+="Enabled commands:$enabledCommands. " || _INIT_MSG+="None enabled commands. "
     
-    preferTextEditor=$(sed -rn 's|<preferTextEditor>(.+)</preferTextEditor>|\1|p' $_QFIG_LOC/config)
+    preferTextEditor=$(sed -rn 's|<preferTextEditor>(.+)</preferTextEditor>|\1|p' $localConfigFile)
     if [ ! -z "$preferTextEditor" ]
     then
         _PREFER_TEXT_EDITOR=$preferTextEditor
@@ -86,8 +82,11 @@ if [ -f "$_QFIG_LOC/config" ]; then
 	fi
 
 	unset verbose
+	unset localConfigFile
 	unset enabledCommands
+	unset enabledCommandsMap
 	unset preferTextEditor
+	unset -f enable-qcmds
 else
 	_INIT_MSG="";_INIT_MSG+="None enabled cmds. Text editor: $_PREFER_TEXT_EDITOR(default). "
 fi

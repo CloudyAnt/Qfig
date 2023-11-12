@@ -12,17 +12,17 @@ function qfig { #? Qfig preserved command. -h(help) for more
         "    {0,-10}{1}" -f "report", "Report Qfig cared environment"
         "    {0,-10}{1}" -f "v/version", "Show current version"
     } ElseIf ("into".Equals($command)) {
-        Set-Location $Qfig_loc
+        Set-Location $_QFIG_LOC
     } ElseIf ("update".Equals($command)) {
         logInfo "Fetching"
-        git -C $Qfig_loc fetch
+        git -C $_QFIG_LOC fetch
         $behindCommits = git -C $_QFIG_LOC rev-list --count .."master@{u}"
         If ($behindCommits -eq 0) {
             logSuccess "Qfig is already up to date"
             Return
         } Else {
             $curHead = Get-CurrentHead 7
-            $pullMessage = (git -C $Qfig_loc pull --rebase 2>&1) -join "`r`n"
+            $pullMessage = (git -C $_QFIG_LOC pull --rebase 2>&1) -join "`r`n"
             if (-Not $?) {
                 logError "Cannot update Qfig:`n$pullMessage"
             } Else {
@@ -31,7 +31,7 @@ function qfig { #? Qfig preserved command. -h(help) for more
                 Write-Host "`nUpdate head `e[1m$curHead`e[0m -> `e[1m$newHead`e[0m:`n"
                 $typeColors = @{"refactor"= 31; "fix" = 32; "feat" = 33; "chore" = 34; "doc" = 35; "test" = 36}
                 try {
-                    git -C $Qfig_loc log --oneline --decorate -10 | ForEach-Object {
+                    git -C $_QFIG_LOC log --oneline --decorate -10 | ForEach-Object {
                         If ($_ -match "^$curHead.+$") {
                             Throw "Stop print log"
                         } Else {
@@ -53,18 +53,18 @@ function qfig { #? Qfig preserved command. -h(help) for more
             }
         }
     } ElseIf ("config".Equals($command)) {
-        If (-Not (Test-Path -Path "$Qfig_loc/config" -PathType Leaf)) {
-            "# This config was copied from the 'configTemplate'" > $Qfig_loc/config
-            Get-Content $Qfig_loc/configTemplate | Select-Object -Skip 1 >> $Qfig_loc/config
+        If (-Not (Test-Path -Path "$_QFIG_LOC/config" -PathType Leaf)) {
+            "# This config was copied from the 'configTemplate'" > $_QFIG_LOC/config
+            Get-Content $_QFIG_LOC/configTemplate | Select-Object -Skip 1 >> $_QFIG_LOC/config
             logInfo "Copied config from configTemplate"
         }
-        editFile $Qfig_loc/config
+        editFile $_QFIG_LOC/config
     } ElseIf ("report".Equals($command)) {
         $msg = "$initMsg`n  OsType: $Env:OS"
         logInfo $msg
     } ElseIf ("v".Equals($command) -Or "version".Equals($command)) {
-        $curHead = (git -C $Qfig_loc log --oneline --decorate -1).Split(" ")[0]
-        $branch = git -C $Qfig_loc symbolic-ref --short HEAD
+        $curHead = (git -C $_QFIG_LOC log --oneline --decorate -1).Split(" ")[0]
+        $branch = git -C $_QFIG_LOC symbolic-ref --short HEAD
         Write-Host "$branch ($curHead)"
     } Else {
         qfig -command help
@@ -97,7 +97,7 @@ function qcmds() { #? operate available commands. Usage: qcmds commandsPrefix su
     If ($help -Or (-Not $prefix)) {
         logInfo "Basic usage: qcmds toolCommandsPrefix subcommands(optional). e.g., 'qcmds base'"
         $availabeCommandsNotice = "  Available Qfig tool commands(prefix):"
-        Get-ChildItem $Qfig_loc/command | ForEach-Object {
+        Get-ChildItem $_QFIG_LOC/command | ForEach-Object {
             $itemName = $_.name
             If ($itemName -match "(.+)Commands`.ps1") {
                 $availabeCommandsNotice += " $($Matches[1])"
@@ -108,7 +108,7 @@ function qcmds() { #? operate available commands. Usage: qcmds commandsPrefix su
         Return
     }
 
-    $targetFile = "$Qfig_loc/command/${prefix}Commands.ps1"
+    $targetFile = "$_QFIG_LOC/command/${prefix}Commands.ps1"
     If (-Not (Test-Path $targetFile -PathType Leaf)) {
 		If ("local".Equals($prefix)) {
             Write-Output "# Write your only-in-this-device commands/scripts below.
@@ -242,7 +242,7 @@ function qfigLog() { #x
 
 function qmap() { #? view or edit a map(which may be recognized by Qfig commands)
     param([Parameter(Mandatory)]$prefix)
-    editFile "$Qfig_loc/$prefix`MappingFile"
+    editFile "$_QFIG_LOC/$prefix`MappingFile"
 }
 
 function md5() { #? calculate md5. Supporting pipe.

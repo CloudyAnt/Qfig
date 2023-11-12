@@ -4,7 +4,7 @@
 
 alias mysqll='mysql -uroot -p' # Connect local mysql
 
-_MYSQL_MAPPING_FILE=$_QFIG_LOC/mysqlMappingFile
+_MYSQL_MAPPING_FILE=$_QFIG_LOCAL/mysqlMappingFile
 
 [ ! -f $_MYSQL_MAPPING_FILE ] && touch $_MYSQL_MAPPING_FILE || :
 eval $(awk -F '=' 'BEGIN { s="declare -g -A _MYSQL_MAPPING;" } {

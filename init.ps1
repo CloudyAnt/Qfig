@@ -1,8 +1,14 @@
 ## The location of Qfig project
-$_QFIG_LOC = $Qfig_loc = $PSScriptRoot
+$_QFIG_LOC = $PSScriptRoot
+
+## create local data folder
+$_QFIG_LOCAL="$_QFIG_LOC\.local"
+If (-Not (Test-Path -PathType Container -Path "$_QFIG_LOCAL")) {
+	New-Item -ItemType Directory -Path "$_QFIG_LOCAL"
+}
 
 ## Base configs
-. $Qfig_loc/command/baseCommands.ps1
+. $_QFIG_LOC\command\baseCommands.ps1
 
 ## Custom configs
 $preferTextEditor = "NotePad"
@@ -10,35 +16,62 @@ If (-Not $IsWindows) {
 	$preferTextEditor = "vim"
 }
 
-If (Test-Path $Qfig_loc/config) {
-	$content = $(Get-Content "$Qfig_loc/config") -join "`n"
+If (Test-Path -PathType Leaf $_QFIG_LOCAL\config) {
+	$content = $(Get-Content "$_QFIG_LOCAL\config") -join "`n"
 	$verbose = $($content -match '<showVerboseInitMsg>(.+)</showVerboseInitMsg>' -And "true".Equals($matches[1])) ? 1 : 0
 	$enabledCommands = ""
-	$initMsg = ""
+	$enabledCommandsMap = @{}
+	$sources = @()
+
+	function Add-QSource() {
+		param([Parameter(Mandatory)][string]$cmds)
+		if ($cmds -match ".+:.+") {
+			if ($cmds -match ".+:ps1") {
+				# only load powershell commands
+				$cmds = $cmds.Substring(0, $cmds.Length - 4)
+			} else {
+				return
+			}
+		}
+
+		if ($enabledCommandsMap[$cmds] -eq 1) {
+			return
+		}
+		$enabledCommandsMap[$cmds] = 1
+		$cmds = $cmds.trim()
+		$cmdsFile = "$_QFIG_LOC\command\${cmds}Commands.ps1"
+		If (Test-Path -PathType Leaf "$cmdsFile") {
+
+			Get-Content $cmdsFile | ForEach-Object {
+				If ($_ -match "#requiring-end *") {
+					return
+				} ElseIf ($_ -match "^#require ([a-z]+)$") {
+					Add-QSource $matches[1]
+				}
+			}
+
+			$global:sources += $cmdsFile
+			$global:enabledCommands += " $cmds"
+		} ElseIf ($verbose) {
+			logWarn "$cmdsFile Not Exists!"
+		}
+	}
+
 	If ($content -match '<enabledCommands>([\s\S]*)</enabledCommands>') {
 		$matches[1].Split("`n") | ForEach-Object {
 			If ([string]::IsNullOrEmpty($_)) {
 				Return
 			} Else {
-				$cmds = $_.trim()
-				If ($cmds -match ".*:.*") {
-					if ($cmds -match ".*:ps1$") {
-						$cmds = $cmds.Substring(0, $cmds.Length - 4)
-					} Else {
-						Return
-					}
-				}
-				$cmdsFile = "$Qfig_loc/command/${cmds}Commands.ps1"	
-				If (Test-Path "$cmdsFile") {
-					. $cmdsFile
-					$enabledCommands += " $cmds"
-				} ElseIf ($verbose) {
-					logWarn "$cmdsFile Not Exists!"
-				}
+				Add-QSource $_
 			}
 		}
 	}
 
+	foreach ($sourceFile in $sources) {
+		. $sourceFile
+	}
+
+	$initMsg = ""
 	If ($enabledCommands) {
 		$initMsg += "Enabled commands:$enabledCommands. "
 	} Else {
@@ -77,13 +110,17 @@ If (Test-Path $Qfig_loc/config) {
 		logInfo $initMsg
 	}
 
+	Clear-Variable sources
 	Clear-Variable verbose
 	Clear-Variable matches
-	Clear-Variable enabledCommands 
+	Clear-Variable content
+	Clear-Variable enabledCommands
+	Clear-Variable enabledCommandsMap
 	Clear-Variable _preferTextEditor
+	Remove-Item Function:Add-QSource
 }
 
 ## Load functions that only works on current computer
-If (Test-Path $Qfig_loc/command/localCommands.ps1) {
-	. $Qfig_loc/command/localCommands.ps1
+If (Test-Path $_QFIG_LOC\command\localCommands.ps1) {
+	. $_QFIG_LOC\command\localCommands.ps1
 }

@@ -5,7 +5,7 @@ function dec2hex() {
     $i = 1
     $out = ""
     foreach ($arg in $args) {
-        if (arg -notmatch "^[0-9]+$") {
+        if ($arg -isnot [int]) {
             throw "${i}th param '$arg' is not decimal"
             return
         }
@@ -24,7 +24,7 @@ function hex2dec() {
     $i = 1
     $out = ""
     foreach ($arg in $args) {
-        if ($arg -notmatch "^[0-9a-fA-F]+$") {
+        if ($arg -isnot [int]) {
             throw "${i}th param '$arg' is not hexdecimal"
         }
         $dec = [Convert]::ToInt32($arg, 16)

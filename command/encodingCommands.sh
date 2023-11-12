@@ -1,5 +1,5 @@
 #? Encodings related coomands
-#R:math
+enable-qcmds math
 
 function chr2uni() { #? convert characters to unicodes(4 digits with '\u' prefix)
 	[ -z "$1" ] && return
