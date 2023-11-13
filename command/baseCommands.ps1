@@ -53,12 +53,12 @@ function qfig { #? Qfig preserved command. -h(help) for more
             }
         }
     } ElseIf ("config".Equals($command)) {
-        If (-Not (Test-Path -Path "$_QFIG_LOC/config" -PathType Leaf)) {
-            "# This config was copied from the 'configTemplate'" > $_QFIG_LOC/config
-            Get-Content $_QFIG_LOC/configTemplate | Select-Object -Skip 1 >> $_QFIG_LOC/config
+        If (-Not (Test-Path -Path "$_QFIG_LOCAL/config" -PathType Leaf)) {
+            "# This config was copied from the 'configTemplate'" > $_QFIG_LOCAL/config
+            Get-Content $_QFIG_LOC/configTemplate | Select-Object -Skip 1 >> $_QFIG_LOCAL/config
             logInfo "Copied config from configTemplate"
         }
-        editFile $_QFIG_LOC/config
+        editFile $_QFIG_LOCAL/config
     } ElseIf ("report".Equals($command)) {
         $msg = "$initMsg`n  OsType: $Env:OS"
         logInfo $msg
@@ -242,7 +242,7 @@ function qfigLog() { #x
 
 function qmap() { #? view or edit a map(which may be recognized by Qfig commands)
     param([Parameter(Mandatory)]$prefix)
-    editFile "$_QFIG_LOC/$prefix`MappingFile"
+    editFile "$_QFIG_LOCAL/$prefix`MappingFile"
 }
 
 function md5() { #? calculate md5. Supporting pipe.

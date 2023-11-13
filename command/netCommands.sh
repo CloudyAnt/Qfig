@@ -21,7 +21,7 @@ function flushdnscache() { #? [dscacheutil, killall] flush dns cache
     fi
 }
 
-_SAVED_PROXIES_FILE=$_QFIG_LOC/savedProxies
+_SAVED_PROXIES_FILE=$_QFIG_LOCAL/savedProxies
 # Load saved proxies
 if [ -f "$_SAVED_PROXIES_FILE" ]; then
     eval $(awk -F '=' 'BEGIN { s="" } {

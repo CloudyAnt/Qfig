@@ -95,11 +95,11 @@ function qfig() { #? Qfig preserved command
 			fi
 			;;
 		config)
-			if [ ! -f $_QFIG_LOC/config ]; then
-				echoe "# This config was copied from the 'configTemplate'\n$(tail -n +2 $_QFIG_LOC/configTemplate)" > $_QFIG_LOC/config
+			if [ ! -f $_QFIG_LOCAL/config ]; then
+				echoe "# This config was copied from the 'configTemplate'\n$(tail -n +2 $_QFIG_LOC/configTemplate)" > $_QFIG_LOCAL/config
 				logInfo "Copied config from \e[1mconfigTemplate\e[0m"
 			fi
-			editfile $_QFIG_LOC/config
+			editfile $_QFIG_LOCAL/config
 			;;
 		into)
 			cd $_QFIG_LOC
@@ -218,7 +218,7 @@ function editfile() { #? edit a file using preferedTextEditor
 
 function qmap() { #? view or edit a map(which may be recognized by Qfig commands)
 	[ -z "$1" ] && logError "Which map ?" && return 1
-	editfile "$_QFIG_LOC/$1MappingFile"
+	editfile "$_QFIG_LOCAL/$1MappingFile"
 }
 
 function getArrayBase() { #x
