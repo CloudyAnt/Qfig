@@ -401,15 +401,15 @@ function gct() {
     # SET pattern
     $repoPattern = ".gctpattern"
     $boldRepoPattern = "`e[1m$repoPattern`e[0m"
-    $gctpattern_file = "$git_toplevel/$repoPattern"
+    $gctpatternFile = "$git_toplevel/$repoPattern"
     $saveToRepo = 0
 
-    IF (Test-Path $gctpattern_file -PathType Leaf) {
+    IF (Test-Path $gctpatternFile -PathType Leaf) {
         If ($pattern_set) {
             logError "Can not specify pattern when $boldRepoPattern exists, modify it to achieve this"
             Return
         }
-        $pattern = Get-Content $gctpattern_file
+        $pattern = Get-Content $gctpatternFile
         If ($verbose) {
             logSilence "Using $boldRepoPattern `e[2mpattern: $pattern"
         }
@@ -437,9 +437,9 @@ function gct() {
             logSilence "Using local pattern: $((Get-Content $pattern_tokens_file -TotalCount 1).subString(2))"
         }
         If ($pattern_set) {
-            # whether save to .gctpattern
-            # logInfo "Save it in $boldRepoPattern(It may be shared through your git repo) ? `e[2mY for Yes, others for No.`e[0m" "?"
-            # $saveToRepo = Read-Host
+            whether save to .gctpattern
+            logInfo "Save it in $boldRepoPattern(Not recommanded for repo that already have lots of commits) ? `e[2mY for Yes, others for No.`e[0m" "?"
+            $saveToRepo = Read-Host
         }
     }
 
@@ -455,10 +455,10 @@ function gct() {
             If (Test-Path $b_step_values_cache_file -PathType Leaf) {
                 Remove-Item $b_step_values_cache_file
             }
-            # If ("y".Equals($saveToRepo) -Or "Y".Equals($saveToRepo)) {
-            #     Write-Output $pattern > $gctpattern_file
-            #     logInfo "Pattern saved in $boldRepoPattern"
-            # }
+            If ("y".Equals($saveToRepo) -Or "Y".Equals($saveToRepo)) {
+                Write-Output $pattern > $gctpatternFile
+                logInfo "Pattern saved in $boldRepoPattern"
+            }
             logSuccess "New pattern resolved!"
         }
         Else {

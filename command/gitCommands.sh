@@ -644,10 +644,10 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 		elif [ $verbose ]; then
 			logSilence "Using local pattern: ${$(head -n 1 $pattern_tokens_file):2}"
 		fi
-		#if [ $setPattern ]; then # whether save to .gctpattern
-			# logInfo "Save it in $boldRepoPattern(It may be shared through your git repo) ? \e[90mY for Yes, others for No.\e[0m" "?"
-			# readTemp && local saveToRepo=$_TEMP || return 1
-		#fi
+		if [ $setPattern ]; then # whether save to .gctpattern
+			logInfo "Save it in $boldRepoPattern(Not recommanded for repo that already have lots of commits) ? \e[90mY for Yes, others for No.\e[0m" "?"
+			readTemp && local saveToRepo=$_TEMP || return 1
+		fi
 	fi
 
 	# RESOLVE pattern
@@ -665,7 +665,7 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 			echoe "$resolveResult" >> $pattern_tokens_file
 			[ -f "$r_step_values_cache_file" ] && rm $r_step_values_cache_file
 			[ -f "$b_step_values_cache_file" ] && rm $b_step_values_cache_file
-			# [[ 'y' = "$saveToRepo" || 'Y' = "$saveToRepo" ]] && echo $pattern > $gctpattern_file && logInfo "Pattern saved in $boldRepoPattern"
+			[[ 'y' = "$saveToRepo" || 'Y' = "$saveToRepo" ]] && echo $pattern > $gctpattern_file && logInfo "Pattern saved in $boldRepoPattern"
 			logSuccess "New pattern resolved!"
 		else
 			logError "Invalid pattern: $resolveResult" && return 1
