@@ -159,9 +159,9 @@ function qcmds() { #? operate available commands. Usage: qcmds commandsPrefix su
                     }
                     $prefix = $prefix.Replace("`(`)", "`e[1;37m()`e[0m") + "`e[39;22m"
                     "$prefix$suffix`e[0m"
-                } ElseIf ($_.StartsWith("alias ")) {
+                } ElseIf ($_.StartsWith("funAlias ")) {
                     $parts = $_.Split(" ")
-                    $exp = "`e[32alias `e[34m $($parts[1]) `e[39m = `e[36m $($parts[2])"
+                    $exp = "`e[32mfunAlias`e[34m $($parts[1])`e[39m = `e[36m$($parts[2])"
                     for ($i = 2; $i -lt $parts.Count; $i++) {
                         $exp += " $($parts[$i])"
                     }
