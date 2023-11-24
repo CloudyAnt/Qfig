@@ -18,7 +18,10 @@ if (Test-Path -PathType Leaf $_TRANS_MAPPING_FILE) {
 Clear-Variable _TRANS_MAPPING_FILE
 
 function bdts() {
-    param([Parameter(Mandatory)][string]$s)
+    $s = $args -join " "
+    if ([String]::IsNullOrWhiteSpace($s)) {
+        return
+    }
     if ((-not $_TRANS_MAPPING.ContainsKey("baidu")) -or ($_TRANS_MAPPING["baidu"].Length -lt 2)) {
         logError "Run 'qmap translation' to add a mapping in form baidu=appId#key.
         For appId, key, please refer to Baidu Fanyi open platform."
