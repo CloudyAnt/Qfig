@@ -330,13 +330,20 @@ function ghttpproxy() {
 }
 
 function gpush() {
+    param([string]$src, [string]$dst)
     if (isNotGitRepository) {
         Return
     }
     $current_branch=git rev-parse --abbrev-ref HEAD
+    If ([string]::IsNullOrWhiteSpace($src)) {
+        $src = $current_branch
+    }
+    If ([string]::IsNullOrWhiteSpace($dst)) {
+        $dst = $current_branch
+    }
     If (git rev-parse --verify --quiet "${current_branch}@{u}" > $null && $?) {
         logInfo "Push starting.."
-        git push
+        git push origin "${src}:$dst"
         If ($?) {
             logSuccess "Push done"
         } Else {
@@ -344,7 +351,7 @@ function gpush() {
         }
     } ElseIf (confirm "No upstream branch, create it ?") {
         logInfo "Creating upstream branch.."
-        git push -u origin $current_branch
+        git push -u origin "${src}:$dst"
         if ($?) {
             logSuccess "Upstream branch just created"
         } Else {

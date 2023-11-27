@@ -524,9 +524,13 @@ function ghttpproxy() { #? Usage: gttpproxy proxy. unsert proxy if 'proxy' is em
 function gpush() { #? git push with automatic branch creation
 	isNotGitRepository && return 1
 	local current_branch=$(git rev-parse --abbrev-ref HEAD)
-	if git rev-parse --verify --quiet "${current_branch}@{u}" >/dev/null; then
+	local src=$1
+	local dst=$2
+	[ "$src" = "" ] && src=$current_branch || :
+	[ "$dst" = "" ] && dst=$current_branch || :
+	if git rev-parse --verify --quiet "${dst}@{u}" >/dev/null; then
 		logInfo "Push starting.."
-		git push
+		git push origin $src:$dst
 		if [ $? = 0 ]; then
 			logSuccess "Push done"
 		else
@@ -534,11 +538,11 @@ function gpush() { #? git push with automatic branch creation
 		fi
 	elif confirm "No upstream branch, create it ?"; then
 		logInfo "Creating upstream branch.."
-		git push -u origin $current_branch
+		git push -u origin $src:$dst
 		if [ $? = 0 ]; then
 			logSuccess "Upstream branch just created"
 		else
-			logError "Failed to create upstream branch \e[1m$current_branch\e[0m"
+			logError "Failed to create upstream branch \e[1m$dst\e[0m"
 		fi
 	fi
 }
