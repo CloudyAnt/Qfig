@@ -527,7 +527,7 @@ function gpush() { #? git push with automatic branch creation
 	local src=$1
 	local dst=$2
 	[ "$src" = "" ] && src=$current_branch || :
-	[ "$dst" = "" ] && dst=$current_branch || :
+	[ "$dst" = "" ] && dst=$src || :
 	if git rev-parse --verify --quiet "${dst}@{u}" >/dev/null; then
 		logInfo "Push starting.."
 		git push origin $src:$dst

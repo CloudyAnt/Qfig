@@ -339,7 +339,7 @@ function gpush() {
         $src = $current_branch
     }
     If ([string]::IsNullOrWhiteSpace($dst)) {
-        $dst = $current_branch
+        $dst = $src
     }
     If (git rev-parse --verify --quiet "${current_branch}@{u}" > $null && $?) {
         logInfo "Push starting.."
