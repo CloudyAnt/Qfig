@@ -444,7 +444,7 @@ function gct() {
             logSilence "Using local pattern: $((Get-Content $pattern_tokens_file -TotalCount 1).subString(2))"
         }
         If ($pattern_set) {
-            whether save to .gctpattern
+            # whether save to .gctpattern
             logInfo "Save it in $boldRepoPattern(Not recommanded for repo that already have lots of commits) ? `e[2mY for Yes, others for No.`e[0m" "?"
             $saveToRepo = Read-Host
         }
