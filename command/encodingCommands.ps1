@@ -1,12 +1,23 @@
 #? Encodings related coomands
 
 function chr2ucp() {
-    param([Parameter(Mandatory)][string]$str)
+    param([Parameter(Mandatory)][string]$str, [switch]$lowercase, [switch]$u)
 
-    foreach ($char in $str.ToCharArray()) {
-        $ucps += "$(Convert1Char2Ucp $char) "
+    if ($u) {
+        $prefix = "\u"
+        $suffix = ""
+    } else {
+        $prefix = ""
+        $suffix = " "
     }
-    Write-Output $ucps
+    foreach ($char in $str.ToCharArray()) {
+        $ucps += "$prefix$(Convert1Char2Ucp $char)$suffix"
+    }
+    if ($lowercase) {
+        Write-Output $ucps.ToLower()
+    } else {
+        Write-Output $ucps
+    }
 }
 
 function Convert1Char2Ucp() {
