@@ -42,6 +42,13 @@ if [ "$_CURRENT_SHELL" = "bash" ]; then
 	alias ..="cd .." # go to upper level directory
 fi
 
+if [[ "$OSTYPE" =~ darwin* ]]; then
+	function dquarantine() {  # delete quarantine attr
+		[ -z "$1" ] && logError "Specify the path!" || :
+		xattr -d com.apple.quarantine $1;
+	}
+fi
+
 function qfig() { #? Qfig preserved command
 	case $1 in
 		-h|help)
