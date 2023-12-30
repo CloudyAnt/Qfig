@@ -1,5 +1,10 @@
 #? Encodings related coomands
 
+function chr2uni() {
+    param([Parameter(Mandatory)][string]$str)
+    chr2ucp $str -lowercase -u
+}
+
 function chr2ucp() {
     param([Parameter(Mandatory)][string]$str, [switch]$lowercase, [switch]$u)
 
