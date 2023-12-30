@@ -1,4 +1,4 @@
-#? Ssh related commands.
+ #? Ssh related commands.
 #? You need to edit the ssh mapping file by execute 'qmap ssh'. A ssh mapping like: a=user@111.222.333.444:555
 #? You also need to edit the pem mapping file by execute 'qmap pem' if needed. A pem mapping like: a=/path/to/pem
 
@@ -25,7 +25,14 @@ Get-Content $_PEM_MAPPING_FILE | ForEach-Object {
 }
 
 function cs() {
-    param([Parameter(Mandatory)]$key, $identification)
-    $_SshEndpoing = $_SSH_MAPPING[$key]
-    ssh "ssh://$_SshEndpoing" $identification
+    param([Parameter(Mandatory)]$key, $cmd)
+    $_SshEndpoint = $_SSH_MAPPING["$key"]
+    ssh "ssh://$_SshEndpoint" $cmd
+}
+
+function csi() { #? connect server (or send command) with pem. Usage: csi mapping; csi mapping 'your remote command'
+param([Parameter(Mandatory)]$key, $cmd)
+    $_SshEndpoint = $_SSH_MAPPING["$key"]
+    $_PemFile=$_PEM_MAPPING["$key"]
+    ssh -i $_PemFile "ssh://$_SshEndpoint" $cmd
 }
