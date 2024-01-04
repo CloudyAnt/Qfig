@@ -1,6 +1,5 @@
 #? Commands to do translation.
-#require encoding
-#requiring-end
+Get-EnableQcmdsExpr encoding | Invoke-Expression
 
 $_TRANS_MAPPING_FILE="$_QFIG_LOCAL\translationMappingFile"
 $_TRANS_MAPPING = @{}

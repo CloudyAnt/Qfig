@@ -21,40 +21,31 @@ If (Test-Path -PathType Leaf $_QFIG_LOCAL\config) {
 	$verbose = $($content -match '<showVerboseInitMsg>(.+)</showVerboseInitMsg>' -And "true".Equals($matches[1])) ? 1 : 0
 	$enabledCommands = ""
 	$enabledCommandsMap = @{}
-	$sources = @()
 
-	function Add-QSource() {
+	# Add Line 'Get-EnableQcmdsExpr foo | Invoke-Expression' in the commands file if it requires foo commands
+	function Get-EnableQcmdsExpr() {
 		param([Parameter(Mandatory)][string]$cmds)
 		if ($cmds -match ".+:.+") {
 			if ($cmds -match ".+:ps1") {
 				# only load powershell commands
 				$cmds = $cmds.Substring(0, $cmds.Length - 4)
 			} else {
-				return
+				return " "
 			}
 		}
-
+		$cmds = $cmds.trim()
 		if ($enabledCommandsMap[$cmds] -eq 1) {
-			return
+			return " "
 		}
 		$enabledCommandsMap[$cmds] = 1
-		$cmds = $cmds.trim()
 		$cmdsFile = "$_QFIG_LOC\command\${cmds}Commands.ps1"
 		If (Test-Path -PathType Leaf "$cmdsFile") {
-
-			Get-Content $cmdsFile | ForEach-Object {
-				If ($_ -match "#requiring-end *") {
-					return
-				} ElseIf ($_ -match "^#require ([a-z]+)$") {
-					Add-QSource $matches[1]
-				}
-			}
-
-			$global:sources += $cmdsFile
 			$global:enabledCommands += " $cmds"
+			return ". $cmdsFile"
 		} ElseIf ($verbose) {
 			logWarn "$cmdsFile Not Exists!"
 		}
+		return " "
 	}
 
 	If ($content -match '<enabledCommands>([\s\S]*)</enabledCommands>') {
@@ -62,13 +53,9 @@ If (Test-Path -PathType Leaf $_QFIG_LOCAL\config) {
 			If ([string]::IsNullOrEmpty($_)) {
 				Return
 			} Else {
-				Add-QSource $_
+				Get-EnableQcmdsExpr $_ | Invoke-Expression
 			}
 		}
-	}
-
-	foreach ($sourceFile in $sources) {
-		. $sourceFile
 	}
 
 	$initMsg = ""
@@ -78,18 +65,18 @@ If (Test-Path -PathType Leaf $_QFIG_LOCAL\config) {
 		$initMsg += "None Enabled commands. "
 	}
 
-	$_preferTextEditor = ""
+	$preferTextEditor = ""
 	If ($content -match '<preferTextEditor>(.+)</preferTextEditor>') {
-		$_preferTextEditor = $matches[1].trim()
+		$preferTextEditor = $matches[1].trim()
 		If (-Not [string]::IsNullOrEmpty($_preferTextEditor)) {
-			$preferTextEditor = $_preferTextEditor
+			$_PREFER_TEXT_EDITOR = $preferTextEditor
 		}
 	}
 
 	If ($_preferTextEditor) {
-		$initMsg += "Text editor: $preferTextEditor. "
+		$initMsg += "Text editor: $_PREFER_TEXT_EDITOR. "
 	} Else {
-		$initMsg += "Text editor: $preferTextEditor(default). "
+		$initMsg += "Text editor: $_PREFER_TEXT_EDITOR(default). "
 	}
 
 	If ($content -match '<psTabStyle>(.+)</psTabStyle>') {
@@ -110,14 +97,13 @@ If (Test-Path -PathType Leaf $_QFIG_LOCAL\config) {
 		logInfo $initMsg
 	}
 
-	Clear-Variable sources
 	Clear-Variable verbose
 	Clear-Variable matches
 	Clear-Variable content
 	Clear-Variable enabledCommands
 	Clear-Variable enabledCommandsMap
-	Clear-Variable _preferTextEditor
-	Remove-Item Function:Add-QSource
+	Clear-Variable preferTextEditor
+	Remove-Item Function:Get-EnableQcmdsExpr
 }
 
 ## Load functions that only works on current computer

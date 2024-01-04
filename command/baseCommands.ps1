@@ -184,7 +184,7 @@ function editFile() { #? edit file using the prefer text editor
         Return
     }
     # set prefer text editor in config <perferTextEditor> label
-    Invoke-Expression "$preferTextEditor $path"
+    Invoke-Expression "$_PREFER_TEXT_EDITOR $path"
 }
 
 function defaultV() { #? return default value

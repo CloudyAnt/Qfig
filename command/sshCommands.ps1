@@ -1,4 +1,4 @@
- #? Ssh related commands.
+#? Ssh related commands.
 #? You need to edit the ssh mapping file by execute 'qmap ssh'. A ssh mapping like: a=user@111.222.333.444:555
 #? You also need to edit the pem mapping file by execute 'qmap pem' if needed. A pem mapping like: a=/path/to/pem
 
