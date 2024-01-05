@@ -9,8 +9,6 @@ alias gco-='git checkout -'
 alias gcp='git cherry-pick'
 alias gcpa='git cherry-pick --abort'
 alias gcpc='git cherry-pick --continue'
-alias glist='git stash list --date=local'
-alias glistp='git stash list --pretty=format:"%C(red)%h%C(reset) - %C(dim yellow)(%C(bold magenta)%gd%C(dim yellow))%C(reset) %<(70,trunc)%s %C(green)(%cr) %C(bold blue)<%an>%C(reset)"'
 alias glo='git log --oneline'
 alias glog='git log --oneline --abbrev-commit --graph'
 alias gmg='git merge'
@@ -401,7 +399,7 @@ function gcto() { #? commit in one line
 
 _git_stash_key="_git_stash_:"
 
-function gstash() { #? stash with specific name. Usage: gstash name(optional)
+function gx() { #? stash with specific name. Usage: gx name(optional).
 	# CHECK if this is a git repository
     isNotGitRepository && return 1
 
@@ -428,7 +426,7 @@ function gstash() { #? stash with specific name. Usage: gstash name(optional)
     git stash push -m "$_git_stash_key""$1" $ki # stash with specific name
 }
 
-function +gitStashReadOps() {
+function +gitStashOps() { #x
 	# CHECK if this is a git repository
     isNotGitRepository && return 1
 	local subCommand=$1
@@ -460,30 +458,66 @@ function +gitStashReadOps() {
 	fi
 	
 	if [ $index ]; then
+		# operate by index
 		git stash ${subCommandArray[@]} stash@{$index}
 	elif [ -z "$1" ]; then
+		# operate the top
 		git stash ${subCommandArray[@]}
 	else
+		# operate by key
 		local key=$(git stash list | grep "$_git_stash_key""$1" | cut -d: -f1)
 		[ -z "$key" ] && logWarn "The stash key \"$1\" doesn't exist!" && return
 		git stash ${subCommandArray[@]} $key # apply with specific name
 	fi
 }
 
-function gshow() { #? stash show. Usage: gshow $name(optional) or gshow -i $index
-	+gitStashReadOps "show" $@
-}
-
-function gshowp() { #? stash show -p. Usage: gshowp $name(optional) or gshowp -i $index
-	+gitStashReadOps "show -p" $@
-}
-
-function gapply() { #? stash applay. Usage: gapply $name(optional) or gapply -i $index
-	+gitStashReadOps apply $@
-}
-
-function gpop() { #? stash pop. Usage: gpop $name(optional) or gpop -i $index
-	+gitStashReadOps pop $@
+function gxo() { #? stash related operations. gxo -h for more
+	if [ -z "$1" ]; then
+		logError "Command must be specified. run gxo -h for more"
+		return 1
+	fi
+	if [ "-h" = "$1" ]; then
+		logInfo "Usage: gxo \$command \$name(if empty, operate top hash); gxo \$command -i \$index.
+  Available commands:\n"
+		printf "    %-19s%s\n" "s" "Show(Default)"
+		printf "    %-19s%s\n" "sp" "Show with preview"
+		printf "    %-19s%s\n" "a" "Apply"
+		printf "    %-19s%s\n" "p" "Pop"
+		printf "    %-19s%s\n" "d" "Drop"
+		printf "    %-19s%s\n" "l" "List"
+		printf "    %-19s%s\n" "s" "List with pretty format"
+		return
+	fi
+	local cmd=$1
+	shift 1
+	case $cmd in
+		l)
+			git stash list --date=local
+		;;
+		lp)
+			git stash list --pretty=format:"%C(red)%h%C(reset) - %C(dim yellow)(%C(bold magenta)%gd%C(dim yellow))%C(reset) %<(70,trunc)%s %C(green)(%cr) %C(bold blue)<%an>%C(reset)"
+		;;
+		s)
+			+gitStashOps "show" $@
+		;;
+		sp)
+			+gitStashOps "show -p" $@
+		;;
+		a)
+			+gitStashOps "applay" $@
+		;;
+		p)
+			+gitStashOps "pop" $@
+		;;
+		d)
+			+gitStashOps "drop" $@
+		;;
+		*)
+			logError "Unknown command: $cmd"
+			gxo -h
+			return 1
+		;;
+	esac
 }
 
 function gcst() { #? check multi folder commit status
