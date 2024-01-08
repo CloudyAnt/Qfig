@@ -25,7 +25,7 @@ funAlias gcpc "git cherry-pick --continue"
 funAlias gcp- "git cherry-pick -"
 funAlias gpr "git pull --rebase"
 
-function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'create') $cmdArg(optional). gtag -h for more
+function gt() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'create') $cmdArg(optional). gtag -h for more
     param([string]$tag, [string]$cmd, [string]$cmdArg, [switch]$help = $false)
     if (isNotGitRepository) {
         Return
@@ -241,33 +241,30 @@ function gco {
 
 $_git_stash_key = "_git_stash_:"
 
-function gstash() {
-    #? git stash
-    param($key)
-    if (isNotGitRepository) {
+function gxn() { #? create new stash. Usage: gxn stashName(optional)
+    param($name, [switch]$unstaged)
+    If (isNotGitRepository) {
         Return
     }
 
-    If ($key.Length -Eq 0) {
-        git stash
-    }
-    Else {
-        git stash push -m "$_git_stash_key$key" # stash with specific key
-    }
-}
-
-function gstashunstaged() {
-    #? git stash unstaged files
-    param($key)
-    if (isNotGitRepository) {
-        Return
+    If ($name -match "^@.*") {
+        logError "Please do not ues @ as prefix!"
+        Return 1
     }
 
-    If ($key.Length -Eq 0) {
-        git stash --keep-index
+    If ($name.Length -Eq 0) {
+        If ($unstaged) {
+            git stash --keep-index
+        } Else {
+            git stash
+        }
     }
     Else {
-        git stash push -m "$_git_stash_key$key" --keep-index # stash with specific name
+        If ($unstaged) {
+            git stash push -m "$_git_stash_key$name" --keep-index # stash with specific key
+        } Else {
+            git stash push -m "$_git_stash_key$name"
+        }
     }
 }
 

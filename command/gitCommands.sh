@@ -30,7 +30,7 @@ forbidAlias gc gct "git commit"
 forbidAlias gap gapply
 unsetAlias gb
 
-function gtag() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'create') $cmdArg(optional). gtag -h for more
+function gt() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'create') $cmdArg(optional). gtag -h for more
 	# CHECK if this is a git repository
     isNotGitRepository && return 1
 	if [ -z $1 ]; then
@@ -399,9 +399,14 @@ function gcto() { #? commit in one line
 
 _git_stash_key="_git_stash_:"
 
-function gx() { #? stash with specific name. Usage: gx name(optional).
+function gxn() { #? create new stash. Usage: gxn stashName(optional)
 	# CHECK if this is a git repository
     isNotGitRepository && return 1
+
+	name=$1
+	if [[ "$name" =~ ^@.* ]]; then
+		logError "Please do not use @ as prefix!" && return 1
+	fi
 
 	local ki=""
 	OPTIND=1
@@ -431,23 +436,22 @@ function +gitStashOps() { #x
     isNotGitRepository && return 1
 	local subCommand=$1
 	local index=""
-	OPTIND=2
-	while getopts ":i:" opt; do
-        case $opt in
-			i)
-				index=$OPTARG
-				if [[ -z "$index" || ! $index =~ ^[0-9]+$ ]]; then
-					logError "Please specify a valid index (non-negative integer)" && return 1
-				fi
-				;;
-			:)
-                ;;
-			\?)
-				;;
-        esac
-    done
-	shift "$((OPTIND - 1))"
+	local name=""
+	if [[ "$2" =~ ^@.* ]]; then
+		index=${2:1}
+		if [[ -z "$index" || ! $index =~ ^[0-9]+$ ]]; then
+			logError "Please specify a valid index (non-negative integer)" && return 1
+		fi
+		local count
+		count=$(git rev-list --walk-reflogs --count refs/stash)
+		if [ $index -gt $((count - 1)) ]; then
+			logError "There are only $count stash entries!" && return 1
+		fi
+	else
+		name=$2
+	fi
 
+	# transfer subCommand string to array
 	declare -a subCommandArray
 	if [ $_CURRENT_SHELL = "zsh" ]; then
 		subCommandArray=(${(s/ /)subCommand})
@@ -460,41 +464,42 @@ function +gitStashOps() { #x
 	if [ $index ]; then
 		# operate by index
 		git stash ${subCommandArray[@]} stash@{$index}
-	elif [ -z "$1" ]; then
+	elif [ -z "$name" ]; then
 		# operate the top
 		git stash ${subCommandArray[@]}
 	else
 		# operate by key
-		local key=$(git stash list | grep "$_git_stash_key""$1" | cut -d: -f1)
-		[ -z "$key" ] && logWarn "The stash key \"$1\" doesn't exist!" && return
+		local key=$(git stash list | grep "$_git_stash_key""$name" | cut -d: -f1)
+		[ -z "$key" ] && logWarn "The stash key \"$name\" doesn't exist!" && return
 		git stash ${subCommandArray[@]} $key # apply with specific name
 	fi
 }
 
-function gxo() { #? stash related operations. gxo -h for more
-	if [ -z "$1" ]; then
-		logError "Command must be specified. run gxo -h for more"
-		return 1
-	fi
+function gx() { #? stash related operations. gx -h for more
 	if [ "-h" = "$1" ]; then
-		logInfo "Usage: gxo \$command \$name(if empty, operate top hash); gxo \$command -i \$index.
+		logInfo "Usage: gx \$command \$name(if empty, operate top hash); gxo \$command @\$index.
   Available commands:\n"
-		printf "    %-19s%s\n" "s" "Show(Default)"
+		printf "    %-19s%s\n" "l" "List(Default)"
+		printf "    %-19s%s\n" "lf" "List with pretty format"
+		printf "    %-19s%s\n" "s" "Show"
 		printf "    %-19s%s\n" "sp" "Show with preview"
 		printf "    %-19s%s\n" "a" "Apply"
 		printf "    %-19s%s\n" "p" "Pop"
 		printf "    %-19s%s\n" "d" "Drop"
-		printf "    %-19s%s\n" "l" "List"
-		printf "    %-19s%s\n" "s" "List with pretty format"
 		return
 	fi
 	local cmd=$1
-	shift 1
+	if [ -z "$cmd" ]; then
+		cmd="l"
+	else
+		# +gitStashOps receive all params except the 1st
+		shift 1
+	fi
 	case $cmd in
 		l)
 			git stash list --date=local
 		;;
-		lp)
+		lf)
 			git stash list --pretty=format:"%C(red)%h%C(reset) - %C(dim yellow)(%C(bold magenta)%gd%C(dim yellow))%C(reset) %<(70,trunc)%s %C(green)(%cr) %C(bold blue)<%an>%C(reset)"
 		;;
 		s)
@@ -514,7 +519,7 @@ function gxo() { #? stash related operations. gxo -h for more
 		;;
 		*)
 			logError "Unknown command: $cmd"
-			gxo -h
+			gx -h
 			return 1
 		;;
 	esac
