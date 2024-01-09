@@ -525,8 +525,8 @@ function gx() { #? stash related operations. gx -h for more
 	esac
 }
 
-function gcst() { #? check multi folder commit status
-	function gcst0() {
+function gstm() { #? check multi git folder commit status
+	function gcsm0() {
 		[[ ! -d "$1" || ! -d "$1/.git" ]] && return
 		[ "-p" = "$2" ] && echo $1 | awk -F '/' '{print "\033[1;34m" $NF ":\033[0m" }'
 		git -C $1 status | awk '/Your branch is/{print}' | awk '{sub("Your branch is ", "")} 1' \
@@ -536,15 +536,15 @@ function gcst() { #? check multi folder commit status
 
     local folder=$1
 	if [ -z $folder ]; then
-		gcst0 $(pwd)
-	else
-		local file
-		for file in $folder/* ; do
-			gcst0 $file -p
-		done
+		folder="."
 	fi
 
-	unset -f gcst0
+	local file
+	for file in $folder/* ; do
+		gcsm0 $file -p
+	done
+
+	unset -f gcsm0
 }
 
 function ghttpproxy() { #? Usage: gttpproxy proxy. unsert proxy if 'proxy' is empty
