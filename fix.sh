@@ -2,7 +2,7 @@
 # Please run this script under Qfig repo folder
 
 ## Check current repo
-if [ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ] || [[ ! "`git remote -v`" =~ .*Qfig.git.* ]]; then
+if [[ ! "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' || ! "`git remote -v`" =~ .*Qfig.git.* ]]; then
     echo "fatal: this seems not the Qfig repo" && exit 1
 fi
 

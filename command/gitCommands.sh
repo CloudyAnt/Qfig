@@ -399,7 +399,7 @@ function gcto() { #? commit in one line
 
 _git_stash_key="_git_stash_:"
 
-function gxn() { #? create new stash. Usage: gxn stashName(optional)
+function gx() { #? create new stash with name. Usage: gx -u(keep-index, optional) stashName(optional)
 	# CHECK if this is a git repository
     isNotGitRepository && return 1
 
@@ -475,55 +475,13 @@ function +gitStashOps() { #x
 	fi
 }
 
-function gx() { #? stash related operations. gx -h for more
-	if [ "-h" = "$1" ]; then
-		logInfo "Usage: gx \$command \$name(if empty, operate top hash); gxo \$command @\$index.
-  Available commands:\n"
-		printf "    %-19s%s\n" "l" "List(Default)"
-		printf "    %-19s%s\n" "lf" "List with pretty format"
-		printf "    %-19s%s\n" "s" "Show"
-		printf "    %-19s%s\n" "sp" "Show with preview"
-		printf "    %-19s%s\n" "a" "Apply"
-		printf "    %-19s%s\n" "p" "Pop"
-		printf "    %-19s%s\n" "d" "Drop"
-		return
-	fi
-	local cmd=$1
-	if [ -z "$cmd" ]; then
-		cmd="l"
-	else
-		# +gitStashOps receive all params except the 1st
-		shift 1
-	fi
-	case $cmd in
-		l)
-			git stash list --date=local
-		;;
-		lf)
-			git stash list --pretty=format:"%C(red)%h%C(reset) - %C(dim yellow)(%C(bold magenta)%gd%C(dim yellow))%C(reset) %<(70,trunc)%s %C(green)(%cr) %C(bold blue)<%an>%C(reset)"
-		;;
-		s)
-			+gitStashOps "show" $@
-		;;
-		sp)
-			+gitStashOps "show -p" $@
-		;;
-		a)
-			+gitStashOps "applay" $@
-		;;
-		p)
-			+gitStashOps "pop" $@
-		;;
-		d)
-			+gitStashOps "drop" $@
-		;;
-		*)
-			logError "Unknown command: $cmd"
-			gx -h
-			return 1
-		;;
-	esac
-}
+alias gxl='git stash list --date=local'
+alias gxlf='git stash list --pretty=format:"%C(red)%h%C(reset) - %C(dim yellow)(%C(bold magenta)%gd%C(dim yellow))%C(reset) %<(70,trunc)%s %C(green)(%cr) %C(bold blue)<%an>%C(reset)"'
+alias gxs='+gitStashOps show'
+alias gxsp='+gitStashOps "show -p"'
+alias gxa='+gitStashOps apply'
+alias gxp='+gitStashOps pop'
+alias gxd='+gitStashOps drop'
 
 function gstm() { #? check multi git folder commit status
 	function gcsm0() {
