@@ -11,6 +11,8 @@ alias gcpa='git cherry-pick --abort'
 alias gcpc='git cherry-pick --continue'
 alias glo='git log --oneline'
 alias glog='git log --oneline --abbrev-commit --graph'
+#? find dangling commits
+alias glogdc='git log --graph --oneline --decorate $( git fsck --no-reflog | awk "/dangling commit/ {print $3}" )'
 alias gmg='git merge'
 alias gmg-='git merge -'
 alias gmga='git merge --abort'
@@ -402,6 +404,8 @@ _git_stash_key="_git_stash_:"
 function gx() { #? create new stash with name. Usage: gx -u(keep-index, optional) stashName(optional)
 	# CHECK if this is a git repository
     isNotGitRepository && return 1
+	# CHECK if merge, rebase, cherry-pick or revert is in progress
+	hasObstacleProcess && return 1
 
 	name=$1
 	if [[ "$name" =~ ^@.* ]]; then
@@ -434,6 +438,8 @@ function gx() { #? create new stash with name. Usage: gx -u(keep-index, optional
 function +gitStashOps() { #x
 	# CHECK if this is a git repository
     isNotGitRepository && return 1
+	# CHECK if merge, rebase, cherry-pick or revert is in progress
+	hasObstacleProcess && return 1
 	local subCommand=$1
 	local index=""
 	local name=""
@@ -590,20 +596,8 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 
     # CHECK if this is a git repository
     isNotGitRepository && return 1
-	local obstacleProgress
-    # CHECK if merge, rebase, cherry-pick or revert is in progress 
-	if [ -f .git/MERGE_HEAD ]; then
-        obstacleProgress=Merge
-	elif [ -d .git/rebase-apply ] || [ -d .git/rebase-merge ] || [ -d .git/rebasing ]; then
-		obstacleProgress=Rebase
-	elif [ -f .git/CHERRY_PICK_HEAD ]; then
-		obstacleProgress=Cherry-pick
-	elif [ -f .git/REVERT_HEAD ]; then
-		obstacleProgress=Revert
-	fi
-	if [ $obstacleProgress ]; then
-		confirm -w "$obstacleProgress in progress, continue ?"  && : || return 0
-	fi
+	# CHECK if merge, rebase, cherry-pick or revert is in progress
+	hasObstacleProcess && return 1
 
 	# CHECK options
 	declare -i arrayBase=$(getArrayBase)
@@ -819,9 +813,27 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 	git commit -m "$message"
 }
 
-function isNotGitRepository() {
+function isNotGitRepository() { #x
 	if [ "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ]; then
 		return 1
 	fi
 	logError "Not a git repository!"
+}
+
+function hasObstacleProcess() { #x
+	local obstacleProgress
+	if [ -f .git/MERGE_HEAD ]; then
+        obstacleProgress=Merge
+	elif [ -d .git/rebase-apply ] || [ -d .git/rebase-merge ] || [ -d .git/rebasing ]; then
+		obstacleProgress=Rebase
+	elif [ -f .git/CHERRY_PICK_HEAD ]; then
+		obstacleProgress=Cherry-pick
+	elif [ -f .git/REVERT_HEAD ]; then
+		obstacleProgress=Revert
+	fi
+	if [ $obstacleProgress ]; then
+		confirm -w "\e[1m$obstacleProgress\e[0m in progress, continue ?"  && return 1 || :
+	else
+		return 1
+	fi
 }
