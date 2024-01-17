@@ -372,9 +372,14 @@ function +gcof() { #x
 
 complete -F +gcof gcof
 
-function gaaf() { #? git add files in pattern
+function gaac() { #? git add files which name contains $1
     [ -z "$1" ] && return
     git add "*$1*"
+}
+
+function gaanc() { #? git add files which name NOT contains $1
+    [ -z "$1" ] && return
+    git status --porcelain | awk -v s=$1 '{if($2 !~ s){print $2}}' | xargs git add
 }
 
 function gctm() { #? commit with message
@@ -401,7 +406,7 @@ function gcto() { #? commit in one line
 
 _git_stash_key="_git_stash_:"
 
-function gx() { #? create new stash with name. Usage: gx -u(keep-index, optional) stashName(optional)
+function gx() { #? create new stash with name. Usage: gx stashName(optional), flags: -s(--staged), -u(--include-untracked), -k(--keep-index)
 	# CHECK if this is a git repository
     isNotGitRepository && return 1
 	# CHECK if merge, rebase, cherry-pick or revert is in progress
@@ -413,11 +418,19 @@ function gx() { #? create new stash with name. Usage: gx -u(keep-index, optional
 	fi
 
 	local ki=""
+	local s=""
+	local u=""
 	OPTIND=1
-	while getopts ":u" opt; do
+	while getopts ":suk" opt; do
         case $opt in
-			u)
+			k)
 				ki="--keep-index"
+				;;
+			u)
+				u="--include-untracked"
+				;;
+			s)
+				s="--staged"
 				;;
 			:)
                 ;;
@@ -429,10 +442,10 @@ function gx() { #? create new stash with name. Usage: gx -u(keep-index, optional
 
     if [ -z "$1" ] 
     then
-        git stash $ki
+        git stash $ki $s $u
         return
     fi
-    git stash push -m "$_git_stash_key""$1" $ki # stash with specific name
+    git stash push -m "$_git_stash_key""$1" $ki $s $u # stash with specific name
 }
 
 function +gitStashOps() { #x
