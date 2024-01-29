@@ -50,7 +50,7 @@ function shellproxy() { #? operate shell proxies. -p to set shell proxies to a p
             export https_proxy=http://127.0.0.1:$2
             export ftp_proxy=http://127.0.0.1:$2
             _saveProxiesToFile
-            logSuccess "Set all proxies to: 127.0.0.1:$2"
+            logSuccess "Set all proxies to: \e[1m127.0.0.1:$2\e[0m"
         else
             logError "Please specify a valid port"
         fi
@@ -61,13 +61,13 @@ function shellproxy() { #? operate shell proxies. -p to set shell proxies to a p
         unset ftp_proxy
         rm $_SAVED_PROXIES_FILE 2>/dev/null
         logInfo "Unset all proxies"
-    else
+    elif [[ $1 =~ "([a-zA-Z0-9]+)(\.[a-zA-Z0-9]+)+" ]] || confim "\e[1m$1\e[0m looks not like a valid host, continue?"; then
         export ALL_PROXY=socks5://$1
         export http_proxy=http://$1
         export https_proxy=http://$1
         export ftp_proxy=ftp://$1
         _saveProxiesToFile
-        logSuccess "Set all proxies to: $1"
+        logSuccess "Set all proxies to: \e[1m$1\e[0m"
     fi
     unset -f _saveProxiesToFile
 }
