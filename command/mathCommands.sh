@@ -4,12 +4,18 @@ function dec2hex() { #? convert decimals to hexadecimals
 	local arg
 	declare -i index=1
 	local out=""
+    local not1st
 	for arg in "$@"
 	do
 		if ! [[ $arg =~ ^[0-9]+$ ]]; then
 			logError $index"th param '$arg' is not decimal" && return 1
 		fi
-        out=$out$(printf "%x " $arg)
+        if [ "$not1st" ]; then
+            out=$(printf "$out %x" $arg)
+        else
+            not1st=1
+            out=$(printf "%x" $arg)
+        fi
 		index=$((index + 1))
 	done
 	if [ $index -gt 1 ]; then
@@ -21,12 +27,18 @@ function hex2dec() { #? convert hex unicode code points to decimals
 	local arg
 	declare -i index=1
 	local out=""
+    local not1st
 	for arg in "$@"
 	do
 		if ! [[ $arg =~ ^[0-9a-fA-F]+$ ]]; then
 			logWarn $index"th param '$arg' is not hexdecimal" && return 1
 		fi
-		out=$out"$((0x$arg)) "
+        if [ "$not1st" ]; then
+            out="$out $((0x$arg))"
+        else
+            not1st=1
+            out="$((0x$arg))"
+        fi
 		index=$((index + 1))
 	done
 	if [ $index -gt 0 ]; then

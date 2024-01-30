@@ -166,7 +166,7 @@ function ucp2utf8() { #? covert unicode code points to utf8 code units, -s to rm
 			logError $index"th param '$arg' is not decimal" && return 1
 		fi
 		uni=0x$arg
-		[ $index -eq 1 ] && part="" || part=" "
+		part=""
 		if [[ 0x$arg -le 0xF ]]; then
 			part="${part}0$arg"
 		elif [[ 0x$arg -le 0x7F ]]; then

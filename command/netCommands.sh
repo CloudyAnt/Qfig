@@ -61,7 +61,7 @@ function shellproxy() { #? operate shell proxies. -p to set shell proxies to a p
         unset ftp_proxy
         rm $_SAVED_PROXIES_FILE 2>/dev/null
         logInfo "Unset all proxies"
-    elif [[ $1 =~ "([a-zA-Z0-9]+)(\.[a-zA-Z0-9]+)+" ]] || confim "\e[1m$1\e[0m looks not like a valid host, continue?"; then
+    elif [[ $1 =~ "([a-zA-Z0-9]+)(\.[a-zA-Z0-9]+)+" ]] || confirm "\e[1m$1\e[0m looks not like a valid host, continue?"; then
         export ALL_PROXY=socks5://$1
         export http_proxy=http://$1
         export https_proxy=http://$1
