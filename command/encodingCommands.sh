@@ -151,19 +151,39 @@ function sp2ucp() { #? convert 1 surrogate pair (range [D800, DBFF] and [DC00, D
 	dec2hex $uni
 }
 
-function ucp2utf8() { #? covert unicode code points to utf8 code units, -s to rm space between bytes of same hex
-	local arg out part bytesInterval
+function ucp2utf8() { #? covert unicode code points to utf8 code units, -h for more.
+	local arg out part bytesInterval silent
 	declare -i index=1
     bytesInterval=" "
-	if [ "-s" = "$1" ]; then
-		bytesInterval=""
-		shift 1
-	fi
+	OPTIND=1
+	while getopts ":hus" opt; do
+        case $opt in
+			h)
+				logInfo "Usage: confirm \$flags(optional) \$msg(optional).\n  Flags:\n"
+				printf "    %-5s%s\n" "h" "Print this help message"
+				printf "    %-5s%s\n" "u" "Rm spaces between bytes of one hex"
+				printf "    %-5s%s\n" "s" "To be silent when error occurs"
+				return 0
+				;;
+            u)
+				bytesInterval=""
+                ;;
+			s)
+				silent=1
+				;;
+            \?)
+                echo "Invalid option: -$OPTARG" && return
+                ;;
+        esac
+    done
+	shift "$((OPTIND - 1))"
+
 	declare -i uni
 	for arg in "$@"
 	do
 		if ! [[ $arg =~ ^[0-9a-fA-F]+$ ]]; then
-			logError $index"th param '$arg' is not decimal" && return 1
+			[ "$silent" ] && : || logError $index"th param '$arg' is not decimal"
+			return 1
 		fi
 		uni=0x$arg
 		part=""
@@ -184,30 +204,39 @@ function ucp2utf8() { #? covert unicode code points to utf8 code units, -s to rm
 			part="$part$(dec2hex $((0x80 + ($uni >> 6 & 0x3F))))$bytesInterval"
 			part="$part$(dec2hex $((0x80 + ($uni & 0x3F))))"
 		else
-			logError $index"th param '$arg' is out of range" && return 1
+			[ "$silent" ] && : || logError $index"th param '$arg' is out of range"
+			return 1
 		fi
-		out=$out$part
+		if [ $index -gt 1 ]; then
+			out="$out $part"
+		else
+			out=$part
+		fi
 		index=$((index + 1))
 	done
 	echo $out
 }
 
 function ucp2utf16() { #? covert hex unicode code points to utf16 code units, -h for more
-	local bytesInterval le opt
+	local bytesInterval le opt silent
     bytesInterval=" "
 	OPTIND=1
-	while getopts ":hsl" opt; do
+	while getopts ":husl" opt; do
         case $opt in
 			h)
 				logInfo "Usage: confirm \$flags(optional) \$msg(optional).\n  Flags:\n"
 				printf "    %-5s%s\n" "h" "Print this help message"
-				printf "    %-5s%s\n" "s" "Rm spaces between bytes of one hex"
+				printf "    %-5s%s\n" "u" "Rm spaces between bytes of one hex"
 				printf "    %-5s%s\n" "l" "Change to litte endian"
+				printf "    %-5s%s\n" "s" "To be silent when error occurs"
 				return 0
 				;;
-            s)
+            u)
 				bytesInterval=""
                 ;;
+			s)
+				silent=1
+				;;
 			l)
 				le=1
 				;;
@@ -218,25 +247,26 @@ function ucp2utf16() { #? covert hex unicode code points to utf16 code units, -h
     done
 	shift "$((OPTIND - 1))"
 
-	local arg out prefix byte1 byte2 sp
+	local arg out byte1 byte2 sp separator
 	declare -i index=1
 	declare -i byteIndex=1
 	declare -i uni
 	declare -i arrayBase=$(getArrayBase)
 
 	function _process() {
-		[ $byteIndex -eq 1 ] && prefix="" || prefix=" "
+		[ $byteIndex -eq 1 ] && separator="" || separator=" "
 		byte1=$(dec2hex $(($uni >> 8)))
 		byte2=$(dec2hex $(($uni & 0xFF)))
 		[[ 0x$byte1 -le 0xF ]] && byte1="0$byte1" || :
 		[[ 0x$byte2 -le 0xF ]] && byte2="0$byte2" || :
-		[ $le ] && out+="$prefix$byte2$bytesInterval$byte1" || out+="$prefix$byte1$bytesInterval$byte2"
+		[ $le ] && out+="$separator$byte2$bytesInterval$byte1" || out+="$separator$byte1$bytesInterval$byte2"
 	}
 
 	for arg in "$@"
 	do
 		if ! [[ $arg =~ ^[0-9a-fA-F]+$ ]]; then
-			logError $index"th param '$arg' is not decimal" && unset -f _process && return 1
+			[ "$silent"] && : || logError $index"th param '$arg' is not decimal" && unset -f _process
+			return 1
 		fi
 
 		if [[ 0x$arg -le 0xFFFF ]]; then
@@ -253,7 +283,8 @@ function ucp2utf16() { #? covert hex unicode code points to utf16 code units, -h
 			_process
 			byteIndex=$((byteIndex + 1))
 		else
-			logError $index"th param '$arg' is out of range" && unset -f _process && return 1
+			[ "$silent"] && : || logError $index"th param '$arg' is out of range" && unset -f _process
+			return 1
 		fi
 		index=$((index + 1))
 	done
@@ -261,7 +292,27 @@ function ucp2utf16() { #? covert hex unicode code points to utf16 code units, -h
 	echo $out
 }
 
-function utf82ucp() { #? covert utf8 bytes (2 letters hex) to unicode code points
+function utf82ucp() { #? covert utf8 bytes to unicode code points. If badly stopped return 1. If invalid return 2 and can't be silented
+	local silent
+	OPTIND=1
+	while getopts ":hs" opt; do
+        case $opt in
+			h)
+				logInfo "Usage: confirm \$flags(optional) \$msg(optional).\n  Flags:\n"
+				printf "    %-5s%s\n" "h" "Print this help message"
+				printf "    %-5s%s\n" "s" "To be silent when error occurs"
+				return 0
+				;;
+			s)
+				silent=1
+				;;
+            \?)
+                echo "Invalid option: -$OPTARG" && return
+                ;;
+        esac
+    done
+	shift "$((OPTIND - 1))"
+
     [ -z "$1" ] && return
     local arg hex out
     declare -i i bn bc n offs
@@ -278,7 +329,7 @@ function utf82ucp() { #? covert utf8 bytes (2 letters hex) to unicode code point
                         out=$out$(dec2hex $n)
                     fi
                 else
-                    logError "The ${i}th byte '$arg' should be 10xxxxxx!"
+                    logError "The ${i}th byte '$arg' should be 10xxxxxx!" && return 2
                 fi
             elif [ $((0x$arg >> 7)) -eq 0 ]; then
 				out=$out$arg
@@ -292,17 +343,22 @@ function utf82ucp() { #? covert utf8 bytes (2 letters hex) to unicode code point
 				bn=4; bc=1
                 n=$(((0x$arg & 0x07) << 18))
 			else
-				logError "Invalid 1st byte '0x$arg' (before index $i)! Should be one of 0xxxxxx, 110xxxxx, 1110xxxx, 11110xx" && return 1
+				logError "Invalid 1st byte '0x$arg' (before index $i)! Should be one of 0xxxxxx, 110xxxxx, 1110xxxx, 11110xx" && return 2
 			fi
         else
-            logError "The ${i}th byte '$arg' is not match [0-9a-fA-F][0-9a-fA-F]!" && return 1
+            logError "The ${i}th byte '$arg' is not match [0-9a-fA-F][0-9a-fA-F]!" && return 2
         fi
     done
+    if [ $bn -gt $bc ]; then
+		[ "$silent" ] && : || logError "Bytes recording badly stopped"
+		return 1
+	fi
     echo $out
-    [ $bn -gt $bc ] && logError "Bytes recording badly stopped"
 }
 
-function enurlp() { #? encode url param.
+_NO_URL_ENCODING_CHARS="0-9a-zA-Z._~\!\$\'\(\)*+,=\;-"
+
+function enurlp() { #? encode url param by UTF-8
 	[ -z "$1" ] && return
 	local i all c hex out
 	declare -a bytes
@@ -311,7 +367,7 @@ function enurlp() { #? encode url param.
 		c=${all:$i:1}
 		if [[ "$c" = " " ]]; then
 			out=$out%20
-		elif [[ "$c" =~ [0-9a-fA-F*._-] ]]; then
+		elif [[ "$c" =~ [$_NO_URL_ENCODING_CHARS] ]]; then
 			out=$out$c
 		else
 			hex=$(printf "%x" "'$c")
@@ -324,9 +380,9 @@ function enurlp() { #? encode url param.
 	echo $out
 }
 
-function deurlp() { #? decode url param
+function deurlp() { #? decode url param by UTF-8
 	[ -z "$1" ] && return
-	local i all c hex out collecting1 b_ collecting2 bytes chr ucp
+	local i all c hex out collecting1 b_ collecting2 bytes chr ucp exitCode
 	declare -i arrayBase=$(getArrayBase) bn n
 	declare -a bytes
 	all=$@
@@ -345,23 +401,26 @@ function deurlp() { #? decode url param
 				logError "Bad char '$c' at index $i! There should be 2 hex digits behind a %" && return 1
 			fi
 			bytes+=($b_$c)
+			ucp=$(utf82ucp ${bytes[@]})
+			exitCode=$?
+			if [ $exitCode -eq 0 ]; then
+				out=$out$(ucp2chr $ucp)
+				bytes=()
+			elif [ $exitCode -eq 2 ]; then
+				logError "Bad bytes [${bytes[@]}]! :\n$ucp" # $ucp is error message now
+				return 1
+			fi
 			collecting2=""
 		elif [[ "$c" = "%" ]]; then
 			collecting1=1
 			continue
-		elif [[ "$c" =~ [0-9a-fA-F*._-] ]]; then
+		elif [[ "$c" =~ [$_NO_URL_ENCODING_CHARS] ]]; then
             if [ ${#bytes[@]} -gt 0 ]; then
-                ucp=$(utf82ucp ${bytes[@]})
-                bytes=()
-                if [ $? -eq 0 ]; then
-                    out=$out$(ucp2chr $ucp)
-                else
-                    logError "Recorded bad UTF-8 bytes at index $i (char '$c')!" && return 1
-                fi
+                logError "Recorded bad UTF-8 bytes at index $i (char '$c')!" && return 1
             fi
 			out="$out$c"
 		else
-			logError "Bad char '$c' at index $i! Chars not match [0-9a-fA-F*._-] should be encoded" && return 1
+			logError "Bad char '$c' at index $i! Chars not match [$_NO_URL_ENCODING_CHARS] should be encoded" && return 1
 		fi
 	done
 

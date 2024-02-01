@@ -4,6 +4,7 @@ function dec2hex() {
     #? convert decimals to hexadecimals
     $i = 1
     $out = ""
+    $not1st = $false
     foreach ($arg in $args) {
         if ($arg -isnot [int]) {
             throw "${i}th param '$arg' is not decimal"
@@ -11,7 +12,12 @@ function dec2hex() {
         }
         $int = [Int32]$arg
         $hex = $int.ToString("X")
-        $out = "$out$hex "
+        if ($not1st) {
+            $out = "$out $hex"
+        } else {
+            $not1st = $true
+            $out = $hex
+        }
         $i++
     }
     if ($i -gt 1) {
@@ -23,12 +29,18 @@ function hex2dec() {
     #? convert hex unicode code points to decimals
     $i = 1
     $out = ""
+    $not1st = $false
     foreach ($arg in $args) {
         if (-Not ($arg -match "[0-9A-Fa-f]+")) {
             throw "${i}th param '$arg' is not hexdecimal"
         }
         $dec = [Convert]::ToInt32($arg, 16)
-        $out = "$out$dec "
+        if ($not1st) {
+            $out = "$out $dec"
+        } else {
+            $not1st = $true
+            $out = $dec
+        }
         $i++
     }
     if ($i -gt 1) {
