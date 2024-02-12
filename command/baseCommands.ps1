@@ -60,7 +60,7 @@ function qfig { #? Qfig preserved command. -h(help) for more
         }
         editFile $_QFIG_LOCAL/config
     } ElseIf ("report".Equals($command)) {
-        $msg = "$initMsg`n  OsType: $Env:OS"
+        $msg = "$initMsg`n  OsType: $($PSVersionTable.OS | Out-String)"
         logInfo $msg
     } ElseIf ("v".Equals($command) -Or "version".Equals($command)) {
         $curHead = (git -C $_QFIG_LOC log --oneline --decorate -1).Split(" ")[0]

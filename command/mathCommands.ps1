@@ -106,7 +106,7 @@ function rebase() {
             } 
         } else {
             $v = $decNum / $digitalBase
-            $char = $_VALUE_LETTERS[$v]
+            $char = $_VALUE_LETTERS[$([math]::floor($v))]
             $out = "$out$char"
             $decNum = $decNum % $digitalBase
         }

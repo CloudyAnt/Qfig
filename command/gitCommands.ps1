@@ -357,7 +357,6 @@ function gpush() {
     }
 }
 
-
 function gct() {
     #? git commit step by step
     param([switch]$help = $false, [switch]$pattern_set = $false, [switch]$verbose = $false)
