@@ -1,25 +1,29 @@
 #? Git related
 
+function conflictingGit() { #x
+	git $@ | awk '{if(/^CONFLICT /){print "\033[31m" $0 "\033[0m" }else{print $0}}'
+}
+
 alias gaa='git add -A'
 alias gaap='git add -p'
 alias gamd='git commit --amend'
 alias gamdn='git commit --amend --no-edit'
 alias gco='git checkout'
 alias gco-='git checkout -'
-alias gcp='git cherry-pick'
+alias gcp='conflictingGit cherry-pick'
 alias gcpa='git cherry-pick --abort'
 alias gcpc='git cherry-pick --continue'
 alias glo='git log --oneline'
 alias glog='git log --oneline --abbrev-commit --graph'
 #? find dangling commits
 alias glogdc='git log --graph --oneline --decorate $( git fsck --no-reflog | awk "/dangling commit/ {print $3}" )'
-alias gmg='git merge'
-alias gmg-='git merge -'
+alias gmg='conflictingGit merge'
+alias gmg-='conflictingGit merge -'
 alias gmga='git merge --abort'
 alias gmgc='git merge --continue'
-alias gpr='git pull --rebase'
-alias grb='git rebase'
-alias grb-='git rebase -'
+alias gpr='conflictingGit pull --rebase'
+alias grb='conflictingGit rebase'
+alias grb-='conflictingGit git rebase -'
 alias grba='git rebase --abort'
 alias grbc='git rebase --continue'
 alias grmc='git rm --cached'
@@ -567,7 +571,7 @@ function gtop() { #? go to the top level of current repo
     # CHECK if this is a git repository
     isNotGitRepository && return 1
 	local gitTopLevel=$(git rev-parse --show-toplevel)
-	if [[ '-g' = $1 || '-go' = $1 ]]; then
+	if [[ 'go' = $1 || 'g' = $1 ]]; then
 		logInfo "Go to:\n$gitTopLevel"
 		cd $gitTopLevel
 	else
