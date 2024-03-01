@@ -1,6 +1,11 @@
 #? Git related
 
-function conflictingGit() { #x
+function combiningGit() { #x
+	if ! git diff --cached --quiet --exit-code; then
+		# commit first
+		git add -A
+		git commit
+	fi
 	git $@ | awk '{if(/^CONFLICT /){print "\033[31m" $0 "\033[0m" }else{print $0}}'
 }
 
@@ -10,23 +15,23 @@ alias gamd='git commit --amend'
 alias gamdn='git commit --amend --no-edit'
 alias gco='git checkout'
 alias gco-='git checkout -'
-alias gcp='conflictingGit cherry-pick'
+alias gcp='combiningGit cherry-pick'
 alias gcpa='git cherry-pick --abort'
-alias gcpc='git cherry-pick --continue'
+alias gcpc='combiningGit cherry-pick --continue'
 alias glo='git log --oneline'
 alias glog='git log --oneline --abbrev-commit --graph'
 #? find dangling commits
 alias glogdc='git log --graph --oneline --decorate $( git fsck --no-reflog | awk "/dangling commit/ {print $3}" )'
-alias gmg='conflictingGit merge'
-alias gmg-='conflictingGit merge -'
+alias gmg='combiningGit merge'
+alias gmg-='combiningGit merge -'
 alias gmga='git merge --abort'
-alias gmgc='git merge --continue'
-alias gpr='conflictingGit pull --rebase'
-alias grb='conflictingGit rebase'
-alias grb-='conflictingGit git rebase -'
+alias gmgc='combiningGit merge --continue'
+alias gpr='combiningGit pull --rebase'
+alias grb='combiningGit rebase'
+alias grb-='combiningGit git rebase -'
 alias grba='git rebase --abort'
 alias grbc='git rebase --continue'
-alias grmc='git rm --cached'
+alias grmc='combiningGit rm --cached'
 alias gst='git status'
 alias gss='git status -s'
 alias gfa='git fetch --all'
