@@ -1,4 +1,4 @@
-# Activate Qfig for zsh(or bash)
+# Activate Qfig for zsh(or bash). Please use activation-cygwin.sh if under cygwin
 currentShell=$(ps -p $$ -o comm= 2>/dev/null) # if [[ "$OSTYPE" == "darwin"* ]] || [[ "$OSTYPE" == "linux"* ]]
 if [ $? -ne 0 ]; then
 	currentShell=$(ps -p $$ comm= 2>/dev/null) # elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]]
