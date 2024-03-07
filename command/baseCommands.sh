@@ -404,11 +404,13 @@ function confirm() { #? ask for confirmation. Usage: confirm $flags(optional) $m
 	while getopts ":hwep:" opt; do
         case $opt in
 			h)
-				logInfo "Usage: confirm \$flags(optional) \$msg(optional).\n  Flags:\n"
+				logInfo "Usage: confirm \$flags(optional) \$msg(optional).\n  \nFlags:\n"
 				printf "    %-5s%s\n" "h" "Print this help message"
 				printf "    %-5s%s\n" "w" "Raise to warning level"
 				printf "    %-5s%s\n" "e" "Treat Enter as yes when it's normal level"
 				printf "    %-5s%s\n" "p:" "Specific the prefix. default is $Qfig_log_prefix"
+				printf "\e[0m"
+				echo ""
 				return 0
 				;;
             w)
