@@ -2,7 +2,7 @@
 #? These commands only requires sh built-in commands.
 
 # This function is the first to be loaded, so that Qfig can always be reloaded in current session
-function resh() { #? re-source .zshrc/.bashrc
+function refresh-qfig() { #? refresh qfig by re-source init.sh
 	[[ -o ksharrays ]] && local ksharrays=1 || local ksharrays=""
 	# If ksharrays was set, arrays would based on 0, array items can only be accessed like '${arr[1]}' not '$arr[1]',
 	# array size can only be accesse like '${#arr[@]}' not '${#arr}'. Some programs may not expect this option
@@ -54,6 +54,7 @@ function qfig() { #? Qfig preserved command
 		-h|help)
 			logInfo "Usage: qfig <command>\n\n  Available commands:\n"
 			printf "    %-10s%s\n" "help" "Print this help message"
+			printf "    %-10s%s\n" "refresh" "Refresh Qfig"
 			printf "    %-10s%s\n" "update" "Update Qfig"
 			printf "    %-10s%s\n" "into" "Go into Qfig project folder"
 			printf "    %-10s%s\n" "config" "Edit config to enable commands, etc."
@@ -65,6 +66,9 @@ function qfig() { #? Qfig preserved command
 			printf "\e[0m"
 			echo ""
 			;;
+		refresh)
+			refresh-qfig
+		;;
 		update)
 			logInfo "Fetching.."
 			git -C $_QFIG_LOC fetch origin master

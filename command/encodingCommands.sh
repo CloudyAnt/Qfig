@@ -2,9 +2,8 @@
 enable-qcmds math
 
 function chr2uni() { #? convert characters to unicodes(4 digits with '\u' prefix)
-	[ -z "$1" ] && return
 	local hexes
-	hexes=($(echo $(chr2ucp "$1")))
+	hexes=($(echo $(chr2ucp "$@")))
 	for hex in "${hexes[@]}"; do
 		hex=$(alignLeft $hex 0 4)
 		printf "\\\u$hex"
@@ -13,9 +12,8 @@ function chr2uni() { #? convert characters to unicodes(4 digits with '\u' prefix
 }
 
 function chr2uni8() { #? convert characters to unicodes(4 digits with '\u' prefix or 8 digits with '\U' prefix)
-	[ -z "$1" ] && return
 	local hexes
-	hexes=($(echo $(chr2ucpx "$1")))
+	hexes=($(echo $(chr2ucpx "$@")))
 	for hex in "${hexes[@]}"; do
 		if [ ${#hex} -gt 4 ]; then
 			hex=$(alignLeft $hex 0 8)
