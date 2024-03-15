@@ -255,7 +255,7 @@ function readTemp() { #x
 	if [[ "$_CURRENT_SHELL" = "zsh" ]]; then
 		vared _TEMP
 	else
-		read _TEMP
+		read -e _TEMP
 	fi
 }
 
