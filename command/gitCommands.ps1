@@ -373,21 +373,21 @@ function gct() {
     if (isNotGitRepository) {
         Return
     }
-    $obstacleProgress = ""
+    $obstacleProcess = ""
     If (Test-Path .git/MERGE_HEAD -PathType Leaf) {
-        $obstacleProgress = "Merge"
+        $obstacleProcess = "Merge"
     }
     ElseIf ((Test-Path .git/rebase-apply -PathType Container) -Or (Test-Path .git/rebase-merge -PathType Container) -Or (Test-Path .git/rebasing -PathType Container)) {
-        $obstacleProgress = "Rebase"
+        $obstacleProcess = "Rebase"
     }
     ElseIf (Test-Path .git/CHERRY_PICK_HEAD -PathType Leaf) {
-        $obstacleProgress = "Cherry-pick"
+        $obstacleProcess = "Cherry-pick"
     }
     ElseIf (Test-Path .git/REVERT_HEAD -PathType Leaf) {
-        $obstacleProgress = "Revert"
+        $obstacleProcess = "Revert"
     }
-    If ($obstacleProgress) {
-        If (-Not (confirm -w "$obstacleProgress in progress, continue ? `e[90mY for Yes, others for No.`e[0m")) {
+    If ($obstacleProcess) {
+        If (-Not (confirm -w "$obstacleProcess in progress, continue ? `e[90mY for Yes, others for No.`e[0m")) {
             Return
         }
     }

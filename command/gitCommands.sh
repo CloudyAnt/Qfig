@@ -843,18 +843,18 @@ function isNotGitRepository() { #x
 }
 
 function hasObstacleProcess() { #x
-	local obstacleProgress
+	local obstacleProcess
 	if [ -f .git/MERGE_HEAD ]; then
-        obstacleProgress=Merge
+        obstacleProcess=Merge
 	elif [ -d .git/rebase-apply ] || [ -d .git/rebase-merge ] || [ -d .git/rebasing ]; then
-		obstacleProgress=Rebase
+		obstacleProcess=Rebase
 	elif [ -f .git/CHERRY_PICK_HEAD ]; then
-		obstacleProgress=Cherry-pick
+		obstacleProcess=Cherry-pick
 	elif [ -f .git/REVERT_HEAD ]; then
-		obstacleProgress=Revert
+		obstacleProcess=Revert
 	fi
-	if [ $obstacleProgress ]; then
-		confirm -w "\e[1m$obstacleProgress\e[0m in progress, continue ?"  && return 1 || :
+	if [ $obstacleProcess ]; then
+		confirm -w "\e[1m$obstacleProcess\e[0m in progress, continue ?"  && return 1 || :
 	else
 		return 1
 	fi
