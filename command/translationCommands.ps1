@@ -43,7 +43,9 @@ function bdts() {
     $sign = "$appId$s$salt$key" | md5
     $q = [uri]::EscapeUriString($s)
     $url = "${api}?q=$q&from=$from&to=$to&appid=$appId&salt=$salt&sign=$sign"
-    $response = Invoke-RestMethod -Uri "$url"
 
-    return $response.trans_result[0].dst
+    $response = curl -s "$url"
+    $jsonResponse = $response | ConvertFrom-Json
+
+    return $jsonResponse.trans_result[0].dst
 }
