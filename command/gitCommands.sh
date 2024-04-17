@@ -42,13 +42,9 @@ forbidAlias gap gapply
 unsetAlias gb
 
 function gt() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'create') $cmdArg(optional). gtag -h for more
-	# CHECK if this is a git repository
-    isNotGitRepository && return 1
-	if [ -z $1 ]; then
-		git tag --points-at # --points-at defaults to HEAD
-	elif [ "-h" = "$1" ]; then
-		logInfo "Usage: gtag \$tag(optional) \$cmd(default 'create') \$cmdArg(optional).
-  \e[1mIf no params passed (gtag), show the tags on current commit\e[0m
+	if [ "-h" = "$1" ]; then
+		logInfo "Usage: gt \$tag(optional) \$cmd(default 'create') \$cmdArg(optional).
+  \e[1mIf no params passed (gt), show the tags on current commit\e[0m
   Available commands:\n"
 		printf "    %-18s%s\n" "c/create" "Default. Create a tag on current commit"
 		printf "    %-18s%s\n" "p/push" "Push the tag to remote"
@@ -61,6 +57,15 @@ function gt() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'create'
 		printf "    %-18s%s\n" "cp" "create & push"
 		printf "    %-18s%s\n" "ddrcp" "delete & delete-remote & create & push. meant to update local and remote tag to current commit"
 		printf "    %-18s%s\n" "df/delete-fetch" "delete local tag & fetch remote. meant to align local tag with remote"
+
+        isNotGitRepository -w
+        return
+    fi
+
+	# CHECK if this is a git repository
+    isNotGitRepository && return 1
+    if [ -z "$1" ]; then
+        git tag --points-at # --points-at defaults to HEAD
 	elif git check-ref-format "tags/$1" ; then
 		local tag=$1
 		if [[ $tag = -* ]]; then
@@ -145,16 +150,7 @@ function +gtag() { #x
 complete -F +gtag gtag
 
 function gb() { #? operate branch. Usage: gb $branch(optional, . stands for current branch) $cmd(default 'create') $cmdArg(optional). gb -h for more
-	# CHECK if this is a git repository
-    isNotGitRepository && return 1
-
-	local branch=$1
-	if [ "." = "$branch" ]; then
-		branch=$(git branch --show-current)
-	fi
-	if [ -z $branch ]; then
-		git branch --show-current
-	elif [ "-h" = "$branch" ]; then
+	if [ "-h" = "$1" ]; then
 		logInfo "Usage: gb \$branch(optional, \e[1m.\e[0m stands for current branch) \$cmd(default 'create') \$cmdArg(optional).
   \e[1mIf no params passed (gb), show the current branch name\e[0m
   Available commands:\n"
@@ -166,6 +162,20 @@ function gb() { #? operate branch. Usage: gb $branch(optional, . stands for curr
 		printf "    %-19s%s\n" "m/move" "Rename the branch"
 		printf "    %-19s%s\n" "t/track" "Show current track or track a remote branch"
 		printf "    %-19s%s\n" "ut/untrack" "Unset remote tracking"
+
+        isNotGitRepository -w
+        return
+    fi
+
+	# CHECK if this is a git repository
+    isNotGitRepository && return 1
+
+	local branch=$1
+	if [ "." = "$branch" ]; then
+		branch=$(git branch --show-current)
+	fi
+	if [ -z $branch ]; then
+		git branch --show-current
 	elif git check-ref-format --branch "$branch" >/dev/null 2>&1 ; then
 		if [[ $branch = -* ]]; then
 			logError "A branch name should not starts with '-'" && return 1
@@ -836,10 +846,21 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 }
 
 function isNotGitRepository() { #x
+    local inside
 	if [ "`git rev-parse --is-inside-work-tree 2>&1`" = 'true' ]; then
-		return 1
-	fi
-	logError "Not a git repository!"
+        inside="TRUE"
+    fi
+
+    if [ "$1" = "-w" ]; then
+        if [ ! "$inside" ]; then
+            logWarn "Notice: Not a git repository"
+        fi
+    else
+        if [ "$inside" ]; then
+            return 1
+        fi
+	    logError "Not a git repository!"
+    fi
 }
 
 function hasObstacleProcess() { #x
