@@ -35,6 +35,7 @@ alias grmc='git rm --cached'
 alias gst='git status'
 alias gss='git status -s'
 alias gfa='git fetch --all'
+alias gfat='git fetch origin --tags --force'
 forbidAlias gp gpush "git push"
 forbidAlias gl "git pull"
 forbidAlias gc gct "git commit"
