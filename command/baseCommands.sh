@@ -102,7 +102,7 @@ function qfig() { #? Qfig preserved command
 						}
 					} END {print ""}'
 				fi
-				resh - "Qfig updated!"
+				refresh-qifg - "Qfig updated!"
 			fi
 			;;
 		config)
