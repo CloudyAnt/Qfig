@@ -360,3 +360,28 @@ function confirm() {
     }
     return $false
 }
+function tail() {
+    param([Parameter(Mandatory)][string]$targetFile, [int16]$lines = 10, [switch]$follow)
+    if ($follow) {
+        Get-Content $targetFile -tail $lines -wait
+    } else {
+        Get-Content $targetFile -tail $lines
+    }
+}
+
+Function du() {   
+    param($Path = ".")
+    forEach ($File in (Get-ChildItem $Path)) {   
+        if ($File.PSisContainer){   
+            $Size = [Math]::Round((Get-ChildItem $File.FullName -Recurse | Measure-Object -Property Length -Sum).Sum / 1KB,2)
+            $Type = "Folder"
+        } else {   
+            $Size = $File.Length
+            $Type = ""
+        } [PSCustomObject]@{
+            Name = $File.Name
+            Type = $Type
+            Size = $Size
+        }
+    }
+}
