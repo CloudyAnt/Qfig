@@ -123,7 +123,9 @@ function gb() { #? operate branch. Usage: gb $branch(optional, . stands for curr
         Return
     }
     If (".".Equals($branch)) {
-        $branch = $(git branch --show-current)
+        $branch = git branch --show-current
+    } ElseIf("-".Equals($branch)) {
+        $branch = git name-rev $(git rev-parse @{-1}) --name-only
     }
 
     If ($help) {

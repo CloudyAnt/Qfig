@@ -174,7 +174,9 @@ function gb() { #? operate branch. Usage: gb $branch(optional, . stands for curr
 	local branch=$1
 	if [ "." = "$branch" ]; then
 		branch=$(git branch --show-current)
-	fi
+    elif [ "-" = "$branch" ]; then
+        branch=$(git name-rev $(git rev-parse @{-1}) --name-only)
+    fi
 	if [ -z $branch ]; then
 		git branch --show-current
 	elif git check-ref-format --branch "$branch" >/dev/null 2>&1 ; then

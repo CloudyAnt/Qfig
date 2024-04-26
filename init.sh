@@ -36,6 +36,10 @@ source $_QFIG_LOC/command/baseCommands.sh
 ## Custom configs 
 _PREFER_TEXT_EDITOR=vim
 localConfigFile=$_QFIG_LOCAL/config
+if [ ! -f "$localConfigFile" ]; then
+	localConfigFile=$_QFIG_LOC/configTemplate
+fi
+echo $localConfigFile
 if [ -f "$localConfigFile" ]; then
 	[[ "true" = $(sed -rn 's|<showVerboseInitMsg>(.+)</showVerboseInitMsg>|\1|p' $localConfigFile) ]] && verbose=1 || verbose=""
 	enabledCommands=""
