@@ -175,8 +175,14 @@ function gb() { #? operate branch. Usage: gb $branch(optional, . stands for curr
 	if [ "." = "$branch" ]; then
 		branch=$(git branch --show-current)
     elif [ "-" = "$branch" ]; then
-        branch=$(git name-rev $(git rev-parse @{-1}) --name-only)
+        local lastBranch=$(getLastGitBranchName)
+        if [ $lastBranch = "" ]; then
+            logError "last ref is not a branch!"
+            return 1
+        fi
+        branch=$lastBranch
     fi
+
 	if [ -z $branch ]; then
 		git branch --show-current
 	elif git check-ref-format --branch "$branch" >/dev/null 2>&1 ; then
@@ -882,4 +888,15 @@ function hasObstacleProcess() { #x
 	else
 		return 1
 	fi
+}
+
+function getLastGitBranchName() {
+    local lastCheckout=$(git reflog | grep -m 1 "checkout: moving from")
+
+    if [[ $lastCheckout =~ moving\ from\ ([^ ]+)\ to ]]; then
+        local lastBranch=$(getMatch 1)
+        if [[ ! $lastBranch =~ ^[0-9a-f]{40}$ ]]; then
+            echo $lastBranch
+        fi
+    fi
 }

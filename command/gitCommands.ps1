@@ -125,7 +125,12 @@ function gb() { #? operate branch. Usage: gb $branch(optional, . stands for curr
     If (".".Equals($branch)) {
         $branch = git branch --show-current
     } ElseIf("-".Equals($branch)) {
-        $branch = git name-rev $(git rev-parse @{-1}) --name-only
+        $lastBranch = getLastGitBranchName
+        if ([string]::isNullOrEmpty($lastBranch)) {
+            logError "last ref is not a branch!"
+            Return
+        }
+        $branch = $lastBranch
     }
 
     If ($help) {
@@ -661,5 +666,15 @@ function tail() {
         Get-Content $targetFile -tail $lines -wait
     } else {
         Get-Content $targetFile -tail $lines
+    }
+}
+
+function getLastGitBranchName() {
+    $lastCheckout = git reflog | grep -m 1 "checkout: moving from"
+    if ($lastCheckout -match "moving\ from\ ([^ ]+)\ to") {
+        $lastBranch = $matches[1]
+        if (-Not($lastBranch -match "^[0-9a-f]{40}$")) {
+            return $lastBranch
+        }
     }
 }

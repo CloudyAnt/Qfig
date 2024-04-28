@@ -16,13 +16,13 @@ If (-Not $IsWindows) {
 	$preferTextEditor = "vim"
 }
 
-$localConfigFile=$_QFIG_LOCAL\config
+$localConfigFile="$_QFIG_LOCAL/config"
 If (-Not (Test-Path -PathType Leaf $localConfigFile)) {
-	$localConfigFile=$_QFIG_LOC\configTemplate
+	$localConfigFile="$_QFIG_LOC/configTemplate"
 }
 
-If (Test-Path -PathType Leaf $_QFIG_LOCAL\config) {
-	$content = $(Get-Content "$_QFIG_LOCAL\config") -join "`n"
+If (Test-Path -PathType Leaf $localConfigFile) {
+	$content = $(Get-Content "$localConfigFile") -join "`n"
 	$verbose = $($content -match '<showVerboseInitMsg>(.+)</showVerboseInitMsg>' -And "true".Equals($matches[1])) ? 1 : 0
 	$enabledCommands = ""
 	$enabledCommandsMap = @{}

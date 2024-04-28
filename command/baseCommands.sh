@@ -663,3 +663,20 @@ function filei() { #? print file info
 		file -i $1
 	fi
 }
+
+function getMatch() {
+    local idx=$1
+    if [ "$idx" = "" ]; then
+        idx=0
+    fi
+
+	if [[ "$_CURRENT_SHELL" = "zsh" ]]; then
+        if [ $idx = 0 ]; then
+	        echo $MATCH
+        else
+            echo ${match[$idx]}
+        fi
+	else
+        echo ${BASH_REMATCH[$idx]}
+	fi
+}
