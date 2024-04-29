@@ -73,12 +73,13 @@ If (Test-Path -PathType Leaf $localConfigFile) {
 	$preferTextEditor = ""
 	If ($content -match '<preferTextEditor>(.+)</preferTextEditor>') {
 		$preferTextEditor = $matches[1].trim()
-		If (-Not [string]::IsNullOrEmpty($_preferTextEditor)) {
+
+		If (-Not [string]::IsNullOrEmpty($preferTextEditor)) {
 			$_PREFER_TEXT_EDITOR = $preferTextEditor
 		}
 	}
 
-	If ($_preferTextEditor) {
+	If ($_PREFER_TEXT_EDITOR) {
 		$initMsg += "Text editor: $_PREFER_TEXT_EDITOR. "
 	} Else {
 		$initMsg += "Text editor: $_PREFER_TEXT_EDITOR(default). "

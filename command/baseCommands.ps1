@@ -14,8 +14,8 @@ function qfig { #? Qfig preserved command. -h(help) for more
     } ElseIf ("into".Equals($command)) {
         Set-Location $_QFIG_LOC
     } ElseIf ("update".Equals($command)) {
-        logInfo "Fetching"
-        git -C $_QFIG_LOC fetch
+        logInfo "Fetching.."
+        git -C $_QFIG_LOC fetch origin master
         $behindCommits = git -C $_QFIG_LOC rev-list --count .."master@{u}"
         If ($behindCommits -eq 0) {
             logSuccess "Qfig is already up to date"
@@ -126,7 +126,7 @@ function qcmds() { #? operate available commands. Usage: qcmds commandsPrefix su
             Get-Content $targetFile
             Return
         }
-        {"vim", "edit" -contains $_} {
+        {"edit" -contains $_} {
             editFile $targetFile
             Return
         }
@@ -369,13 +369,13 @@ function tail() {
     }
 }
 
-Function du() {   
+Function du() {
     param($Path = ".")
-    forEach ($File in (Get-ChildItem $Path)) {   
+    forEach ($File in (Get-ChildItem $Path)) {
         if ($File.PSisContainer){   
             $Size = [Math]::Round((Get-ChildItem $File.FullName -Recurse | Measure-Object -Property Length -Sum).Sum / 1KB,2)
             $Type = "Folder"
-        } else {   
+        } else {
             $Size = $File.Length
             $Type = ""
         } [PSCustomObject]@{

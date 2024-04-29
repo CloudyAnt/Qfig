@@ -660,15 +660,6 @@ function markGitSafeDir() {
     git config --global --add safe.directory $(Get-Location)
 }
 
-function tail() {
-    param([Parameter(Mandatory)][string]$targetFile, [int16]$lines = 10, [switch]$follow)
-    if ($follow) {
-        Get-Content $targetFile -tail $lines -wait
-    } else {
-        Get-Content $targetFile -tail $lines
-    }
-}
-
 function getLastGitBranchName() {
     $lastCheckout = git reflog | grep -m 1 "checkout: moving from"
     if ($lastCheckout -match "moving\ from\ ([^ ]+)\ to") {
