@@ -362,6 +362,10 @@ function confirm() {
 }
 function tail() {
     param([Parameter(Mandatory)][string]$targetFile, [int16]$lines = 10, [switch]$follow)
+    if (-Not (Test-Path -Path $targetFile -PathType Leaf)) {
+        logError "target file $targetFile is not valid!"
+        Return
+    }
     if ($follow) {
         Get-Content $targetFile -tail $lines -wait
     } else {
