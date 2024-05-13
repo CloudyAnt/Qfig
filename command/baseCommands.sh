@@ -442,6 +442,7 @@ function confirm() { #? ask for confirmation. Usage: confirm $flags(optional) $m
 		logWarn "$message \e[90mInput yes/Yes to confirm.\e[0m" $prefix
 		readTemp && yn=$_TEMP || return 1
 		if [[ 'yes' = "$yn" || 'Yes' = "$yn" ]]; then
+            echo "\e[34;1m[YES]\e[0m"
 			return 0
 		fi
 	else
@@ -452,9 +453,11 @@ function confirm() { #? ask for confirmation. Usage: confirm $flags(optional) $m
 		fi
 		readTemp && yn=$_TEMP || return 1
 		if [[ 'Y' = "$yn" || 'y' = "$yn" || 'yes' = "$yn" || 'Yes' = "$yn" ]] || [[ $enterForYes && -z "$yn" ]]; then
+            echo "\e[34;1m[YES]\e[0m"
 			return 0
 		fi
 	fi
+    echo "\e[33;1m[NO]\e[0m"
 	return 1
 }
 
