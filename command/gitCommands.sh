@@ -581,7 +581,7 @@ function gpush() { #? git push with automatic branch creation
 			logWarn "Push seems failed, check the above message"
 		fi
 	elif confirm "No upstream branch, create it ?"; then
-		logInfo "Creating upstream branch.."
+		logInfo "Creating upstream branch [$src] .."
 		git push -u origin $src:$dst
 		if [ $? = 0 ]; then
 			logSuccess "Upstream branch just created"
