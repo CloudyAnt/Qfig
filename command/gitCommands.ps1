@@ -249,7 +249,7 @@ function gco {
 
 $_git_stash_key = "_git_stash_:"
 
-function gxn() { #? create new stash. Usage: gxn stashName(optional)
+function gx() { #? create new stash. Usage: gx stashName(optional)
     param($name, [switch]$unstaged)
     If (isNotGitRepository) {
         Return
@@ -298,7 +298,7 @@ function gapply() {
     }
 }
 
-function gpop() {
+function gxp() {
     #? git stash pop
     param($key)
     if (isNotGitRepository) {
