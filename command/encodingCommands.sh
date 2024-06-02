@@ -318,10 +318,11 @@ function utf82ucp() { #? covert utf8 bytes to unicode code points. If badly stop
     for arg in "$@"; do
         i=$((i + 1))
         if [[ "$arg" =~ [0-9a-fA-F][0-9a-fA-F] ]]; then
+            local harg="0x$arg"
             if [ $bn -gt $bc ]; then
-                if [ $((0x$arg >> 6)) -eq 2 ]; then
+                if [ $((harg >> 6)) -eq 2 ]; then
                     offs=$(((bn - bc - 1) * 6))
-                    n=$((((0x$arg & 0x3F) << $offs) + n))
+                    n=$((((harg & 0x3F) << offs) + n))
                     bc=$((bc + 1))
                     if [ $bn -eq $bc ]; then
                         out=$out$(dec2hex $n)
@@ -329,17 +330,17 @@ function utf82ucp() { #? covert utf8 bytes to unicode code points. If badly stop
                 else
                     logError "The ${i}th byte '$arg' should be 10xxxxxx!" && return 2
                 fi
-            elif [ $((0x$arg >> 7)) -eq 0 ]; then
+            elif [ $((harg >> 7)) -eq 0 ]; then
 				out=$out$arg
-			elif [ $((0x$arg >> 5)) -eq 6 ]; then
+			elif [ $((harg >> 5)) -eq 6 ]; then
 				bn=2; bc=1
-                n=$(((0x$arg & 0x1F) << 6))
-			elif [ $((0x$arg >> 4)) -eq 14 ]; then
+                n=$(((harg & 0x1F) << 6))
+			elif [ $((harg >> 4)) -eq 14 ]; then
 				bn=3; bc=1
-                n=$(((0x$arg & 0x0F) << 12))
-			elif [ $((0x$arg >> 3)) -eq 30 ]; then
+                n=$(((harg & 0x0F) << 12))
+			elif [ $((harg >> 3)) -eq 30 ]; then
 				bn=4; bc=1
-                n=$(((0x$arg & 0x07) << 18))
+                n=$(((hArg & 0x07) << 18))
 			else
 				logError "Invalid 1st byte '0x$arg' (before index $i)! Should be one of 0xxxxxx, 110xxxxx, 1110xxxx, 11110xx" && return 2
 			fi
@@ -434,4 +435,56 @@ function deurlp() { #? decode url param by UTF-8
         fi
     fi
 	echo $out
+}
+
+declare -g -a _B64_CHARS=(A B C D E F G H I J K L M N O P Q R S T U V W X Y Z a b c d e f g h i j k l m n o p q r s t u v w x y z \
+    0 1 2 3 4 5 6 7 8 9 '+' '/')
+declare -g -a _B64_URL_CHARS=(A B C D E F G H I J K L M N O P Q R S T U V W X Y Z a b c d e f g h i j k l m n o p q r s t u v w x y z \
+    0 1 2 3 4 5 6 7 8 9 '-' '_')
+function b64e() { #? encode string with base64. -u for URL
+    declare -a chars=($_B64_CHARS)
+    if [ "$1" = "-u" ]; then
+        local chars=$_B64_URL_CHARS
+        shift 1
+    fi
+    if [ -z "$@" ]; then
+        return
+    fi
+    local ucpStr=($(chr2ucp $@))
+    local bytes=($(ucp2utf8 ${ucpStr[@]}))
+    local out=""
+    declare -i pi=-1
+    declare -i padding
+    declare -i high=0
+    declare -i arrayBase=$(getArrayBase)
+    for hex in ${bytes[@]}; do
+        padding=$((2 - ((++pi) % 3)))
+        local pool=$((high + 0x$hex))
+        local rightShift=2
+        local filter=3
+        if [ $padding -eq 1 ]; then
+            rightShift=4
+            filter=15
+        elif [ $padding -eq 0 ]; then
+            rightShift=6
+            filter=63
+        fi
+        charIndex=$((pool >> rightShift))
+        out=${out}${chars[$((charIndex + arrayBase))]}
+        pool=$((pool & filter))
+
+        if [ $padding -eq 0 ]; then
+            out=${out}${chars[$pool + $arrayBase]}
+            high=0
+        else
+            high=$((pool << 8))
+        fi
+    done
+    if [ $padding -ne 0 ]; then
+        charIndex=$((pool << (padding * 2)))
+        out=${out}${chars[$((charIndex + arrayBase))]}
+        [ $padding -eq 1 ] && out="${out}=" || out="${out}=="
+    fi
+
+    echo $out
 }

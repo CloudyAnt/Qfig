@@ -9,7 +9,7 @@ function refresh-qfig() { #? refresh qfig by re-source init.sh
 	[ $ksharrays ] && set +o ksharrays || :
 
 	if [ ! "-" = "$1" ]; then
-		[ -z "$1" ] && logInfo "Refreshing $_CURRENT_SHELL..." || logInfo "$1..."
+		[ -z "$1" ] && logInfo "Refreshing qfig.." || logInfo "$1..."
 	fi
 	local cleanFuncs="" # some system (like msys) contains builtin functions that should not be clean
 	if [ $cleanFuncs ]; then
@@ -31,7 +31,7 @@ function refresh-qfig() { #? refresh qfig by re-source init.sh
 	local qfigLocation=$_QFIG_LOC
 	_QFIG_LOC="" # tell init.sh to reload
     source "$qfigLocation/init.sh"
-	[ -z "$2" ] && logSuccess "Refreshed $_CURRENT_SHELL" || logSuccess "$2"
+	[ -z "$2" ] && logSuccess "Refreshed qfig" || logSuccess "$2"
 
 	[ $ksharrays ] && set -o ksharrays || :
 }
@@ -682,4 +682,14 @@ function getMatch() {
 	else
         echo ${BASH_REMATCH[$idx]}
 	fi
+}
+
+function resh() { #? refresh current shell session by config file(zsh.rc, etc)
+    logInfo "Refreshing $_CURRENT_SHELL.."
+    if [ "$_CURRENT_SHELL" = "zsh" ]; then
+        source ~/.zshrc
+    elif [ "$_CURRENT_SHELL" = "bash" ]; then
+        source ~/.bashrc
+    fi
+    logInfo "Refreshed $_CURRENT_SHELL"
 }
