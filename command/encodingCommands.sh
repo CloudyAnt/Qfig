@@ -442,12 +442,13 @@ declare -g -a _B64_CHARS=(A B C D E F G H I J K L M N O P Q R S T U V W X Y Z a 
 declare -g -a _B64_URL_CHARS=(A B C D E F G H I J K L M N O P Q R S T U V W X Y Z a b c d e f g h i j k l m n o p q r s t u v w x y z \
     0 1 2 3 4 5 6 7 8 9 '-' '_')
 function b64e() { #? encode string with base64. -u for URL
-    declare -a chars=($_B64_CHARS)
+    declare -a chars=(${_B64_CHARS[@]})
     if [ "$1" = "-u" ]; then
         local chars=$_B64_URL_CHARS
         shift 1
     fi
-    if [ -z "$@" ]; then
+    local all=$@
+    if [ -z "$all" ]; then
         return
     fi
     local ucpStr=($(chr2ucp $@))
