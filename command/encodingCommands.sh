@@ -325,13 +325,13 @@ function utf82ucp() { #? covert utf8 bytes to unicode code points. If badly stop
                     n=$((((harg & 0x3F) << offs) + n))
                     bc=$((bc + 1))
                     if [ $bn -eq $bc ]; then
-                        out=$out$(dec2hex $n)
+                        out="$out$(dec2hex $n) "
                     fi
                 else
                     logError "The ${i}th byte '$arg' should be 10xxxxxx!" && return 2
                 fi
             elif [ $((harg >> 7)) -eq 0 ]; then
-				out=$out$arg
+				out="$out$arg "
 			elif [ $((harg >> 5)) -eq 6 ]; then
 				bn=2; bc=1
                 n=$(((harg & 0x1F) << 6))
@@ -441,6 +441,16 @@ declare -g -a _B64_CHARS=(A B C D E F G H I J K L M N O P Q R S T U V W X Y Z a 
     0 1 2 3 4 5 6 7 8 9 '+' '/')
 declare -g -a _B64_URL_CHARS=(A B C D E F G H I J K L M N O P Q R S T U V W X Y Z a b c d e f g h i j k l m n o p q r s t u v w x y z \
     0 1 2 3 4 5 6 7 8 9 '-' '_')
+declare -g -A _B64_LETTER_VALUE_MAP
+declare -i v=0
+for c in ${_B64_CHARS[@]}; do
+    _B64_LETTER_VALUE_MAP[$c]=$v
+    v=$((v + 1))
+done
+_B64_LETTER_VALUE_MAP["-"]=62
+_B64_LETTER_VALUE_MAP["_"]=63
+unset v c
+
 function b64e() { #? encode string with base64. -u for URL
     declare -a chars=(${_B64_CHARS[@]})
     if [ "$1" = "-u" ]; then
@@ -487,5 +497,56 @@ function b64e() { #? encode string with base64. -u for URL
         [ $padding -eq 1 ] && out="${out}=" || out="${out}=="
     fi
 
+    echo $out
+}
+
+function b64d() { #? decode base64 encoded string
+    local all=$@
+    if [ -z "$all" ]; then
+        return
+    fi
+    local c v
+    declare -a bytes
+    declare -i pool=0
+    declare -i byte=0
+    declare -i filter=0
+    declare -i padding=0
+    for (( i=0,j=0; i<${#all}; i++,j++ )); do
+        c=${all:$i:1}
+        if [ $c = '=' ]; then
+            j=$((j - 1))
+            break
+        fi
+
+        j=$((j % 4))
+        v=${_B64_LETTER_VALUE_MAP[$c]}
+        if [ -z "$v" ]; then
+            logError "Invalid char '$c' at index ${i}" && return 1
+        fi
+        pool=$(((pool << 6) + v))
+        filter=0
+        if [ $j -eq 1 ]; then
+            byte=$((pool >> 4))
+            filter=11
+        elif [ $j -eq 2 ]; then
+            byte=$((pool >> 2))
+            filter=3
+        elif [ $j -eq 3 ]; then
+            byte=$pool
+        fi
+        if [ $j -ge 1 ]; then
+            bytes+=($byte)
+            pool=$((pool & filter))
+        fi
+    done
+    if [ $pool -ne 0 ]; then
+        logError "Invalid sequence! "
+    fi
+    local hexes=($(dec2hex ${bytes[@]}))
+    local ucps=$(utf82ucp ${hexes[@]})
+    local out
+    for ucp in ${ucps[@]};do
+        out="${out}\\\u${ucp}"
+    done
     echo $out
 }
