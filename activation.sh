@@ -4,6 +4,12 @@ currentLoc=$( cd $( dirname ${BASH_SOURCE[0]} ) >/dev/null 2>&1 && pwd )
 baseConfig=$currentLoc/init.sh
 function activeQfigForProfile() {
     local profile=$1
+    if [ ! -f $profile ]; then
+        if [ -d $profile ]; then
+            echo "$profile is a directory!" && exit 1
+        fi
+        touch $profile
+    fi
     
     # Check if actived
     activationSegment=$(cat $profile | awk -v f="$baseConfig" '$0 ~ f')
