@@ -543,10 +543,13 @@ function b64d() { #? decode base64 encoded string
         logError "Invalid sequence! "
     fi
     local hexes=($(dec2hex ${bytes[@]}))
-    local ucps=$(utf82ucp ${hexes[@]})
+    local ucps=($(utf82ucp ${hexes[@]}))
     local out
-    for ucp in ${ucps[@]};do
-        out="${out}\\\u${ucp}"
+    for ucp in "${ucps[@]}";do
+        while [ ${#ucp} -lt 4 ]; do
+            ucp="0${ucp}"
+        done
+        out="${out}\\u${ucp}"
     done
-    echo $out
+    echo "$out"
 }

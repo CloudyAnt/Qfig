@@ -126,7 +126,6 @@ function qfig() { #? Qfig preserved command
 			;;
 		*)
 			qfig help
-			return 1
 	esac
 }
 
@@ -221,6 +220,16 @@ function qcmds() { #? operate available commands. Usage: qcmds $commandsPrefix $
 	esac
 }
 
+function resh() { #? refresh current shell session by config file(zsh.rc, etc)
+    logInfo "Refreshing $_CURRENT_SHELL.."
+    if [ "$_CURRENT_SHELL" = "zsh" ]; then
+        source ~/.zshrc
+    elif [ "$_CURRENT_SHELL" = "bash" ]; then
+        source ~/.bashrc
+    fi
+    logInfo "Refreshed $_CURRENT_SHELL"
+}
+
 function editfile() { #? edit a file using preferedTextEditor
 	[ -z $1 ] && logError "Which file ?" && return
 	[ -d $1 ] && logError "Target is a directory !" && return
@@ -275,6 +284,13 @@ function rmCr() { #x
 	rdIFS
 }
 
+function filei() { #? print file info
+	if [ "$_IS_BSD" ]; then
+		file -I $1
+	else
+		file -i $1
+	fi
+}
 
 ### Log
 #? About colorful output, refer to https://en.wikipedia.org/wiki/ANSI_escape_code#SGR
@@ -659,14 +675,6 @@ function trimString() { #? trim string
 	echo ${s:begin:len}
 }
 
-function filei() { #? print file info
-	if [ "$_IS_BSD" ]; then
-		file -I $1
-	else
-		file -i $1
-	fi
-}
-
 function getMatch() {
     local idx=$1
     if [ "$idx" = "" ]; then
@@ -684,12 +692,3 @@ function getMatch() {
 	fi
 }
 
-function resh() { #? refresh current shell session by config file(zsh.rc, etc)
-    logInfo "Refreshing $_CURRENT_SHELL.."
-    if [ "$_CURRENT_SHELL" = "zsh" ]; then
-        source ~/.zshrc
-    elif [ "$_CURRENT_SHELL" = "bash" ]; then
-        source ~/.bashrc
-    fi
-    logInfo "Refreshed $_CURRENT_SHELL"
-}
