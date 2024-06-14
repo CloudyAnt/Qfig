@@ -56,7 +56,6 @@ function qfig() { #? Qfig preserved command
 			printf "    %-10s%s\n" "help" "Print this help message"
 			printf "    %-10s%s\n" "refresh" "Refresh Qfig"
 			printf "    %-10s%s\n" "update" "Update Qfig"
-			printf "    %-10s%s\n" "into" "Go into Qfig project folder"
 			printf "    %-10s%s\n" "config" "Edit config to enable commands, etc."
 			printf "    %-10s%s\n" "report" "Report Qfig cared environment"
 			printf "    %-10s%s\n" "v/version" "Show current version"

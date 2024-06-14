@@ -7,7 +7,6 @@ function qfig { #? Qfig preserved command. -h(help) for more
         logInfo "Usage: qfig <command>`n`n  Available commands:`n"
         "    {0,-10}{1}" -f "help", "Print this help message"
         "    {0,-10}{1}" -f "update", "Update Qfig"
-        "    {0,-10}{1}" -f "into", "Go into Qfig project folder"
         "    {0,-10}{1}" -f "config", "Edit config to enable commands, etc."
         "    {0,-10}{1}" -f "report", "Report Qfig cared environment"
         "    {0,-10}{1}" -f "v/version", "Show current version"
