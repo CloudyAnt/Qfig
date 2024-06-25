@@ -1,4 +1,5 @@
 # Use intellij java-decompiler.jar to decompile a folder of class files, then transfer results(java files) to another folder. 
+# That jar may be found under $ideaFolder/plugins/java-decompiler/lib
 
 if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
     echo "\033[31mMissing params.\033[0m Usage: this-script java-decompiler.jar src dst" && exit

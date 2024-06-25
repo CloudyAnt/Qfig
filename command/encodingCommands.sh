@@ -96,11 +96,15 @@ function chr2ucpx() { #? convert characters to unicode code points (try to elimi
 
 function chr2ucp() { #? convert characters to unicode code points (may contain surrogate pair under GitBash and Cygwin)
 	[ -z "$1" ] && return
-	local all c i
+	local all c i x
 	all=$@
 	for (( i=0 ; i<${#all}; i++ )); do
 		c=${all:$i:1}
-		printf "%x " "'$c"
+        x=$(printf "%x " "'$c")
+        if [[ $x = "20 " && c != " " ]]; then
+            x="00 "
+        fi
+        printf "$x"
 	done
 	printf "\n"
 }
