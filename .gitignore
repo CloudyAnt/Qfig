@@ -20,3 +20,4 @@
 command/localCommands.sh
 command/localCommands.ps1
 *.swp
+.DS_Store
