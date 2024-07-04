@@ -2,9 +2,12 @@
 
 function jrun() { #? java compile then run, jrun Hello => javac Hello.java && java Hello
     [ -z $1 ] && logError "Which file to run ?" && return
-    [ ! -f "$1" ] && logError "File does not exist !" && return
-
     local file=$1
+    if [[ $file =~ ^[^.]+$ ]]; then
+        file=$file".go"
+    fi
+    [ ! -f "$file" ] && logError "File $file does not exist !" && return
+
     local fileSuffix=$(echo $file | awk -F '.' '{print $2}')
     [ "java" != "$fileSuffix" ] && logWarn "File is not end with .java" && return
 
