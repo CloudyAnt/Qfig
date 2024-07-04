@@ -1,3 +1,5 @@
+# This script resolve gct patterns, used in 'gct' function
+
 [ -z "$1" ] && echo "Pattern must not be empty!" && exit 1
 pattern=$1
 # pattern example:<name@^[^\:]+$:Unknown> <#type@^[^\:]+$:refactor fix feat chore doc test style>: <#message@^[^\:]+$:Unknown>

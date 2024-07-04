@@ -1,5 +1,5 @@
 # Quick Sort
-# The Powershell variable scope works similarly to C#, Java, etc, so this script works like them too
+# The Powershell variable scope works similarly to C#, Java, etc, this script works like them too
 
 [int[]]$list = (Read-Host "Please Input an int array, separated by ','`n").split(",") | ForEach-Object {
     [int]$_

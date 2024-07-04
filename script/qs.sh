@@ -1,7 +1,7 @@
 #!/bin/bash
 # Quick Sort
-# The Shell variables defined in session and functions are visible mutually by default.
-# The 'local' keyword limit a variable only work in containing function
+# The Shell variables defined in session and functions are visible to each other by default.
+# The 'local' keyword limit a variable only work in it's containing function
 
 function partition {
     local l=$1

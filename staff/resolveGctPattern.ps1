@@ -1,3 +1,5 @@
+# This script resolve gct patterns, used in 'gct' function
+
 param([Parameter(Mandatory)]$pattern)
 # pattern example:<name@^[^\:]+$:Unknown> <#type@^[^\:]+$:refactor fix feat chore doc test style>: <#message@^[^\:]+$:Unknown>
 

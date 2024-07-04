@@ -1,4 +1,4 @@
-# Activate Qfig for zsh(or bash). Please use activation-cygwin.sh if under cygwin
+# Activate Qfig for zsh(or bash). Please use activation-cygwin.sh if it's under cygwin
 
 currentLoc=$( cd $( dirname ${BASH_SOURCE[0]} ) >/dev/null 2>&1 && pwd )
 baseConfig=$currentLoc/init.sh
