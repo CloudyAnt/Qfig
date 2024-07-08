@@ -15,7 +15,7 @@ eval $(awk -F '=' 'BEGIN { s="declare -g -A _MYSQL_MAPPING;" } {
 } END { print s }' $_MYSQL_MAPPING_FILE)
 
 function mysqlc() { #? Connect mysql by mapping
-    [ -z "$1" ] || [ -z "${_MYSQL_MAPPING[$1]}" ] && logError "No corrosponding mapping" && return
+    [ -z "$1" ] || [ -z "${_MYSQL_MAPPING[$1]}" ] && logError "No corresponding mapping" && return
     declare -a mapping=($(echo ${_MYSQL_MAPPING[$1]}))
     declare -i arrayBase=$(getArrayBase)
     local hostPort="${mapping[$arrayBase]}:"
@@ -32,7 +32,7 @@ function mysqlc() { #? Connect mysql by mapping
 }
 
 function mysqlo() { #? Connect mysql by mapping THEN pass command and output result to files
-    [ -z "$1" ] || [ -z "${_MYSQL_MAPPING[$1]}" ] && logError "No corrosponding mapping" && return
+    [ -z "$1" ] || [ -z "${_MYSQL_MAPPING[$1]}" ] && logError "No corresponding mapping" && return
     [ -z "$2" ] && logError "Need Command" && return
     [ -z "$3" ] && logError "Need Output File" && return
     declare -a mapping=(${_MYSQL_MAPPING[$1]})

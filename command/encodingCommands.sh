@@ -1,6 +1,6 @@
-#? Encodings related coomands
+#? Encodings related commands
 enable-qcmds math
-#? If you want to check a file's encoding, use xxd, od etc. instead of chr2ucp, chr2uni etc., laters are designed for in-terminal strings only
+#? If you want to check a file's encoding, use xxd, od etc. instead of chr2ucp, chr2uni etc., the latte are designed for in-terminal strings only
 
 function chr2uni() { #? convert characters to unicodes(4 digits with '\u' prefix)
 	local hexes
@@ -27,7 +27,7 @@ function chr2uni8() { #? convert characters to unicodes(4 digits with '\u' prefi
     printf "\n"
 }
 
-#? 'echo' convert '\u' or '\U' prefixed hexdecimals to chars, makes a function 'unicode2char' unnecessary
+#? 'echo' convert '\u' or '\U' prefixed hexadecimals to chars, makes a function 'unicode2char' unnecessary
 
 function ucp2chr() { #? convert unicode code points to characters
 	declare -i codesCount=0;
@@ -73,7 +73,7 @@ function ucp2chr() { #? convert unicode code points to characters
 	fi
 }
 
-function chr2ucpx() { #? convert characters to unicode code points (try to elimiate surrogate pairs)
+function chr2ucpx() { #? convert characters to unicode code points (try to eliminate surrogate pairs)
 	[ -z "$1" ] && return
 	local hexes lps
 	hexes=($(echo $(chr2ucp "$1")))
@@ -134,7 +134,7 @@ function ucp2sp() { #? convert 1 unicode (range [10000, 10FFFF]) to surrogate pa
 function sp2ucp() { #? convert 1 surrogate pair (range [D800, DBFF] and [DC00, DFFF]) to unicode (range [10000, 10FFFF])
 	[[ -z $1 || -z $2 ]] && logWarn "A surrogate pair needs 2 units" && return
 	if ! [[ $1 =~ ^[0-9a-fA-F]+$ && $2 =~ ^[0-9a-fA-F]+$ ]]; then
-		logWarn "$1 or $2 is not hexdecimal" && return
+		logWarn "$1 or $2 is not hexadecimal" && return
 	fi
 
 	if [[ 0x$1 -lt 0xD800 || 0x$1 -gt 0xDBFF ]]; then

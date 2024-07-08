@@ -141,7 +141,7 @@ function +gtag() { #x
 		local p2="${COMP_WORDS[$(($arrayBase + 1))]}"
 		local tags
 		IFS=$'\n' tags=($(git tag --list "$p2*")) rdIFS
-		local str=$(concat ' ' "${tags[@]}") # incase the ksyarrays was set, use array parameter expansion (${arr[@]}) here
+		local str=$(concat ' ' "${tags[@]}") # in case the ksharrays was set, use array parameter expansion (${arr[@]}) here
 		COMPREPLY=($(compgen -W "$str" -- $p2))
 		return 0
 	fi

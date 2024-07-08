@@ -7,7 +7,7 @@ function gpkg() { #? gradle package & tell the size of jar
     du -h target/*.jar
 }
 
-function gdhl() { #? hightlight a word in dependency tree
+function gdhl() { #? highlight a word in dependency tree
     [ -z "$1" ] && return
     gradle -q dependencies | awk -v word=$1 '{sub(word, sprintf("\033[0;31m%s\033[0m", word)); print}'
 }

@@ -58,7 +58,7 @@ function cpti() { #? copy to server with pem. Usage: cpti localFile mapping remo
     local _SshEndpoint=${_SSH_MAPPING[$2]}
     local _PemFile=${_PEM_MAPPING[$2]}
 
-    logInfo "Tarnsferring $1 to $_SshEndpoint:/$3"
+    logInfo "Transferring $1 to $_SshEndpoint:/$3"
     scp -i $_PemFile $1 $_SshEndpoint:/$3
 }
 
@@ -86,7 +86,7 @@ function cpf() { #? copy from server. Usage: cpf remoteFile mapping localFile pe
     fi
 }
 
-function cpfi() { #? copy from server with pem. Usage: cpfi romoteFile mapping localFile
+function cpfi() { #? copy from server with pem. Usage: cpfi remoteFile mapping localFile
     [ -z "$1" ] || [ -z ${_SSH_MAPPING[$1]} ] || [ -z ${_PEM_MAPPING[$1]} ] && logWarn "No ssh/pem mapping for: $1" && return # need mapping
     local _SshEndpoint=${_SSH_MAPPING[$1]}
     local _PemFile=${_PEM_MAPPING[$1]}

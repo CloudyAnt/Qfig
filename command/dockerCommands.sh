@@ -28,7 +28,7 @@ function drmc() { #? delete container by id
     docker container rm $1
 }
 
-function dprune() { #? remove all stopped containders and useless images
+function dprune() { #? remove all stopped containers and useless images
 	local allStoppedContainers=$(docker ps -a -q)
 	if [ -z "$allStoppedContainers" ]
 	then

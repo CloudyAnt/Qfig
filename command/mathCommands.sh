@@ -31,7 +31,7 @@ function hex2dec() { #? convert hex unicode code points to decimals
 	for arg in "$@"
 	do
 		if ! [[ $arg =~ ^[0-9a-fA-F]+$ ]]; then
-			logWarn $index"th param '$arg' is not hexdecimal" && return 1
+			logWarn $index"th param '$arg' is not hexadecimal" && return 1
 		fi
         if [ "$not1st" ]; then
             out="$out $((0x$arg))"
@@ -87,7 +87,7 @@ function rebase() { #? convert integer to another base. base should in [2-36]. U
         digitBase=$((digitBase * ob))
     done
 
-    # calculae max digital base
+    # calculate max digital base
     local out arrayBase
     arrayBase=$(getArrayBase)
     declare -i digitBase_

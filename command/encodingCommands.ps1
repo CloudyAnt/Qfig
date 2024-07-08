@@ -1,4 +1,4 @@
-#? Encodings related coomands
+#? Encodings related commands
 
 function chr2uni() {
     param([Parameter(Mandatory)][string]$str)

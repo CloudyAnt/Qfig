@@ -229,7 +229,7 @@ function resh() { #? refresh current shell session by config file(zsh.rc, etc)
     logInfo "Refreshed $_CURRENT_SHELL"
 }
 
-function editfile() { #? edit a file using preferedTextEditor
+function editfile() { #? edit a file using preferredTextEditor
 	[ -z $1 ] && logError "Which file ?" && return
 	[ -d $1 ] && logError "Target is a directory !" && return
     eval "$_PREFER_TEXT_EDITOR $1"
@@ -262,18 +262,9 @@ function readTemp() { #x
 	_TEMP=
 	local prompt="$1"
 	if [[ "$_CURRENT_SHELL" = "zsh" ]]; then
-	    if [ "$prompt" ]; then
-	        vared -p "$(echo -e "$prompt")" _TEMP
-	    else
-	        vared _TEMP
-	    fi
+	    vared -p "$(echo -e "$prompt")" _TEMP
 	else
-	    if [ "$prompt" ]; then
-	        read -e -p "$(echo -e "$prompt")" _TEMP
-	    else
-	        read -e _TEMP
-	    fi
-		read -e _TEMP
+	    read -e -p "$(echo -e "$prompt")" _TEMP
 	fi
 }
 
@@ -335,7 +326,7 @@ function logDebug() { #x debug
 }
 
 Qfig_log_prefix="●"
-function logSilence() { #? log unconspicuous message
+function logSilence() { #? log inconspicuous message
     [ -z "$1" ] && return
     #logColor "\033[30;42m" $1
 	printf "\e[2m$Qfig_log_prefix $1\e[0m\n"
@@ -347,7 +338,7 @@ function qfigLog() { #x log with a colored dot prefix
 	local log=$2
     [[ -z "$sgr" || -z "$log" ]] && return
 
-    IFS=';' local commands=($(echo $3)); rdIFS
+    toArray "$3" ';' && commands=("${_TEMP[@]}")
     local arrayBase=$(getArrayBase)
     local prefix=${commands[$arrayBase]}
 	[ -z "$prefix" ] && prefix="$Qfig_log_prefix" || :
@@ -491,7 +482,7 @@ function confirm() { #? ask for confirmation. Usage: confirm $flags(optional) $m
 		yn=$_TEMP
         yn=$(echo $yn | tr '[:upper:]' '[:lower:]')
 		if [ 'yes' = "$yn" ]; then
-            echo "\e[34;1m[YES]\e[0m"
+            echoe "\e[34;1m[YES]\e[0m"
 			return 0
 		fi
 	else
@@ -503,11 +494,11 @@ function confirm() { #? ask for confirmation. Usage: confirm $flags(optional) $m
 		yn=$_TEMP
         yn=$(echo $yn | tr '[:upper:]' '[:lower:]')
 		if [[ 'y' = "$yn" || 'yes' = "$yn" ]] || [[ $enterForYes && -z "$yn" ]]; then
-            echo "\e[34;1m[YES]\e[0m"
+            echoe "\e[34;1m[YES]\e[0m"
 			return 0
 		fi
 	fi
-    echo "\e[33;1m[NO]\e[0m"
+    echoe "\e[33;1m[NO]\e[0m"
 	return 1
 }
 
@@ -610,7 +601,7 @@ function concat() { #? concat array. Usage: concat $meta $item1 $item2 $item3...
 		end=$maxEnd # array end at (length() + 1)
 	else
 		local metaSeparator=${1:0:1}
-		IFS=$metaSeparator local metas=($(echo $1)); rdIFS
+		toArray $1 $metaSeparator && metas=("${_TEMP[@]}")
 
 		if [ ${#metas[@]} -lt 1 ]; then
 			logError "Meta must have at least 1 parts (joiner)" && return 1
@@ -726,3 +717,10 @@ function getMatch() {
 	fi
 }
 
+function toArray() {
+    if [[ "$_CURRENT_SHELL" = "zsh" ]]; then
+        IFS="$2" _TEMP=($(echo "$1")); rdIFS
+    else
+        IFS="$2" read -ra _TEMP <<< "$1"; rdIFS
+    fi
+}

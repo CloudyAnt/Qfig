@@ -25,7 +25,7 @@ function isLeapYear() { #? judge whether it's a leap year (default this year)
     fi
 }
 
-function eut() { #? describe an epoch unix timestamp (default now), -m to indicate a millisenconds
+function eut() { #? describe an epoch unix timestamp (default now), -m to indicate a milliseconds
     local millis
     if [ "-m" = "$1" ]; then
         millis=1

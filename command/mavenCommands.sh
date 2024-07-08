@@ -31,7 +31,7 @@ function mpkg() { #? maven package & tell the size of jar in ./target
     du -h target/*.jar
 }
 
-function mdhl() { #? hightlight a word in dependency tree
+function mdhl() { #? highlight a word in dependency tree
     [ -z "$1" ] && return
     mvn dependency:tree | awk -v word=$1 '{sub(word, sprintf("\033[0;31m%s\033[0m", word)); print}'
 }
