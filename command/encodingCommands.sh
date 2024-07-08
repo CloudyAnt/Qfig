@@ -1,5 +1,6 @@
 #? Encodings related coomands
 enable-qcmds math
+#? If you want to check a file's encoding, use xxd, od etc. instead of chr2ucp, chr2uni etc., laters are designed for in-terminal strings only
 
 function chr2uni() { #? convert characters to unicodes(4 digits with '\u' prefix)
 	local hexes
@@ -101,9 +102,6 @@ function chr2ucp() { #? convert characters to unicode code points (may contain s
 	for (( i=0 ; i<${#all}; i++ )); do
 		c=${all:$i:1}
         x=$(printf "%x " "'$c")
-        if [[ $x = "20 " && c != " " ]]; then
-            x="00 "
-        fi
         printf "$x"
 	done
 	printf "\n"

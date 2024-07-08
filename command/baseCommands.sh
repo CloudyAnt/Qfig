@@ -158,14 +158,14 @@ function qcmds() { #? operate available commands. Usage: qcmds $commandsPrefix $
 			logError "$targetFile dosen't exist" && qcmds && return 1
 		fi
 	fi
-	
+
 	case $2 in
 		cat|read)
 			cat $targetFile && return
 			;;
 		vim|edit)
 			editfile $targetFile && return
-			;;	
+			;;
 		""|explain)
 			cat $targetFile | awk '{
 					if (/^#\? /) {
@@ -260,9 +260,19 @@ function getCurrentHead() { #x
 
 function readTemp() { #x
 	_TEMP=
+	local prompt="$1"
 	if [[ "$_CURRENT_SHELL" = "zsh" ]]; then
-		vared _TEMP
+	    if [ "$prompt" ]; then
+	        vared -p "$(echo -e "$prompt")" _TEMP
+	    else
+	        vared _TEMP
+	    fi
 	else
+	    if [ "$prompt" ]; then
+	        read -e -p "$(echo -e "$prompt")" _TEMP
+	    else
+	        read -e _TEMP
+	    fi
 		read -e _TEMP
 	fi
 }
@@ -303,7 +313,7 @@ function logInfo() { #? log info
 
 function logError() { #? log error message
     [ -z "$1" ] && return
-    #logColor "\033[30;41m" $1 
+    #logColor "\033[30;41m" $1
 	qfigLog "\e[38;05;196m" "$1" "$2"
 }
 
@@ -331,23 +341,40 @@ function logSilence() { #? log unconspicuous message
 	printf "\e[2m$Qfig_log_prefix $1\e[0m\n"
 }
 
+# Flags(1,2,4...): read value, no new line,
 function qfigLog() { #x log with a colored dot prefix
 	local sgr=$1 # Select graphic rendition
 	local log=$2
-	local prefix=$3
     [[ -z "$sgr" || -z "$log" ]] && return
-	[ -z "$prefix" ] && prefix="$Qfig_log_prefix" || prefix=$3
-	
+
+    IFS=';' local commands=($(echo $3)); rdIFS
+    local arrayBase=$(getArrayBase)
+    local prefix=${commands[$arrayBase]}
+	[ -z "$prefix" ] && prefix="$Qfig_log_prefix" || :
+
+    local flagsStr=${commands[$((arrayBase + 1))]}
+    [[ "$flagsStr" =~ ^[0-9]+$ ]] && declare -i flags=$flagsStr || declare -i flags=0
+
 	log=${log//\%/\%\%}
 	# whatever a true LF (unicode d) or LF escape sequence "\r" (unicode 5c and 72) should be remove here
-	log=${log//$'\r'/} 
+	log=${log//$'\r'/}
 	log=${log//\\\r/}
-	log="$sgr$prefix\e[0m $log\n"
 
-	printf "$log"
+    [[ $((flags & 2)) -eq 2 ]] && local nl="" || local nl="\n"
+    log="$sgr$prefix\e[0m $log"
+    if [[ $((flags & 1)) -eq 1 ]]; then
+        if [ "$nl" ]; then
+            printf "$log$nl"
+            readTemp
+        else
+	        readTemp "$log"
+        fi
+    else
+        printf "$log$nl"
+    fi
 }
 
-function forbidAlias() { #x forbid alias 
+function forbidAlias() { #x forbid alias
 	[ -z "$1" ] && return || :
 	unsetAlias $1
 	if [ -z "$2" ]
@@ -366,7 +393,7 @@ function unsetAlias() { #x unset alias
 	unalias $1 2>/dev/null
 }
 
-### 
+###
 
 function mktouch() { #? make dirs & touch file
     [ -z "$1" ] && return
@@ -378,7 +405,7 @@ function mktouch() { #? make dirs & touch file
 
 ###
 
-function assertExist() { #? check file existence 
+function assertExist() { #? check file existence
 	local file
     for file in "$@"
     do
@@ -388,13 +415,13 @@ function assertExist() { #? check file existence
 }
 
 function targz() { #? compress folder to tar.gz using option -czvf
-	[ ! -d $1 ] && logError "Folder required" && return 
+	[ ! -d $1 ] && logError "Folder required" && return
 	tar -czvf $(echo $1 | rev | cut -d/ -f1 | rev).tar.gz $1
 }
 
 function utargz() { #? decompress a tar.gz file using option -xvf
 	if [ ! -f $1 ] || [ ! ${1: -7}  = ".tar.gz" ]
-	then	
+	then
 		logError "A tar.gz file required"
 	else
 		tar -xvf $1
@@ -417,14 +444,17 @@ function rdIFS() { #? restore to default IFS
 
 function confirm() { #? ask for confirmation. Usage: confirm $flags(optional) $msg(optional), -h for more
 	local type="N" # N=normal, W=warning
+    local inline=""
 	local enterForYes=""
 	local prefix=""
+    declare -i logFlags=1 # read after prompt
 	OPTIND=1
-	while getopts ":hwep:" opt; do
+	while getopts ":hlwep:" opt; do
         case $opt in
 			h)
 				logInfo "Usage: confirm \$flags(optional) \$msg(optional).\n  \nFlags:\n"
 				printf "    %-5s%s\n" "h" "Print this help message"
+                printf "    %-5s%s\n" "l" "Input inline(no new line, just after prompt)"
 				printf "    %-5s%s\n" "w" "Raise to warning level"
 				printf "    %-5s%s\n" "e" "Treat Enter as yes when it's normal level"
 				printf "    %-5s%s\n" "p:" "Specific the prefix. default is $Qfig_log_prefix"
@@ -432,7 +462,10 @@ function confirm() { #? ask for confirmation. Usage: confirm $flags(optional) $m
 				echo ""
 				return 0
 				;;
-            w)
+      l)
+          logFlags=$((logFlags | 2))
+          ;;
+      w)
 				type="W"
                 ;;
 			e)
@@ -454,8 +487,8 @@ function confirm() { #? ask for confirmation. Usage: confirm $flags(optional) $m
 	local yn="";
 	if [ "W" = "$type" ]; then
 		[ -z "$prefix" ] && prefix="!" || :
-		logWarn "$message \e[90mInput Yes to confirm.\e[0m" $prefix
-		readTemp && yn=$_TEMP || return 1
+		logWarn "$message \e[90mInput Yes to confirm.\e[0m" "$prefix;$logFlags"
+		yn=$_TEMP
         yn=$(echo $yn | tr '[:upper:]' '[:lower:]')
 		if [ 'yes' = "$yn" ]; then
             echo "\e[34;1m[YES]\e[0m"
@@ -463,11 +496,11 @@ function confirm() { #? ask for confirmation. Usage: confirm $flags(optional) $m
 		fi
 	else
 		if [[ $enterForYes ]]; then
-			logInfo "$message \e[90mPress Enter or Input Y for Yes, others for No.\e[0m" $prefix
+			logInfo "$message \e[90mPress Enter or Input Y for Yes, others for No.\e[0m" "$prefix;$logFlags"
 		else
-			logInfo "$message \e[90mInput Y for Yes, others for No.\e[0m" $prefix
+			logInfo "$message \e[90mInput Y for Yes, others for No.\e[0m" "$prefix;$logFlags"
 		fi
-		readTemp && yn=$_TEMP || return 1
+		yn=$_TEMP
         yn=$(echo $yn | tr '[:upper:]' '[:lower:]')
 		if [[ 'y' = "$yn" || 'yes' = "$yn" ]] || [[ $enterForYes && -z "$yn" ]]; then
             echo "\e[34;1m[YES]\e[0m"
@@ -513,7 +546,7 @@ function md5x() { #? same as md5 in zsh, optimized md5sum of bash
 function replaceWord() { #? backup file with pointed suffix & replace word in file
     [ $# -lt 4 ] && logError "required params: file placeholder replacement backupSuffix" && return
 
-    [ ! -z = "$4" ] &&  cp "$1" "$1.$4"
+    [ ! -z "$4" ] &&  cp "$1" "$1.$4"
 
     cat $1 | awk -v placeholder="$2" -v replacement="$3" '$0 ~ placeholder{sub(placeholder, replacement)} 1' | tee "$1" | printf ""
 }
@@ -534,10 +567,10 @@ function findindex() { #? find 1st target index in provider. Usage: findindex pr
 	local c2=${2:$j:1}
 	local c2_0=$c2
 	for (( ; i<$s1len; i++ )); do
-		c1=${1:$i:1}	
+		c1=${1:$i:1}
 		if [ "$c1" = "$c2" ]; then
 			[ $j = 0 ] && k=$i
-			j=$(($j + 1))	
+			j=$(($j + 1))
 			if [ $j = $s2len ]; then
 				echo $k
 				return
@@ -547,7 +580,7 @@ function findindex() { #? find 1st target index in provider. Usage: findindex pr
 		else
 			j=0
 			c2=$c2_0
-		fi	
+		fi
 	done
 	return 1
 }
@@ -556,9 +589,9 @@ function concat() { #? concat array. Usage: concat $meta $item1 $item2 $item3...
 	if [ "-h" = "$1" ]; then
 		logInfo "Usage: concat \$meta \$item1 \$item2 \$item3.... "
 		echoe "  \e[34m\$meta\e[0m pattern: \e[1m-joiner-start-end (exclusive)\e[0m. The first char is the separator of meta, here it's '-' (recommanded).
-  Start and end are optional. 
+  Start and end are optional.
   \e[34m\$meta\e[0m could also be a single character \$c, it equivalent to -\$c or joiner
-  Examples: 
+  Examples:
     \e[1mconcat -,-1-4 \${arr[@]}\e[0m (concat items of index 1, 2, 3 use joiner ',')
     \e[1mconcat \"|\\\|2\" a b c...\e[0m (concat all items after index 2 use joiner '\')
     \e[1mconcat , a b c...\e[0m (concat all items use joiner ',')"
@@ -577,7 +610,7 @@ function concat() { #? concat array. Usage: concat $meta $item1 $item2 $item3...
 		end=$maxEnd # array end at (length() + 1)
 	else
 		local metaSeparator=${1:0:1}
-		IFS=$metaSeparator local metas=($(echo $1)); IFS=' '
+		IFS=$metaSeparator local metas=($(echo $1)); rdIFS
 
 		if [ ${#metas[@]} -lt 1 ]; then
 			logError "Meta must have at least 1 parts (joiner)" && return 1
