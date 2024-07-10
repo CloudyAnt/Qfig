@@ -37,9 +37,9 @@ function refresh-qfig() { #? refresh qfig by re-source init.sh
 }
 
 if [ "$_CURRENT_SHELL" = "bash" ]; then
-	function -() { cd -; } # use alias here is illegal
-	alias ~="cd $HOME" # go to home directory
-	alias ..="cd .." # go to upper level directory
+	source "$_QFIG_LOC/command/enhancementForBash.sh"
+elif [ "$_CURRENT_SHELL" = "zsh" ]; then
+	source "$_QFIG_LOC/command/enhancementForZsh.sh"
 fi
 
 if [[ "$OSTYPE" =~ darwin* ]]; then
@@ -259,12 +259,25 @@ function getCurrentHead() { #x
 }
 
 function readTemp() { #x
-	_TEMP=
-	local prompt="$1"
+    _TEMP=
+	local prompt=$1
+	local limit=$2
+	if [[ ! "$limit" = "" && "$limit" =~ ^[0-9]+$ && "$limit" -le 0 ]]; then
+		logError "Invalid limit: $limit"
+		return 1
+	fi
 	if [[ "$_CURRENT_SHELL" = "zsh" ]]; then
-	    vared -p "$(echo -e "$prompt")" _TEMP
+	    if [ "$limit" ]; then
+	        readWithPromptAndLimit "$(echo -e "$prompt")" $limit
+        else
+            vared -p "$(echo -e "$prompt")" _TEMP
+        fi
 	else
-	    read -e -p "$(echo -e "$prompt")" _TEMP
+	    if [ "$limit" ]; then
+	        read -e -p "$(echo -e "$prompt")" -n $limit _TEMP
+	    else
+	        read -e -p "$(echo -e "$prompt")" _TEMP
+        fi
 	fi
 }
 
@@ -332,17 +345,23 @@ function logSilence() { #? log inconspicuous message
 	printf "\e[2m$Qfig_log_prefix $1\e[0m\n"
 }
 
-# Flags(1,2,4...): read value, no new line,
+# Flags:
+# 1: no new line
+# 2: no output(save to _TEMP)
 function qfigLog() { #x log with a colored dot prefix
 	local sgr=$1 # Select graphic rendition
 	local log=$2
+	local commands=$3 # prefix;flags
     [[ -z "$sgr" || -z "$log" ]] && return
 
-    toArray "$3" ';' && commands=("${_TEMP[@]}")
+    toArray "$commands" ';' && commands=("${_TEMP[@]}")
     local arrayBase=$(getArrayBase)
+
+    # read prefix
     local prefix=${commands[$arrayBase]}
 	[ -z "$prefix" ] && prefix="$Qfig_log_prefix" || :
 
+    # read flags
     local flagsStr=${commands[$((arrayBase + 1))]}
     [[ "$flagsStr" =~ ^[0-9]+$ ]] && declare -i flags=$flagsStr || declare -i flags=0
 
@@ -351,17 +370,12 @@ function qfigLog() { #x log with a colored dot prefix
 	log=${log//$'\r'/}
 	log=${log//\\\r/}
 
-    [[ $((flags & 2)) -eq 2 ]] && local nl="" || local nl="\n"
-    log="$sgr$prefix\e[0m $log"
-    if [[ $((flags & 1)) -eq 1 ]]; then
-        if [ "$nl" ]; then
-            printf "$log$nl"
-            readTemp
-        else
-	        readTemp "$log"
-        fi
+    [[ $((flags & 1)) -eq 1 ]] && local nl="" || local nl="\n"
+    log="$sgr$prefix\e[0m $log$nl"
+    if [[ $((flags & 2)) -eq 2 ]]; then
+        _TEMP="$log"
     else
-        printf "$log$nl"
+        printf "$log"
     fi
 }
 
@@ -433,12 +447,54 @@ function rdIFS() { #? restore to default IFS
 	IFS=$_DEF_IFS
 }
 
+function confirmYn() { #? confirm by y or n. Usage: confirmYn $flags(optional) $msg(optional), -h for more
+    local prefix=""
+    declare -i logFlags=3 # no new line & no output
+    OPTIND=1
+    while getopts ":hp:" opt; do
+        case $opt in
+            h)
+                logInfo "Usage: confirmYn \$flags(optional) \$msg(optional).\n  \nFlags:\n"
+                printf "    %-5s%s\n" "h" "Print this help message"
+                printf "    %-5s%s\n" "p:" "Specific the prefix. default is $Qfig_log_prefix"
+                printf "\e[0m"
+                echo ""
+                return 0
+                ;;
+            p)
+                prefix=$OPTARG
+                ;;
+            :)
+                ;;
+            \?)
+                ;;
+        esac
+    done
+    shift "$((OPTIND - 1))"
+    local goon="1"
+    local yn=""
+    [[ -z "$1" ]] && message="Are you sure ?" || message=$1
+    logInfo "$message \e[90m[Y/N] \e[0m" "$prefix;$logFlags"
+    readTemp "$_TEMP" 1
+    while [ "$goon" ]; do
+        yn=$(echo "$_TEMP" | tr '[:upper:]' '[:lower:]')
+        if [ "y" = "$yn" ]; then
+            goon=""
+        elif [ "n" = "$yn" ]; then
+            return 1
+        else
+            logError "Invalid input, should be y or n "
+            readTemp "" 1
+        fi
+    done
+}
+
 function confirm() { #? ask for confirmation. Usage: confirm $flags(optional) $msg(optional), -h for more
 	local type="N" # N=normal, W=warning
-    local inline=""
-	local enterForYes=""
+    local inline="" # input after prompt
+	local enterForYes="" # enter for yes
 	local prefix=""
-    declare -i logFlags=1 # read after prompt
+    declare -i logFlags=3 # no new line & no output
 	OPTIND=1
 	while getopts ":hlwep:" opt; do
         case $opt in
@@ -453,10 +509,10 @@ function confirm() { #? ask for confirmation. Usage: confirm $flags(optional) $m
 				echo ""
 				return 0
 				;;
-      l)
-          logFlags=$((logFlags | 2))
-          ;;
-      w)
+            l)
+                inline="1"
+                ;;
+            w)
 				type="W"
                 ;;
 			e)
@@ -479,6 +535,12 @@ function confirm() { #? ask for confirmation. Usage: confirm $flags(optional) $m
 	if [ "W" = "$type" ]; then
 		[ -z "$prefix" ] && prefix="!" || :
 		logWarn "$message \e[90mInput Yes to confirm.\e[0m" "$prefix;$logFlags"
+		if [ "$inline" ]; then
+		    readTemp "$_TEMP"
+        else
+            printf "$_TEMP\n"
+            readTemp
+        fi
 		yn=$_TEMP
         yn=$(echo $yn | tr '[:upper:]' '[:lower:]')
 		if [ 'yes' = "$yn" ]; then
@@ -491,6 +553,12 @@ function confirm() { #? ask for confirmation. Usage: confirm $flags(optional) $m
 		else
 			logInfo "$message \e[90mInput Y for Yes, others for No.\e[0m" "$prefix;$logFlags"
 		fi
+		if [ "$inline" ]; then
+            readTemp "$_TEMP"
+        else
+            printf "$_TEMP\n"
+            readTemp
+        fi
 		yn=$_TEMP
         yn=$(echo $yn | tr '[:upper:]' '[:lower:]')
 		if [[ 'y' = "$yn" || 'yes' = "$yn" ]] || [[ $enterForYes && -z "$yn" ]]; then
@@ -579,7 +647,7 @@ function findindex() { #? find 1st target index in provider. Usage: findindex pr
 function concat() { #? concat array. Usage: concat $meta $item1 $item2 $item3... -h for more
 	if [ "-h" = "$1" ]; then
 		logInfo "Usage: concat \$meta \$item1 \$item2 \$item3.... "
-		echoe "  \e[34m\$meta\e[0m pattern: \e[1m-joiner-start-end (exclusive)\e[0m. The first char is the separator of meta, here it's '-' (recommanded).
+		echoe "  \e[34m\$meta\e[0m pattern: \e[1m-joiner-start-end (exclusive)\e[0m. The first char is the separator of meta, here it's '-' (recommended).
   Start and end are optional.
   \e[34m\$meta\e[0m could also be a single character \$c, it equivalent to -\$c or joiner
   Examples:
