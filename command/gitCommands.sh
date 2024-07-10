@@ -778,7 +778,7 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 			;;
 		esac
 
-		if [[ $proceedStep -eq 1 && ! -z $stepKey ]]; then
+		if [[ $proceedStep -eq 1 && -n $stepKey ]]; then
 			curStepNum=$((curStepNum + 1))
 			stepPrompt="\e[33m[$curStepNum/$stepsCount]\e[0m "
 
@@ -795,7 +795,7 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 			if [ $stepRegex ]; then
 				stepPrompt+="\e[2m$stepRegex\e[22m "
 			fi
-			if [ ! -z "$stepOptions" ]; then
+			if [ -n "$stepOptions" ]; then
 				[ -z "$stepDefValue" ] && stepDefValue=${stepOptions[$arrayBase]}
 				stepPrompt+="($stepDefValue) "
 				if [ 1 -lt "${#stepOptions[@]}" ]; then
@@ -804,7 +804,7 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 				else printf " \033[1;37m" i ":" $i;}} END{printf "\033[0m"}')"
 				fi
 			else
-				[ ! -z "$stepDefValue" ] && stepPrompt+="($stepDefValue) " 
+				[ -n "$stepDefValue" ] && stepPrompt+="($stepDefValue) "
 			fi
 			echoe "$stepPrompt"
 

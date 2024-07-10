@@ -3,20 +3,22 @@
 
 function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h for more
     if [ "-h" = "$1" ]; then
-        logInfo "For json \e[34m{\"users\": [{\"name\": \"chai\"}]}\e[0m, you can get the 1st user's name like: \e[1mjsonget json users.0.name\e[0m
-  For json \e[34m[{\"name\": \"chai\"}]\e[0m, then the operation be like: \e[1mjsonget json 0.name\e[0m
+        logInfo "For json \e[34m{\"users\": [{\"name\": \"chai\"}]}\e[0m, you can get the 1st user's name by: \e[1mjsonget json users.0.name\e[0m
+  For json \e[34m[{\"name\": \"chai\"}]\e[0m, then the operation would be: \e[1mjsonget json 0.name\e[0m
   Use '\.' to escape .
-  \e[1mNote\e[0m that the json syntax check will stop after target found
-  Use -t to remove type indication"
+  \e[1mNote\e[0m that the json syntax check will stop after target found. Use \e[1mjsoncheck\e[0m if you wish to check syntax first
+  Target value will be prefixed with type indication, e.g. I:123. Use -t to remove type indication
+  Possible types are: O(object), A(array), S(string), I(integer), F(float), T(true), X(false), N(null)"
         return 0
     fi
     if [ "-t" = "$1" ]; then
-        local notype=1
+        local notype=1 # no type indication, pure value
         shift 1
     fi
     [[ -z "$1" || -z "$2" ]] && logError "Usage: jsonget json targetPath. -h for more" && return 1
     # --- CHECK options ---
-	declare -i arrayBase=$(getArrayBase)
+	declare -i arrayBase
+	arrayBase=$(getArrayBase)
 
     local json s c
     json="$1"
@@ -24,7 +26,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
     # --- RESOLVE path ---
     declare -a tp # target path sections
     declare -i tpi=$arrayBase # target path section index
-    tp[$arrayBase]="$"
+    tp[arrayBase]="$"
     local i
     for (( i=0; i<${#2}; i++ )); do
         c=${2:$i:1}
@@ -42,7 +44,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
                 logError "Invalid path: section $tpi is empty" && return 1
             else
                 tpi=$((tpi + 1))
-                tp[$tpi]=$s
+                tp[tpi]=$s
                 s=""
             fi
         else
@@ -52,33 +54,32 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
     if [ $escaping ]; then
         logError "Invalid path: '\' was used to escape '.' or '\', do you mean '\ \b\' (double slashes) at index $((i - 1)) ?" && return 1
     fi
-    if [ ! -z "$s" ]; then
+    if [ -n "$s" ]; then
         tpi=$((tpi + 1))
-        tp[$tpi]=$s
+        tp[tpi]=$s
     fi
 
     # --- RESOLVE json ---
 
-    local type
-    # x = status of json resloving
+    # x = state of json resolving
     local x=0
-    local matched=""
     local found=""
     declare -a cpt # current path section types. 
-    # possible types be: O(object), A(array), S(string), I(integer), F(float), TRUE, FALSE, NULL
+    # possible types are: O(object), A(array), S(string), I(integer), F(float), T(true), X(false), N(null)
 
     declare -a cp # current path sections
     declare -a cpm # current path matches
-    cp[$arrayBase]="$"
-    cpm[$arrayBase]=1
+    cp[arrayBase]="$"
+    cpm[arrayBase]=1
     declare -i cpi=$((arrayBase + 1)) # current path section index
     local err=""
-    declare -i ai=0 # current array index
+    declare -a cpai # current path array index
+    toArray "$(repeatWord '0' ${#tp[@]})" && cpai=$_TEMP # init cpai array
     declare -i fc=0 # current float fractional part digits count
     local finding=1
 
     local firstC=${json:0:1}
-    if [ '!' = $firstC ]; then
+    if [ '!' = "$firstC" ]; then
         finding=""
         firstC=${json:1:1}
         i=2
@@ -86,18 +87,18 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
         i=1
     fi
     case $firstC in
-        {)
-            cpt[$arrayBase]="O"
+        \{)
+            cpt[arrayBase]="O"
             x=0
         ;;
         \[)
-            cpt[$arrayBase]="A"
-            cp[$cpi]="0"
+            cpt[arrayBase]="A"
+            cp[cpi]="0"
             x=3
-            if [[ "$ai" = ${tp[$cpi]} ]]; then
-                cpm[$cpi]=4
+            if [[ "${cpai[cpi]}" = "${tp[cpi]}" ]]; then
+                cpm[cpi]=4
             else
-                cpm[$cpi]=-4
+                cpm[cpi]=-4
             fi
         ;;
         *)
@@ -106,30 +107,30 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
     esac
 
     function concatCP {
-        concat -.-1-$cpi $cp
+        concat -.-1-$cpi "${cp[@]}"
     }
 
     function meetComma {
-        local prevType=${cpt[$(($cpi - 1))]}
-        if [ "O" = $prevType ]; then
+        local prevType=${cpt[$((cpi - 1))]}
+        if [ "O" = "$prevType" ]; then
             x=0
-        elif [ "A" = $prevType ]; then
+        elif [ "A" = "$prevType" ]; then
             x=3
-            ai=$((ai + 1))
-            cp[$cpi]="$ai"
-            if [[ ${cpm[$((cpi - 1))]} -ge 0 && "$ai" = ${tp[$cpi]} ]]; then
-                cpm[$cpi]=3
+            cpai[cpi]=$((cpai[cpi] + 1))
+            cp[cpi]=${cpai[cpi]}
+            if [[ ${cpm[$((cpi - 1))]} -ge 0 && "${cpai[cpi]}" = "${tp[cpi]}" ]]; then
+                cpm[cpi]=3
             else
-                cpm[$cpi]=-3
+                cpm[cpi]=-3
             fi
         else
-            err="Internal login error (E4). Unexpected previous path type $prevType" && return 1
+            err="Internal logic error (E4). Unexpected previous path type $prevType" && return 1
         fi
     }
 
     function meetObjectEnd {
         preCpi=$((cpi - 1))
-        if [ "O" = ${cpt[$preCpi]} ]; then
+        if [ "O" = "${cpt[$preCpi]}" ]; then
             cpi=$((cpi - 1))
             x=5
         else
@@ -139,20 +140,20 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
 
     function meetArrayEnd {
         preCpi=$((cpi - 1))
-        if [ "A" = ${cpt[$preCpi]} ]; then
+        if [ "A" = ${cpt[preCpi]} ]; then
             if [ "" = "$s" ]; then
-                if [ $ai -gt 0 ]; then
+                if [[ ${cpai[cpi]} && ${cpai[cpi]} -gt 0 ]]; then
                     err="Invalid json (x0004): not expecting ']' at index $i (path: $(concatCP))" && return 1
                 else
-                    cpm[$cpi]=-51
+                    cpm[cpi]=-51
                 fi
             else
-                cp[$cpi]="$ai"
-                if [[ ${cpm[$((cpi - 1))]} -ge 0 && "$ai" = ${tp[$cpi]} ]]; then
-                    cpm[$cpi]=5
+                cp[cpi]="${cpai[cpi]}"
+                if [[ ${cpm[$((cpi - 1))]} -ge 0 && "${cpai[cpi]}" = ${tp[cpi]} ]]; then
+                    cpm[cpi]=5
                     checkMatch
                 else
-                    cpm[$cpi]=-5
+                    cpm[cpi]=-5
                 fi
             fi
             cpi=$((cpi - 1))
@@ -163,27 +164,23 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
     }
 
     function checkMatch {
-        if [[ finding && ${cpm[$cpi]} && ${cpm[$cpi]} -ge 0 && $cpi -eq $tpi ]]; then
+        if [[ $finding && ${cpm[cpi]} && ${cpm[cpi]} -ge 0 && $cpi -eq $tpi ]]; then
             found=1
-            [ $notype ] && local prefix="" || local prefix="${cpt[$cpi]}:"
-            case ${cpt[$cpi]} in
+            [ "$notype" ] && local prefix="" || local prefix="${cpt[cpi]}:"
+            case ${cpt[cpi]} in
 		        O)
-                    echoe "\e[34m$prefix\e[0mObject" && return 1 # to break loop
+                    echoe "\e[34m$prefix\e[0mObject" && return 1 # 1 to break loop
                 ;;
                 A)
                     echoe "\e[34m$prefix\e[0mArray" && return 1
                 ;;
-                S|I|F)
+                S|I|F|T|X|N)
                     echoe "\e[34m$prefix\e[0m$s" && return 1
                 ;;
-                TRUE|FALSE|NULL)
-                    echoe "\e[34m${cpt[$cpi]}\e[0m" && return 1
-                ;;
                 *)
-                    err="Internal logic error (E5). Unexpected type ${cpt[$cpi]}" && return 1
+                    err="Internal logic error (E5). Unexpected type ${cpt[cpi]}" && return 1
                 ;;
             esac
-            break;
         fi
     }
 
@@ -206,11 +203,11 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
                     s=$s$c
                     escaping=""
                 elif [ '"' = "$c" ]; then
-                    cp[$cpi]=$s
-                    if [[ ${cpm[$((cpi - 1))]} -ge 0 && $s = ${tp[$cpi]} ]]; then
-                        cpm[$cpi]=6
+                    cp[cpi]=$s
+                    if [[ ${cpm[$((cpi - 1))]} -ge 0 && $s = "${tp[cpi]}" ]]; then
+                        cpm[cpi]=6
                     else
-                        cpm[$cpi]=-6
+                        cpm[cpi]=-6
                     fi
                     x=2
                 elif [ '\' = "$c" ]; then
@@ -228,24 +225,24 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
             ;;
             3) # waiting value
                 s=""
-                cpt[$cpi]="?"
+                cpt[cpi]="?"
                 if [ '"' = "$c" ]; then
                     x=4
-                    cpt[$cpi]="S"
+                    cpt[cpi]="S"
                 elif [[ "$c" =~ ^[0-9]$ ]]; then
                     x=41
                     fc=0
                     s=$s$c
-                    cpt[$cpi]="I"
+                    cpt[cpi]="I"
                 elif [ 't' = "$c" ]; then
                     local following=${1:$i:4}
                     if [ "true" = "$following" ]; then
                         s=$following
                         x=5
                         i=$((i + 3)) # there is a i++
-                        cpt[$cpi]="TRUE"
+                        cpt[cpi]="T"
                     else
-                        err="Invalid json (30000): (may) expecting 'true' as value of path: $(concatCP), but it's '$following'" && break
+                        err="Invalid json (30000): (may) expecting 'true' as value of path: $(concatCP), but got '$following' following" && break
                     fi
                 elif [ 'f' = "$c" ]; then
                     local following=${1:$i:5}
@@ -253,9 +250,9 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
                         s=$following
                         x=5
                         i=$((i + 4)) # there is a i++
-                        cpt[$cpi]="FALSE"
+                        cpt[cpi]="X"
                     else
-                        err="Invalid json (30001): (may) expecting 'false' as value of path: $(concatCP), but it's '$following'" && break
+                        err="Invalid json (30001): (may) expecting 'false' as value of path: $(concatCP), but got '$following' following" && break
                     fi
                 elif [ 'n' = "$c" ]; then
                     local following=${1:$i:4}
@@ -263,23 +260,23 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
                         s=$following
                         x=5
                         i=$((i + 3)) # there is a i++
-                        cpt[$cpi]="NULL"
+                        cpt[cpi]="N"
                     else
-                        err="Invalid json (30003): (may) expecting 'null' as value of path: $(concatCP), but it's '$following'" && break
+                        err="Invalid json (30003): (may) expecting 'null' as value of path: $(concatCP), but got '$following' following" && break
                     fi
                 elif [ '[' = "$c" ]; then
-                    cpt[$cpi]="A"
-                    cpi=$((cpi + 1)) 
-                    ai=0
-                    cp[$cpi]="0"
-                    if [[ ${cpm[$((cpi - 1))]} -ge 0 && "$ai" = ${tp[$cpi]} ]]; then
-                        cpm[$cpi]=2
+                    cpt[cpi]="A"
+                    cpi=$((cpi + 1))
+                    cpai[cpi]=0
+                    cp[cpi]="0"
+                    if [[ ${cpm[$((cpi - 1))]} -ge 0 && "${cpai[cpi]}" = "${tp[cpi]}" ]]; then
+                        cpm[cpi]=2
                     else
-                        cpm[$cpi]=-2
+                        cpm[cpi]=-2
                     fi
                 elif [ '{' = "$c" ]; then
                     x=0
-                    cpt[$cpi]="O"
+                    cpt[cpi]="O"
                     cpi=$((cpi + 1))
                 elif [ ']' = "$c" ]; then
                     meetArrayEnd || break
@@ -305,12 +302,12 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
                 elif [[ ' ' = "$c" || $'\t' = "$c" || $'\n' = "$c" ]]; then
                     x=5
                 elif [ "," = "$c" ]; then
-                    meetComma || break
                     checkMatch || break
+                    meetComma || break
                 elif [ "." = "$c" ]; then
                     x=42
                     s=$s$c
-                    cpt[$cpi]="F"
+                    cpt[cpi]="F"
                 elif [ '}' = "$c" ]; then
                     checkMatch || break
                     meetObjectEnd || break
@@ -328,8 +325,8 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
                     x=5
                 elif [ "," = "$c" ]; then
                     [ $fc -eq 0 ] && err="Invalid json (42002): expecting digit (fractional part) at index $i (path: $(concatCP)), but got '$c'" && break
-                    meetComma || break
                     checkMatch || break
+                    meetComma || break
                 elif [ '}' = "$c" ]; then
                     [ $fc -eq 0 ] && err="Invalid json (42003): expecting digit (fractional part) at index $i (path: $(concatCP)), but got '$c'" && break
                     checkMatch || break
@@ -354,7 +351,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
                 fi
             ;;
             *)
-                err="Internal logic error (E3). Met wrong status $x" && break
+                err="Internal logic error (E3). Met wrong state $x" && break
             ;;
         esac
     done
@@ -367,24 +364,24 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
 
     if [ "$err" ]; then
         logError "$err" && return 1
-    elif [ "${cpm[$tpi]}" -gt 0 ]; then
+    elif [ "${cpm[tpi]}" -gt 0 ]; then
         if [ ! $found ]; then
-            logError "Invalid json (x0005), matched but stopped (value resolvation not finished) at depth: $(($tpi - $arrayBase)) (path: $(concat -.-1-$tpi $tp))" && return 1
+            logError "Invalid json (x0005), matched but stopped (value resolvation not finished) at depth: $((tpi - arrayBase)) (path: $(concat -.-1-$tpi "${tp[@]}"))" && return 1
         else
             # Found
             :
         fi
     else
         if [ $cpi -ne $arrayBase ]; then
-            logError "Invalid json (x0000), stopped at depth: $(($tpi - $arrayBase)) (path: $(concat -.-1-$cpi $cp))" && return 1
-        else
-            echoe "\e[1mNot found\e[0m" && return 2
+            logError "Invalid json (x0000), stopped at depth: $((tpi - arrayBase)) (path: $(concat -.-1-$cpi "${cp[@]}"))" && return 1
+        elif [ "$finding" ]; then
+            echoe "\e[1mNot found\e[0m" && return 1
         fi
     fi
 }
 
 function jsoncheck() { #? json checking. Usage: jsoncheck $json
-    [ -z "$1" ] && return
+    [ -z "$1" ] && logError "Usage: jsoncheck \$json" && return
     local res
     res=$(jsonget "!$1" "-")
     if [ 0 -ne $? ]; then

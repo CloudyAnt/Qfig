@@ -75,7 +75,7 @@ if [ -f "$localConfigFile" ]; then
 	[ "$enabledCommands" ] && _INIT_MSG+="Enabled commands:$enabledCommands. " || _INIT_MSG+="None enabled commands. "
     
     preferTextEditor=$(sed -rn 's|<preferTextEditor>(.+)</preferTextEditor>|\1|p' $localConfigFile)
-    if [ ! -z "$preferTextEditor" ]
+    if [ -n "$preferTextEditor" ]
     then
         _PREFER_TEXT_EDITOR=$preferTextEditor
     fi

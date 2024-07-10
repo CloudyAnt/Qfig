@@ -79,7 +79,7 @@ function curld() { #? [curl] curl directly (--noproxy)
 function ipt() { #? [iptables] simplified iptables ops
     local command=$1
     local port=$2
-    if [[ ! -z "$command" && ! "$port" =~ ^[0-9]+$ ]]; then
+    if [[ -n "$command" && ! "$port" =~ ^[0-9]+$ ]]; then
         logError "Port should be decimal!" && return 1
     fi
     if [ -z "$command" ]; then

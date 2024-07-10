@@ -49,7 +49,7 @@ if [[ "$OSTYPE" =~ darwin* ]]; then
 	}
 fi
 
-function qfig() { #? Qfig preserved command
+function qfig() { #? Qfig operations
 	case $1 in
 		-h|help)
 			logInfo "Usage: qfig <command>\n\n  Available commands:\n"
@@ -605,7 +605,7 @@ function md5x() { #? same as md5 in zsh, optimized md5sum of bash
 function replaceWord() { #? backup file with pointed suffix & replace word in file
     [ $# -lt 4 ] && logError "required params: file placeholder replacement backupSuffix" && return
 
-    [ ! -z "$4" ] &&  cp "$1" "$1.$4"
+    [ -n "$4" ] &&  cp "$1" "$1.$4"
 
     cat $1 | awk -v placeholder="$2" -v replacement="$3" '$0 ~ placeholder{sub(placeholder, replacement)} 1' | tee "$1" | printf ""
 }
@@ -768,7 +768,7 @@ function trimString() { #? trim string
 	echo ${s:begin:len}
 }
 
-function getMatch() {
+function getMatch() { #? get regex match result
     local idx=$1
     if [ "$idx" = "" ]; then
         idx=0
@@ -785,10 +785,21 @@ function getMatch() {
 	fi
 }
 
-function toArray() {
+function toArray() { #? split string to array and save to _TEMP
     if [[ "$_CURRENT_SHELL" = "zsh" ]]; then
         IFS="$2" _TEMP=($(echo "$1")); rdIFS
     else
         IFS="$2" read -ra _TEMP <<< "$1"; rdIFS
     fi
+}
+
+function repeatWord() { #? repeat a word n times
+    local i
+    local s=$1
+    local count=$2
+    local out=""
+    for (( i=0 ; i<count; i++ )); do
+        out="$out$s"
+    done
+    echo $out
 }
