@@ -96,7 +96,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
             cp[cpi]="0"
             x=3
             if [[ "${cpai[cpi]}" = "${tp[cpi]}" ]]; then
-                cpm[cpi]=4
+                cpm[cpi]=4 # matching first array element
             else
                 cpm[cpi]=-4
             fi
@@ -119,7 +119,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
             cpai[cpi]=$((cpai[cpi] + 1))
             cp[cpi]=${cpai[cpi]}
             if [[ ${cpm[$((cpi - 1))]} -ge 0 && "${cpai[cpi]}" = "${tp[cpi]}" ]]; then
-                cpm[cpi]=3
+                cpm[cpi]=3 # matching next array element
             else
                 cpm[cpi]=-3
             fi
@@ -140,16 +140,17 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
 
     function meetArrayEnd {
         preCpi=$((cpi - 1))
-        if [ "A" = ${cpt[preCpi]} ]; then
-            if [ "" = "$s" ]; then
+        if [ "A" = "${cpt[preCpi]}" ]; then
+            if [ "" = "$s" ] && [ $x -ne 5 ]; then # empty recoding && not waiting for comma
                 if [[ ${cpai[cpi]} && ${cpai[cpi]} -gt 0 ]]; then
+                    # non first array element should not be empty
                     err="Invalid json (x0004): not expecting ']' at index $i (path: $(concatCP))" && return 1
                 else
                     cpm[cpi]=-51
                 fi
             else
                 cp[cpi]="${cpai[cpi]}"
-                if [[ ${cpm[$((cpi - 1))]} -ge 0 && "${cpai[cpi]}" = ${tp[cpi]} ]]; then
+                if [[ ${cpm[$((cpi - 1))]} -ge 0 && "${cpai[cpi]}" = "${tp[cpi]}" ]]; then
                     cpm[cpi]=5
                     checkMatch
                 else
@@ -205,7 +206,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
                 elif [ '"' = "$c" ]; then
                     cp[cpi]=$s
                     if [[ ${cpm[$((cpi - 1))]} -ge 0 && $s = "${tp[cpi]}" ]]; then
-                        cpm[cpi]=6
+                        cpm[cpi]=6 # matching key
                     else
                         cpm[cpi]=-6
                     fi
@@ -270,7 +271,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
                     cpai[cpi]=0
                     cp[cpi]="0"
                     if [[ ${cpm[$((cpi - 1))]} -ge 0 && "${cpai[cpi]}" = "${tp[cpi]}" ]]; then
-                        cpm[cpi]=2
+                        cpm[cpi]=2 # matching first array element
                     else
                         cpm[cpi]=-2
                     fi
