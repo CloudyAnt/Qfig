@@ -2,7 +2,11 @@
 $_QFIG_LOC = $PSScriptRoot
 
 ## create local data folder
-$_QFIG_LOCAL="$_QFIG_LOC\.local"
+if ($IsWindows) {
+	$_QFIG_LOCAL="$_QFIG_LOC\.local"
+} else {
+	$_QFIG_LOCAL="$_QFIG_LOC/.local"
+}
 If (-Not (Test-Path -PathType Container -Path "$_QFIG_LOCAL")) {
 	New-Item -ItemType Directory -Path "$_QFIG_LOCAL"
 }
@@ -11,9 +15,9 @@ If (-Not (Test-Path -PathType Container -Path "$_QFIG_LOCAL")) {
 . $_QFIG_LOC\command\baseCommands.ps1
 
 ## Custom configs
-$preferTextEditor = "NotePad"
+$_PREFER_TEXT_EDITOR = "NotePad"
 If (-Not $IsWindows) {
-	$preferTextEditor = "vim"
+	$_PREFER_TEXT_EDITOR = "vim"
 }
 
 $localConfigFile="$_QFIG_LOCAL/config"
@@ -79,7 +83,7 @@ If (Test-Path -PathType Leaf $localConfigFile) {
 		}
 	}
 
-	If ($_PREFER_TEXT_EDITOR) {
+	If ($preferTextEditor) {
 		$initMsg += "Text editor: $_PREFER_TEXT_EDITOR. "
 	} Else {
 		$initMsg += "Text editor: $_PREFER_TEXT_EDITOR(default). "

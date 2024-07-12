@@ -6,11 +6,16 @@ function dec2hex() {
     $out = ""
     $not1st = $false
     foreach ($arg in $args) {
-        if ($arg -isnot [int]) {
+        if (-Not ($arg -match "^-{0,1}[0-9]+$")) {
             throw "${i}th param '$arg' is not decimal"
             return
         }
+        $minus = $false
         $int = [Int32]$arg
+        if ($arg -match "^-.+$") {
+            $minus = $true
+            $int = -$int
+        }
         $hex = $int.ToString("X")
         if ($not1st) {
             $out = "$out $hex"
@@ -19,6 +24,9 @@ function dec2hex() {
             $out = $hex
         }
         $i++
+    }
+    if ($minus) {
+        $out = "-" + $out
     }
     if ($i -gt 1) {
         Write-Output "$out"
@@ -31,8 +39,13 @@ function hex2dec() {
     $out = ""
     $not1st = $false
     foreach ($arg in $args) {
-        if (-Not ($arg -match "[0-9A-Fa-f]+")) {
+        if (-Not ($arg -match "^-{0,1}[0-9A-Fa-f]+$")) {
             throw "${i}th param '$arg' is not hexdecimal"
+        }
+        $minus = $false
+        if ($arg -match "^-.+$") {
+            $minus = $true
+            $arg = $arg.Substring(1)
         }
         $dec = [Convert]::ToInt32($arg, 16)
         if ($not1st) {
@@ -42,6 +55,9 @@ function hex2dec() {
             $out = $dec
         }
         $i++
+    }
+    if ($minus) {
+        $out = "-" + $out
     }
     if ($i -gt 1) {
         Write-Output "$out"
@@ -69,8 +85,15 @@ function rebase() {
         [Parameter(Mandatory = $true)][int]$oldBase, 
         [Parameter(Mandatory = $true)][int]$newBase
     )
-    if (($num -notmatch "^[a-zA-Z0-9]+$") -or ($oldBase -lt 2 -or $oldBase -gt 36) -or ($newBase -lt 2 -or $newBase -gt 36)) {
+    if (($num -notmatch "^-{0,1}[a-zA-Z0-9]+$") -or ($oldBase -lt 2 -or $oldBase -gt 36) -or ($newBase -lt 2 -or $newBase -gt 36)) {
         throw "rebase num oldBase newBase. base should in [2-36]"
+    }
+
+    if ($num -match "^-.+$") {
+        $num = $num.Substring(1)
+        $minus = $true
+    } else {
+        $minus = $false
     }
 
     for ($i = 0; $i -lt $num.Length; $i++) {
@@ -112,5 +135,8 @@ function rebase() {
         }
         $digitalBase = $digitalBase / $newBase
     } while ($digitalBase -ge 1)
+    if ($minus) {
+        $out = "-" + $out
+    }
     Write-Output $out
 }

@@ -5,21 +5,31 @@ function dec2hex() { #? convert decimals to hexadecimals
 	declare -i index=1
 	local out=""
     local not1st
+    local minus=""
 	for arg in "$@"
 	do
-		if ! [[ $arg =~ ^[0-9]+$ ]]; then
+		if ! [[ $arg =~ ^-{0,1}[0-9]+$ ]]; then
 			logError $index"th param '$arg' is not decimal" && return 1
 		fi
+		minus=""
+		if [ "$arg" -lt 0 ]; then
+		    minus="1"
+		    arg=$((arg * -1))
+		fi
+		arg=$(printf "%x" "$arg")
+		if [ "$minus" ]; then
+            arg="-$arg"
+        fi
         if [ "$not1st" ]; then
-            out=$(printf "$out %x" $arg)
+            out="$out $arg"
         else
             not1st=1
-            out=$(printf "%x" $arg)
+            out=$arg
         fi
 		index=$((index + 1))
 	done
 	if [ $index -gt 1 ]; then
-		printf "$out\n"
+		printf "%s\n" "$out"
 	fi
 }
 
@@ -28,11 +38,18 @@ function hex2dec() { #? convert hex unicode code points to decimals
 	declare -i index=1
 	local out=""
     local not1st
+    local minus=""
 	for arg in "$@"
 	do
-		if ! [[ $arg =~ ^[0-9a-fA-F]+$ ]]; then
+		if ! [[ $arg =~ ^-{0,1}[0-9a-fA-F]+$ ]]; then
 			logWarn $index"th param '$arg' is not hexadecimal" && return 1
 		fi
+        if [[ $arg =~ ^-.+$ ]]; then
+            arg=${arg:1}
+            arg=$((0x$arg * -1))
+        else
+            arg=$((0x$arg))
+        fi
         if [ "$not1st" ]; then
             out="$out $((0x$arg))"
         else
@@ -42,7 +59,7 @@ function hex2dec() { #? convert hex unicode code points to decimals
 		index=$((index + 1))
 	done
 	if [ $index -gt 0 ]; then
-		printf "$out\n"
+		printf "%s\n" "$out"
 	fi
 }
 
@@ -51,7 +68,7 @@ declare -g -a _VALUE_LETTERS=()
 declare -i v=0
 for c in 0 1 2 3 4 5 6 7 8 9 a b c d e f g h i j k l m n o p q r s t u v w x y z; do
     _LETTER_VALUE_MAP[$c]=$v
-    _VALUE_LETTERS+=($c)
+    _VALUE_LETTERS+=("$c")
     v=$((v + 1))
 done
 v=10
@@ -60,15 +77,19 @@ for c in A B C D E F G H I J K L M N O P Q R S T U V W X Y Z; do
     v=$((v + 1))
 done
 unset v c
-function rebase() { #? convert integer to another base. base should in [2-36]. Usage: rebase num oldBase newBase
-    if ! [[ "$1" =~ [0-9a-zA-Z]+ ]] || ! [[ "$2" =~ [0-9]+ && $2 -ge 2 && $2 -le 36 ]] || ! [[ "$3" =~ [0-9]+ && $3 -ge 2 && $3 -le 36 ]]; then
+function rebase() { #? convert integer to another base. base should in [2,6]. Usage: rebase num oldBase newBase
+    if ! [[ "$1" =~ ^-{0,1}[0-9a-zA-Z]+$ ]] || ! [[ "$2" =~ [0-9]+ && $2 -ge 2 && $2 -le 36 ]] || ! [[ "$3" =~ [0-9]+ && $3 -ge 2 && $3 -le 36 ]]; then
         logError "Usage: rebase num oldBase newBase. base should in [2-36]" && return 1
     fi
-    local num c 
-    declare -i ob nb len i v maxOldDigit maxNewDigit 
+    local num c minus
+    declare -i ob nb len i v
     num=$1;len=${#num};ob=$2;nb=$3
+    if [[ $num =~ ^-.+$ ]]; then
+        num=${num:1}
+        minus=1
+    fi
 
-    for ((i=0; i<$len; i++)); do
+    for ((i=0; i<len; i++)); do
         c=${num:$i:1}
         v=${_LETTER_VALUE_MAP[$c]}
         if [ $v -ge $ob ]; then
@@ -112,5 +133,9 @@ function rebase() { #? convert integer to another base. base should in [2-36]. U
         digitBase=$((digitBase / nb))
         [ $digitBase -ge 1 ]
     do :; done
-    echo $out
+
+    if [ $minus ]; then
+        out="-$out"
+    fi
+    echo "$out"
 }
