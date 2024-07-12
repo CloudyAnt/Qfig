@@ -17,6 +17,9 @@ function dec2hex() {
             $int = -$int
         }
         $hex = $int.ToString("X")
+        if ($minus) {
+            $hex = "-" + $hex
+        }
         if ($not1st) {
             $out = "$out $hex"
         } else {
@@ -24,9 +27,6 @@ function dec2hex() {
             $out = $hex
         }
         $i++
-    }
-    if ($minus) {
-        $out = "-" + $out
     }
     if ($i -gt 1) {
         Write-Output "$out"
@@ -48,6 +48,9 @@ function hex2dec() {
             $arg = $arg.Substring(1)
         }
         $dec = [Convert]::ToInt32($arg, 16)
+        if ($minus) {
+            $dec = -$dec
+        }
         if ($not1st) {
             $out = "$out $dec"
         } else {
@@ -55,9 +58,6 @@ function hex2dec() {
             $out = $dec
         }
         $i++
-    }
-    if ($minus) {
-        $out = "-" + $out
     }
     if ($i -gt 1) {
         Write-Output "$out"
