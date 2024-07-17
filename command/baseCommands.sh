@@ -235,9 +235,36 @@ function editfile() { #? edit a file using preferredTextEditor
     eval "$_PREFER_TEXT_EDITOR $1"
 }
 
-function qmap() { #? view or edit a map(which may be recognized by Qfig commands)
-	[ -z "$1" ] && logError "Which map ?" && return 1
-	editfile "$_QFIG_LOCAL/$1MappingFile"
+function qmap() { #? edit a map(which may be recognized by Qfig commands) or output to _TEMP by -o flag
+  OPTIND=1
+  while getopts "o" opt; do
+      case $opt in
+          o)
+              local output="1"
+              ;;
+          \?)
+              ;;
+      esac
+  done
+  shift "$((OPTIND - 1))"
+
+  [ -z "$1" ] && logError "Which map ?" && return 1
+
+  local file="$_QFIG_LOCAL/${1}MappingFile"
+  if [ "$output" ]; then
+    if [ -f "$file" ]; then
+      local declaration
+      declaration=$(awk -F '=' 'BEGIN{ s = "declare -gA _TEMP; _TEMP=("} \
+      { if ( NF >= 2) s = s " [" $1 "]=" $2; } \
+      END { s = s ")"; print s}' < "$file")
+      eval "$declaration"
+    else
+      logWarn "Mapping file $file not exist"
+      declare -gA _TEMP
+    fi
+  else
+    editfile "$file"
+  fi
 }
 
 function getArrayBase() { #x
@@ -786,10 +813,13 @@ function getMatch() { #? get regex match result
 }
 
 function toArray() { #? split string to array and save to _TEMP
+    declare -a _TEMP=()
+    local splitter=" "
+    [ "$2" ] && splitter="$2"
     if [[ "$_CURRENT_SHELL" = "zsh" ]]; then
-        IFS="$2" _TEMP=($(echo "$1")); rdIFS
+        IFS="$splitter" _TEMP=($(echo "$1")); rdIFS
     else
-        IFS="$2" read -ra _TEMP <<< "$1"; rdIFS
+        IFS="$splitter" read -ra _TEMP <<< "$1"; rdIFS
     fi
 }
 
@@ -801,5 +831,12 @@ function repeatWord() { #? repeat a word n times
     for (( i=0 ; i<count; i++ )); do
         out="$out$s"
     done
-    echo $out
+    echo "$out"
+}
+
+function copyVar() { #? copy value and type of a variable to another
+  [[ -z "$1" || -z "$2" ]] && logError "Usage: copyVar var1 var2" && return 1
+  local declaration
+  declaration=$(declare -p "$1")
+  eval "${declaration/$1/$2}"
 }
