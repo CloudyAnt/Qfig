@@ -813,7 +813,7 @@ function getMatch() { #? get regex match result
 }
 
 function toArray() { #? split string to array and save to _TEMP
-    declare -a _TEMP=()
+    declare -ga _TEMP=()
     local splitter=" "
     [ "$2" ] && splitter="$2"
     if [[ "$_CURRENT_SHELL" = "zsh" ]]; then
