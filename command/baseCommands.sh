@@ -261,7 +261,7 @@ function qmap() { #? Edit or output(if specified) Qfig map. Usage: qmap $key $ou
   local output=$2
   if [ "$output" ]; then
     local declaration
-    declaration=$(awk -F '=' 'BEGIN{ s = "declare -gA _TEMP; _TEMP=("} \
+    declaration=$(awk -F '=' 'BEGIN{ s = "unsetVar _TEMP;declare -gA _TEMP; _TEMP=("} \
     { if ( NF >= 2) s = s " [" $1 "]=" $2; } \
     END { s = s ")"; print s}' < "$file")
     eval "$declaration"
@@ -290,7 +290,7 @@ function getCurrentHead() { #x
 }
 
 function readTemp() { #x
-    _TEMP=
+  unsetVar _TEMP
 	local prompt=$1
 	local limit=$2
 	if [[ ! "$limit" = "" && "$limit" =~ ^[0-9]+$ && "$limit" -le 0 ]]; then
@@ -301,7 +301,7 @@ function readTemp() { #x
 	    if [ "$limit" ]; then
 	        readWithPromptAndLimit "$(echo -e "$prompt")" $limit
         else
-            vared -p "$(echo -e "$prompt")" _TEMP
+            vared -cp "$(echo -e "$prompt")" _TEMP
         fi
 	else
 	    if [ "$limit" ]; then
@@ -404,6 +404,7 @@ function qfigLog() { #x log with a colored dot prefix
     [[ $((flags & 1)) -eq 1 ]] && local nl="" || local nl="\n"
     log="$sgr$prefix\e[0m $log$nl"
     if [[ $((flags & 2)) -eq 2 ]]; then
+        unsetVar _TEMP
         _TEMP="$log"
     else
         printf "$log"
@@ -662,6 +663,7 @@ function findindex() { #? find 1st target index in provider and save to _TEMP. U
 			[ $j = 0 ] && k=$i
 			j=$(($j + 1))
 			if [ $j = $s2len ]; then
+			  unsetVar _TEMP
 			  declare -gi _TEMP=$k
 				return
 			else
@@ -817,7 +819,7 @@ function getMatch() { #? get regex match result
 }
 
 function toArray() { #? split string to array and save to _TEMP. Usage: toArray $str $splitter(optional)
-    declare -ga _TEMP=()
+    unsetVar _TEMP
     local splitter=$IFS
     [ "$2" ] && splitter="$2"
     if [[ "$_CURRENT_SHELL" = "zsh" ]]; then
@@ -828,7 +830,7 @@ function toArray() { #? split string to array and save to _TEMP. Usage: toArray 
 }
 
 function toArrayVar() { #? toArray and save to specific var(It's global). Usage: toArray $str $var $splitter(optional)
-    declare -ga _TEMP=()
+    unsetVar _TEMP
     local splitter=$IFS
     local var=$2
     if [[ ! "$var" =~ [a-zA-Z_][a-zA-Z0-9_]* ]]; then
@@ -855,13 +857,23 @@ function repeatWord() { #? repeat a word n times
     echo "$out"
 }
 
+function unsetVar() {
+   [ -z "$1" ] && logError "Usage: copyVar var" && return 1
+   if [[ ! "$1" =~ [a-zA-Z_][a-zA-Z0-9_]* ]]; then
+     logError "Variable name should match regex: [a-zA-Z_][a-zA-Z0-9_]*" && return 1
+   fi
+   if declare -p "$1" &>/dev/null; then
+     unset "$1"
+   fi
+}
+
 function copyVar() { #? copy value and type of a variable to another(It's global)
   [[ -z "$1" || -z "$2" ]] && logError "Usage: copyVar var1 var2" && return 1
   if [[ ! "$1" =~ [a-zA-Z_][a-zA-Z0-9_]* ]] || [[ ! "$2" =~ [a-zA-Z_][a-zA-Z0-9_]* ]]; then
     logError "Variable names should match regex: [a-zA-Z_][a-zA-Z0-9_]*" && return 1
   fi
 
-  local arrayBase declaration eqIdx metas finalMeta i v makeGlobal
+  local arrayBase declaration eqIdx metas finalMeta i v
   arrayBase=$(getArrayBase)
   declaration=$(declare -p "$1")
 

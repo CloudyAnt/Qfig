@@ -262,15 +262,18 @@ function +gb() { #x
 
 		declare -A _branches_
 		declare -i i=$arrayBase
+		local b
 		for ((; i<=$((${#branches[@]} - 1 + $arrayBase)); i++)); do
-			branches[$i]=${branches[$i]:2}
-			_branches_[branches[$i]]="1"
+			b=${branches[$i]:2}
+			branches[i]=$b
+			_branches_[$b]="1"
 		done
 		i=$arrayBase
 		for ((; i<=$((${#originBranches[@]} - 1 + $arrayBase)); i++)); do
-			originBranches[$i]=${originBranches[$i]:9} # "  origin/".length = 9
-			if [ ! "1" = "${_branches_[originBranches[$i]]}" ]; then
-				branches+=(${originBranches[$i]})
+			originBranches[i]=${originBranches[$i]:9} # "  origin/".length = 9
+			b=${originBranches[$i]}
+			if [ ! "1" = "${_branches_[$b]}" ]; then
+				branches+=($b)
 			fi
 		done
 
@@ -290,7 +293,7 @@ function gcof() { #? git checkout --- fuzziable edition. Usage: gcof $branch/$ta
 
 	declare -i arrayBase=$(getArrayBase)
 	declare -i i=$arrayBase
-	local branches tags refs
+	local branches tags refs b
 	IFS=$'\n'
 	branches=($(git branch --list "*$1*"))  # list branches from local
 	originBranches=($(git branch -r --list "origin/$1*")) # list branches from origin
@@ -300,17 +303,19 @@ function gcof() { #? git checkout --- fuzziable edition. Usage: gcof $branch/$ta
 	i=$arrayBase
 	declare -A _branches_
 	for ((; i<=$((${#branches[@]} - 1 + $arrayBase)); i++)); do
-		branches[$i]=${branches[$i]:2}
-		_branches_[branches[$i]]="1"
+	  b=${branches[$i]:2}
+		branches[i]=$b
+		_branches_[$b]="1"
 	done
 
 	i=$arrayBase
 	for ((; i<=$((${#originBranches[@]} - 1 + $arrayBase)); i++)); do
-		originBranches[$i]=${originBranches[$i]:9} # "  origin/".length = 9
-		if [ ! "1" = "${_branches_[originBranches[$i]]}" ]; then
-			branches+=(${originBranches[$i]})
+		originBranches[i]=${originBranches[$i]:9} # "  origin/".length = 9
+		b=originBranches[$i]
+		if [ ! "1" = "${_branches_[$b]}" ]; then
+			branches+=($b)
 		fi
-		_branches_[originBranches[$i]]="1"
+		_branches_[$b]="1"
 	done
 
 	refs=("${branches[@]}" "${tags[@]}")

@@ -265,7 +265,7 @@ function ucp2utf16() { #? covert hex unicode code points to utf16 code units, -h
 	for arg in "$@"
 	do
 		if ! [[ $arg =~ ^[0-9a-fA-F]+$ ]]; then
-			[ "$silent"] && : || logError $index"th param '$arg' is not decimal" && unset -f _process
+			[ "$silent" ] && : || logError $index"th param '$arg' is not decimal" && unset -f _process
 			return 1
 		fi
 
@@ -283,7 +283,7 @@ function ucp2utf16() { #? covert hex unicode code points to utf16 code units, -h
 			_process
 			byteIndex=$((byteIndex + 1))
 		else
-			[ "$silent"] && : || logError $index"th param '$arg' is out of range" && unset -f _process
+			[ "$silent" ] && : || logError $index"th param '$arg' is out of range" && unset -f _process
 			return 1
 		fi
 		index=$((index + 1))

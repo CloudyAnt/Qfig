@@ -30,6 +30,7 @@ function readWithPromptAndLimit() {
         return 130
     }
 
+    unsetVar _TEMP
     _TEMP=""
     vared -p "$prompt" _TEMP
     cleanup

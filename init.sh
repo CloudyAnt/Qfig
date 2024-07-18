@@ -30,6 +30,10 @@ if [ ! -d "$_QFIG_LOCAL" ]; then
 	mkdir "$_QFIG_LOCAL"
 fi
 
+_TEMP_STR=$(declare -p IFS)
+# -z test whether this value was set
+[ -z "$_DEF_IFS" ] && eval "${_TEMP_STR/IFS/_DEF_IFS}" || :
+
 ## Base configs
 source $_QFIG_LOC/command/baseCommands.sh
 
@@ -84,6 +88,7 @@ if [ -f "$localConfigFile" ]; then
 		logInfo "$_INIT_MSG"
 	fi
 
+  unset _TEMP_STR
 	unset verbose
 	unset localConfigFile
 	unset enabledCommands
@@ -100,4 +105,3 @@ if [ -f "$_QFIG_LOC/command/localCommands.sh" ]; then
 fi
 
 _IS_BSD=$(grep --version | awk '/BSD grep/{print "1"}') # otherwise it's GNU
-[ -z "$_DEF_IFS" ] && _DEF_IFS=$IFS || :
