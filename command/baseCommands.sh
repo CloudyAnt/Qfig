@@ -235,12 +235,12 @@ function editfile() { #? edit a file using preferredTextEditor
     eval "$_PREFER_TEXT_EDITOR $1"
 }
 
-function qmap() { #? edit a map(which may be recognized by Qfig commands) or output to _TEMP by -o flag
+function qmap() { #? Edit or output(if specified) Qfig map. Usage: qmap $key $out(optional). Use -c to auto create.
   OPTIND=1
-  while getopts "o" opt; do
+  while getopts "c" opt; do
       case $opt in
-          o)
-              local output="1"
+          c)
+              local autoCreate="1"
               ;;
           \?)
               ;;
@@ -251,17 +251,21 @@ function qmap() { #? edit a map(which may be recognized by Qfig commands) or out
   [ -z "$1" ] && logError "Which map ?" && return 1
 
   local file="$_QFIG_LOCAL/${1}MappingFile"
+  if [ ! -f "$file" ]; then
+      if [ "$autoCreate" ]; then
+        touch "$file"
+      else
+        logError "Mapping file $file doesn't exist! (Use -c if you wish to auto create)" && return 1
+      fi
+  fi
+  local output=$2
   if [ "$output" ]; then
-    if [ -f "$file" ]; then
-      local declaration
-      declaration=$(awk -F '=' 'BEGIN{ s = "declare -gA _TEMP; _TEMP=("} \
-      { if ( NF >= 2) s = s " [" $1 "]=" $2; } \
-      END { s = s ")"; print s}' < "$file")
-      eval "$declaration"
-    else
-      logWarn "Mapping file $file not exist"
-      declare -gA _TEMP
-    fi
+    local declaration
+    declaration=$(awk -F '=' 'BEGIN{ s = "declare -gA _TEMP; _TEMP=("} \
+    { if ( NF >= 2) s = s " [" $1 "]=" $2; } \
+    END { s = s ")"; print s}' < "$file")
+    eval "$declaration"
+    copyVar _TEMP "$output"
   else
     editfile "$file"
   fi
@@ -643,7 +647,7 @@ function undoReplaceWord() { #? recovery file with pointed suffix
     [ -f "$1.$2" ] && mv "$1.$2" $1
 }
 
-function findindex() { #? find 1st target index in provider. Usage: findindex provider target
+function findindex() { #? find 1st target index in provider and save to _TEMP. Usage: findindex provider target
 	[[ -z $1 || -z $2 ]] && logError "Usage: findindex provider target" && return 1
 	local s1len=${#1}
 	local s2len=${#2}
@@ -658,7 +662,7 @@ function findindex() { #? find 1st target index in provider. Usage: findindex pr
 			[ $j = 0 ] && k=$i
 			j=$(($j + 1))
 			if [ $j = $s2len ]; then
-				echo $k
+			  declare -gi _TEMP=$k
 				return
 			else
 				c2=${2:$j:1}
@@ -857,19 +861,20 @@ function copyVar() { #? copy value and type of a variable to another(It's global
     logError "Variable names should match regex: [a-zA-Z_][a-zA-Z0-9_]*" && return 1
   fi
 
-  local declaration parts metas arrayBase finalMeta i v
+  local arrayBase declaration eqIdx metas finalMeta i v makeGlobal
   arrayBase=$(getArrayBase)
   declaration=$(declare -p "$1")
-  toArray "$declaration" "=" && parts=("${_TEMP[@]}")
-  toArray "${parts[arrayBase]}" && metas=("${_TEMP[@]}")
+
+  findindex "$declaration" "=" && eqIdx="$_TEMP"
+  toArray "${declaration:0:$eqIdx}" " " && metas=("${_TEMP[@]}")
 
   finalMeta="${metas[arrayBase]} -g" # var2 must be global so it can be used outside this function
   for (( i=1 ; i<$((${#metas[@]} - 1)); i++ )); do
     v=${metas[i + arrayBase]}
-    if [ "-g" != "$v" ]; then
+    if [ "$v" != "-g" ]; then
       finalMeta+=" $v"
     fi
   done
   finalMeta+=" $2"
-  eval "$finalMeta=${parts[arrayBase + 1]}"
+  eval "$finalMeta${declaration:$eqIdx}"
 }

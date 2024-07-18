@@ -3,20 +3,11 @@
 #? You need to edit the mysql mapping file by execute 'qmap mysql'. A ssh mapping like: key=server:port#username#userpass
 
 alias mysqll='mysql -uroot -p' # Connect local mysql
-
-_MYSQL_MAPPING_FILE=$_QFIG_LOCAL/mysqlMappingFile
-
-[ ! -f $_MYSQL_MAPPING_FILE ] && touch $_MYSQL_MAPPING_FILE || :
-eval $(awk -F '=' 'BEGIN { s="declare -g -A _MYSQL_MAPPING;" } {
-    if (NF >= 2) {
-        split($2, parts, "#");
-        s = s "_MYSQL_MAPPING[" $1 "]=\"" parts[1] " " parts[2] " " parts[3] "\";";
-    }
-} END { print s }' $_MYSQL_MAPPING_FILE)
+qmap -c mysql _MYSQL_MAPPING
 
 function mysqlc() { #? Connect mysql by mapping
     [ -z "$1" ] || [ -z "${_MYSQL_MAPPING[$1]}" ] && logError "No corresponding mapping" && return
-    declare -a mapping=($(echo ${_MYSQL_MAPPING[$1]}))
+    toArray "${_MYSQL_MAPPING[$1]}" "#" && declare -a mapping=("${_TEMP[@]}")
     declare -i arrayBase=$(getArrayBase)
     local hostPort="${mapping[$arrayBase]}:"
     local host=$(cut -d":" -f1 <<< $hostPort)

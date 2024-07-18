@@ -2,19 +2,9 @@
 #? You need to edit the ssh mapping file by execute 'qmap ssh'. A ssh mapping like: a=user@111.222.333.444:555
 #? You also need to edit the pem mapping file by execute 'qmap pem' if needed. A pem mapping like: a=/path/to/pem
 
-_SSH_MAPPING_FILE=$_QFIG_LOCAL/sshMappingFile
-_PEM_MAPPING_FILE=$_QFIG_LOCAL/pemMappingFile
-
 # Resolve ssh & pem mappings
-[ ! -f $_SSH_MAPPING_FILE ] && touch $_SSH_MAPPING_FILE
-eval `cat $_SSH_MAPPING_FILE | awk -F '=' 'BEGIN{ s = "declare -g -A _SSH_MAPPING; _SSH_MAPPING=("} \
-{ if ( NF >= 2) s = s " [" $1 "]=" $2; } \
-END { s = s ")"; print s}'`
-
-[ ! -f $_PEM_MAPPING_FILE ] && touch $_PEM_MAPPING_FILE
-eval `cat $_PEM_MAPPING_FILE | awk -F '=' 'BEGIN{ s = "declare -g -A _PEM_MAPPING; _PEM_MAPPING=("} \
-{ if ( NF >= 2) s = s " [" $1 "]=" $2; } \
-END { s = s ")"; print s}'`
+qmap -c ssh _SSH_MAPPING
+qmap -c pem _PEM_MAPPING
 
 function checkMapping() {
     local key="$1"

@@ -2,21 +2,13 @@
 enable-qcmds json
 enable-qcmds encoding
 
-_TRANS_MAPPING_FILE=$_QFIG_LOCAL/translationMappingFile
-[ ! -f $_TRANS_MAPPING_FILE ] && touch $_TRANS_MAPPING_FILE || :
-eval $(awk -F '=' 'BEGIN { s="declare -g -A _TRANS_MAPPING;" } {
-    if (NF == 2) {
-        split($2, parts, "#");
-        s = s "_TRANS_MAPPING[" $1 "]=\"" parts[1] " " parts[2] " " parts[3] "\";";
-    }
-} END { print s }' $_TRANS_MAPPING_FILE)
-unset _TRANS_MAPPING_FILE
+qmap -c translation _TRANS_MAPPING
 
 function bdts() { #? Translate use Baidu Fanyi api. Sample usage: bdts hello
     [[ -z $1 ]] && logError "Sample usage: bdts hello" && return 1
     [ -z "${_TRANS_MAPPING[baidu]}" ] && logError "Run 'qmap translation' to add a mapping in form baidu=appId#key.
   For appId, key, please refer to Baidu Fanyi open platform."  && return
-    declare -a mapping=($(echo ${_TRANS_MAPPING[baidu]}))
+    toArray "${_TRANS_MAPPING[baidu]}" "#" && declare -a mapping=("${_TEMP[@]}")
     declare -i arrayBase=$(getArrayBase)
     local q api appId key salt sign url response result u from to text
     text=$@
