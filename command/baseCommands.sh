@@ -812,15 +812,32 @@ function getMatch() { #? get regex match result
 	fi
 }
 
-function toArray() { #? split string to array and save to _TEMP
+function toArray() { #? split string to array and save to _TEMP. Usage: toArray $str $splitter(optional)
     declare -ga _TEMP=()
-    local splitter=" "
+    local splitter=$IFS
     [ "$2" ] && splitter="$2"
     if [[ "$_CURRENT_SHELL" = "zsh" ]]; then
-        IFS="$splitter" _TEMP=($(echo "$1")); rdIFS
+        IFS=$splitter _TEMP=($(echo "$1")); rdIFS
     else
-        IFS="$splitter" read -ra _TEMP <<< "$1"; rdIFS
+        IFS=$splitter read -ra _TEMP <<< "$1"; rdIFS
     fi
+}
+
+function toArrayVar() { #? toArray and save to specific var(It's global). Usage: toArray $str $var $splitter(optional)
+    declare -ga _TEMP=()
+    local splitter=$IFS
+    local var=$2
+    if [[ ! "$var" =~ [a-zA-Z_][a-zA-Z0-9_]* ]]; then
+      logError "Variable name should match regex: [a-zA-Z_][a-zA-Z0-9_]*" && return 1
+    fi
+    [ "$3" ] && splitter="$3"
+    if [[ "$_CURRENT_SHELL" = "zsh" ]]; then
+        IFS=$splitter _TEMP=($(echo "$1")); rdIFS
+    else
+        IFS=$splitter read -ra _TEMP <<< "$1"; rdIFS
+    fi
+
+    copyVar _TEMP "$var"
 }
 
 function repeatWord() { #? repeat a word n times
@@ -834,9 +851,25 @@ function repeatWord() { #? repeat a word n times
     echo "$out"
 }
 
-function copyVar() { #? copy value and type of a variable to another
+function copyVar() { #? copy value and type of a variable to another(It's global)
   [[ -z "$1" || -z "$2" ]] && logError "Usage: copyVar var1 var2" && return 1
-  local declaration
+  if [[ ! "$1" =~ [a-zA-Z_][a-zA-Z0-9_]* ]] || [[ ! "$2" =~ [a-zA-Z_][a-zA-Z0-9_]* ]]; then
+    logError "Variable names should match regex: [a-zA-Z_][a-zA-Z0-9_]*" && return 1
+  fi
+
+  local declaration parts metas arrayBase finalMeta i v
+  arrayBase=$(getArrayBase)
   declaration=$(declare -p "$1")
-  eval "${declaration/$1/$2}"
+  toArray "$declaration" "=" && parts=("${_TEMP[@]}")
+  toArray "${parts[arrayBase]}" && metas=("${_TEMP[@]}")
+
+  finalMeta="${metas[arrayBase]} -g" # var2 must be global so it can be used outside this function
+  for (( i=1 ; i<$((${#metas[@]} - 1)); i++ )); do
+    v=${metas[i + arrayBase]}
+    if [ "-g" != "$v" ]; then
+      finalMeta+=" $v"
+    fi
+  done
+  finalMeta+=" $2"
+  eval "$finalMeta=${parts[arrayBase + 1]}"
 }
