@@ -4,7 +4,7 @@ function jrun() { #? java compile then run, jrun Hello => javac Hello.java && ja
     [ -z $1 ] && logError "Which file to run ?" && return
     local file=$1
     if [[ $file =~ ^[^.]+$ ]]; then
-        file=$file".go"
+        file=$file".java"
     fi
     [ ! -f "$file" ] && logError "File $file does not exist !" && return
 
