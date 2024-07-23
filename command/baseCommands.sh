@@ -115,7 +115,7 @@ function qfig() { #? Qfig operations
 			cd $_QFIG_LOC
 			;;
 		report)
-			local msg="$_INIT_MSG\n  OsType: $OSTYPE. Simulator: $TERM. Shell: $_CURRENT_SHELL"
+			local msg="$_INIT_MSG\n  OsType: $OSTYPE. Simulator: $TERM. Shell: $(eval "$_CURRENT_SHELL --version | head -1")"
 			logInfo "$msg"
 			;;
 		v|version)
@@ -561,15 +561,6 @@ function confirm() { #? ask for confirmation. Usage: confirm $flags(optional) $m
 	return 1
 }
 
-function isExportedVar() { #? check whether it's exported var
-	local dp
-	dp=$(declare -p "$1" 2>/dev/null)
-	if [[ "$dp" = 'declare -x'* ]] || [[ "$dp" = 'export '* ]]; then
-		return 0
-	fi
-	return 1
-}
-
 #? Following are commands about string
 
 function alignLeft() { #x
@@ -777,6 +768,28 @@ function getMatch() { #? get regex match result
 	fi
 }
 
+function repeatWord() { #? repeat a word n times
+    local i
+    local s=$1
+    local count=$2
+    local out=""
+    for (( i=0 ; i<count; i++ )); do
+        out="$out$s"
+    done
+    echo "$out"
+}
+
+#? Variable related commands
+
+function isExportedVar() { #? check whether it's exported var
+	local dp
+	dp=$(declare -p "$1" 2>/dev/null)
+	if [[ "$dp" = 'declare -x'* ]] || [[ "$dp" = 'export '* ]]; then
+		return 0
+	fi
+	return 1
+}
+
 function toArray() { #? split string to array and save to _TEMP. Usage: toArray $str $splitter(optional)
     unsetVar _TEMP
     local splitter=$IFS
@@ -805,18 +818,7 @@ function toArrayVar() { #? toArray and save to specific var(It's global). Usage:
     copyVar _TEMP "$var"
 }
 
-function repeatWord() { #? repeat a word n times
-    local i
-    local s=$1
-    local count=$2
-    local out=""
-    for (( i=0 ; i<count; i++ )); do
-        out="$out$s"
-    done
-    echo "$out"
-}
-
-function unsetVar() {
+function unsetVar() { #? unset var if it exists
    [ -z "$1" ] && logError "Usage: copyVar var" && return 1
    if [[ ! "$1" =~ [a-zA-Z_][a-zA-Z0-9_]* ]]; then
      logError "Variable name should match regex: [a-zA-Z_][a-zA-Z0-9_]*" && return 1

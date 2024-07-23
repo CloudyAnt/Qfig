@@ -48,30 +48,38 @@ if [ -f "$localConfigFile" ]; then
 	enabledCommands=""
 	declare -A enabledCommandsMap
 
+  function get-actual-cmds() {
+      local cmds=$1
+      if [[ $cmds == *":"* ]]; then
+        if [[ $cmds == *":sh" ]]; then
+          # only load shell commands
+          cmds=${cmds:0:-3}
+        fi
+      fi
+      echo $cmds
+  }
    # Add line 'enable-qcmds foo' in the commands file if it requires foo commands
 	function enable-qcmds() {
-		local cmds rcmds cmdsFile
-		cmds=$1
-		if [[ $cmds == *":"* ]]; then
-			if [[ $cmds == *":sh" ]]; then
-				# only load shell commands
-				cmds=${cmds:0:-3}
-			else
-				return
-			fi
-		fi
+		local cmds cmdsFile
+		cmds=$(get-actual-cmds $1)
 		[ ${enabledCommandsMap[$cmds]} ] && return || :
 		enabledCommandsMap[$cmds]=1
 		cmdsFile="$_QFIG_LOC/command/${cmds}Commands.sh"
 		if [ -f "$cmdsFile" ]; then
 			source $cmdsFile
-			enabledCommands="$enabledCommands $cmds"
+			if [ "$_CURRENT_SOURCING" != "$cmds" ]; then
+        enabledCommands="$enabledCommands $cmds($_CURRENT_SOURCING)"
+      else
+			  enabledCommands="$enabledCommands $cmds"
+      fi
 		else
 			logWarn "$cmdsFile Not Exists!"
 		fi
 	}
 
+  _CURRENT_SOURCING=""
 	while read -r cmds; do
+	  _CURRENT_SOURCING=$(get-actual-cmds $cmds)
 		enable-qcmds $cmds
 	done < <(awk '/<enabledCommands>/{f = 1; next} /<\/enabledCommands>/{f = 0} f' $localConfigFile)
 
@@ -94,6 +102,7 @@ if [ -f "$localConfigFile" ]; then
 	unset enabledCommandsMap
 	unset preferTextEditor
 	unset -f enable-qcmds
+	unset -f get-actual-cmds
 else
 	_INIT_MSG="";_INIT_MSG+="None enabled cmds. Text editor: $_PREFER_TEXT_EDITOR(default). "
 fi
