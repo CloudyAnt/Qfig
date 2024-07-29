@@ -68,7 +68,7 @@ if [ -f "$localConfigFile" ]; then
 		if [ -f "$cmdsFile" ]; then
 			source $cmdsFile
 			if [ "$_CURRENT_SOURCING" != "$cmds" ]; then
-        enabledCommands="$enabledCommands $cmds($_CURRENT_SOURCING)"
+        enabledCommands="$enabledCommands $cmds(\e[34mby\e[0m $_CURRENT_SOURCING)"
       else
 			  enabledCommands="$enabledCommands $cmds"
       fi

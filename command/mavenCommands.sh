@@ -7,7 +7,7 @@ function mpkg() { #? maven package & tell the size of jar in ./target
     OPTIND=1
     while getopts ":p:s" opt; do
         case $opt in
-            s) # Skip tset
+            s) # Skip test
                 skipSegment="-Dmaven.test.skip=true" >&2
                 logInfo "Skip tests"
                 ;;

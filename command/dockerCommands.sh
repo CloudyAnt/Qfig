@@ -37,7 +37,7 @@ function dprune() { #? remove all stopped containers and useless images
 		logInfo "Remove stopped containers:"
 		docker rm $(docker ps -a -q)
 	fi
-	logInfo "Remove useless imagess:"
+	logInfo "Remove useless images:"
 	docker image prune -f
 }
 

@@ -1,4 +1,4 @@
-# enhancement for bash
+# Enhancement for bash
 
 function readWithPromptAndLimit() {
     local prompt=$1

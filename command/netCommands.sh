@@ -10,7 +10,7 @@ function port2ps() { #? [lsof] get process which listening to port
 	lsof -nP -iTCP -sTCP:LISTEN | grep $1
 }
 
-#? If unable to visit website by domain, flush the dns cache, if useless, swith to google or other public dns
+#? If unable to visit website by domain, flush the dns cache, if useless, switch to google or other public dns
 function flushdnscache() { #? [dscacheutil, killall] flush dns cache
     if type dscacheutil >/dev/null 2>&1 && type killall >/dev/null 2>&1; then
         if sudo dscacheutil -flushcache && sudo killall -HUP mDNSResponder; then

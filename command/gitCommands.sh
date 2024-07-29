@@ -686,7 +686,7 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 			logSilence "Using local pattern: ${$(head -n 1 $pattern_tokens_file):2}"
 		fi
 		if [ $setPattern ]; then # whether save to .gctpattern
-			logInfo "Save it in $boldRepoPattern(Not recommanded for repo that already have lots of commits) ? \e[90mY for Yes, others for No.\e[0m" "?"
+			logInfo "Save it in $boldRepoPattern(Not recommended for repo that already have lots of commits) ? \e[90mY for Yes, others for No.\e[0m" "?"
 			readTemp && local saveToRepo=$_TEMP || return 1
 		fi
 	fi

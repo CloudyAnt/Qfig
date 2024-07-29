@@ -5,7 +5,7 @@
 function refresh-qfig() { #? refresh qfig by re-source init.sh
 	[[ -o ksharrays ]] && local ksharrays=1 || local ksharrays=""
 	# If ksharrays was set, arrays would based on 0, array items can only be accessed like '${arr[1]}' not '$arr[1]',
-	# array size can only be accesse like '${#arr[@]}' not '${#arr}'. Some programs may not expect this option
+	# array size can only be access like '${#arr[@]}' not '${#arr}'. Some programs may not expect this option
 	[ $ksharrays ] && set +o ksharrays || :
 
 	if [ ! "-" = "$1" ]; then
@@ -43,10 +43,7 @@ elif [ "$_CURRENT_SHELL" = "zsh" ]; then
 fi
 
 if [[ "$OSTYPE" =~ darwin* ]]; then
-	function dquarantine() {  # delete quarantine attr
-		[ -z "$1" ] && logError "Specify the path!" || :
-		xattr -d com.apple.quarantine $1;
-	}
+	source "$_QFIG_LOC/command/enhancementForDarwin.sh"
 fi
 
 function qfig() { #? Qfig operations
@@ -152,10 +149,10 @@ function qcmds() { #? operate available commands. Usage: qcmds $commandsPrefix $
 	if [ ! -f "$targetFile" ]; then
 		if [[ "local" = $1 ]]; then
 			echoe "# Write your only-in-this-device commands/scripts below.
-			# Changes will be effective in new sessions, to make it effective immidiately by running command 'resh'
+			# Changes will be effective in new sessions, to make it effective immediately by running command 'resh'
 			# This file will be ignored by .gitignore" > $targetFile
 		else
-			logError "$targetFile dosen't exist" && qcmds && return 1
+			logError "$targetFile doesn't exist" && qcmds && return 1
 		fi
 	fi
 
@@ -607,7 +604,7 @@ function findindex() { #? find 1st target index in provider and save to _TEMP. U
 	i=0;j=0
 	local c2=${2:$j:1}
 	local c2_0=$c2
-	for (( ; i<$s1len; i++ )); do
+	for (( ; i<s1len; i++ )); do
 		c1=${1:$i:1}
 		if [ "$c1" = "$c2" ]; then
 			[ $j = 0 ] && k=$i
