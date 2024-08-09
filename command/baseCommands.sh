@@ -6,6 +6,7 @@ function refresh-qfig() { #? refresh qfig by re-source init.sh
 	[[ -o ksharrays ]] && local ksharrays=1 || local ksharrays=""
 	# If ksharrays was set, arrays would based on 0, array items can only be accessed like '${arr[1]}' not '$arr[1]',
 	# array size can only be access like '${#arr[@]}' not '${#arr}'. Some programs may not expect this option
+	# In the subsequent code of this function, I'd like to remove it and finally restore it.
 	[ $ksharrays ] && set +o ksharrays || :
 
 	if [ ! "-" = "$1" ]; then
@@ -206,24 +207,29 @@ function qmap() { #? Edit or output(if specified) Qfig map. Usage: qmap $key $ou
 
   [ -z "$1" ] && logError "Which map ?" && return 1
 
-  local file="$_QFIG_LOCAL/${1}MappingFile"
+  local class=$1
+  local file="$_QFIG_LOCAL/${class}MappingFile"
   if [ ! -f "$file" ]; then
       if [ "$autoCreate" ]; then
-        touch "$file"
+        echoe "#For each line, the 1st occurrence of separator's left & right will be the key & value respectively.
+#The default separator is '=', change it by a line like '#?-'(change to '-'), it can be changed multi times." > "$file"
       else
         logError "Mapping file $file doesn't exist! (Use -c if you wish to auto create)" && return 1
       fi
   fi
   local output=$2
+  local declaration
   if [ "$output" ]; then
-    local declaration
-    declaration=$(awk -F '=' 'BEGIN{ s = "unsetVar _TEMP;declare -gA _TEMP; _TEMP=("} \
-    { if ( NF >= 2) s = s " [" $1 "]=" $2; } \
-    END { s = s ")"; print s}' < "$file")
+    declaration=$(awk -f "$_QFIG_LOC/staff/readMapFile.awk" "$file")
     eval "$declaration"
     copyVar _TEMP "$output"
   else
     editfile "$file"
+    declaration=$(awk -f "$_QFIG_LOC/staff/readMapFile.awk" "$file")
+    eval "$declaration"
+  fi
+  if [ "$badlines" ]; then
+    logWarn "Bad line indices: ${badlines}in mapping file of $class"
   fi
 }
 
