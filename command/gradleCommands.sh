@@ -15,3 +15,26 @@ function gdhl() { #? highlight a word in dependency tree
 function gkilldaemons() {
     pkill -f '.*GradleDaemon.*'
 }
+
+function ginit() { #? create a gradle project with minimal build.gradle
+    if [ -f "build.gradle" ]; then
+        logWarn "build.gradle already exists in this directory."
+        return
+    fi
+
+    local groupId artifactId version
+    while [ -z "$groupId" ]; do
+        readTemp "\e[34mgroupId\e[0m: " && groupId=$_TEMP
+    done
+    while [ -z "$version" ]; do
+        readTemp "\e[34mversion\e[0m: " && version=$_TEMP
+    done
+
+    echo "apply plugin: 'java'
+group = '$groupId'
+version = '$version'
+
+repositories {
+    mavenCentral()
+}" > build.gradle
+}

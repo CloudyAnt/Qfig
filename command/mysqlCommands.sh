@@ -46,8 +46,8 @@ function mysqlc() { #x
     fi
 }
 
-function mysqlo() { #? Connect mysql by mapping THEN pass command and output result to files
+function mysqlo() { #? Connect mysql by mapping THEN pass selection command and output result to file in server.
     [ -z "$2" ] && logError "Need Command" && return 1
     [ -z "$3" ] && logError "Need Output File" && return 1
-    mysqlc -e "$2 INTO OUTFILE '$3' FIELDS TERMINATED BY ',';"
+    mysqlc "$1" "-e \"$2 INTO OUTFILE '$3' FIELDS TERMINATED BY ',';\""
 }

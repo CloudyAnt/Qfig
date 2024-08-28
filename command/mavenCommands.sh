@@ -35,3 +35,28 @@ function mdhl() { #? highlight a word in dependency tree
     [ -z "$1" ] && return
     mvn dependency:tree | awk -v word=$1 '{sub(word, sprintf("\033[0;31m%s\033[0m", word)); print}'
 }
+
+function minit() { #? create a maven project with minimal pom.xml
+    if [ -f "pom.xml" ]; then
+        logWarn "pom.xml already exists in this directory."
+        return
+    fi
+
+    local groupId artifactId version
+    while [ -z "$groupId" ]; do
+        readTemp "\e[34mgroupId\e[0m: " && groupId=$_TEMP
+    done
+    while [ -z "$artifactId" ]; do
+        readTemp "\e[34martifactId\e[0m: " && artifactId=$_TEMP
+    done
+    while [ -z "$version" ]; do
+        readTemp "\e[34mversion\e[0m: " && version=$_TEMP
+    done
+
+    echo "<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>$groupId</groupId>
+    <artifactId>$artifactId</artifactId>
+    <version>$version</version>
+</project>" > pom.xml
+}

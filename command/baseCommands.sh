@@ -251,7 +251,10 @@ function getCurrentHead() { #x
 	echo ${commit:0:$len}
 }
 
-function readTemp() { #x
+# In order to read InputMethod, we need to use read -e in bash, use vared in zsh. This function is to unify the usage.
+# In order to let the reading result available outside the function, we need to use global variable _TEMP.
+# This function also unify the usage of read with prompt and limit in bash and zsh.
+function readTemp() { #? read input to _TEMP. Usage: readTemp $prompt $limit(optional)
   unsetVar _TEMP
 	local prompt=$1
 	local limit=$2
