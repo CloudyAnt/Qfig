@@ -59,4 +59,5 @@ function minit() { #? create a maven project with minimal pom.xml
     <artifactId>$artifactId</artifactId>
     <version>$version</version>
 </project>" > pom.xml
+    logInfo "pom.xml created."
 }

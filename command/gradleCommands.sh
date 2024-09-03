@@ -16,15 +16,18 @@ function gkilldaemons() {
     pkill -f '.*GradleDaemon.*'
 }
 
-function ginit() { #? create a gradle project with minimal build.gradle
-    if [ -f "build.gradle" ]; then
-        logWarn "build.gradle already exists in this directory."
+function ginit() { #? create a gradle project with minimal build.gradle and settings.gradle
+    if [ -f "build.gradle" ] || [ -f "settings.gradle" ]; then
+        logWarn "build.gradle or settings.gradle already exists in this directory."
         return
     fi
 
-    local groupId artifactId version
+    local groupId projectName version
     while [ -z "$groupId" ]; do
         readTemp "\e[34mgroupId\e[0m: " && groupId=$_TEMP
+    done
+    while [ -z "$projectName" ]; do
+        readTemp "\e[34projectName\e[0m: " && projectName=$_TEMP
     done
     while [ -z "$version" ]; do
         readTemp "\e[34mversion\e[0m: " && version=$_TEMP
@@ -37,4 +40,6 @@ version = '$version'
 repositories {
     mavenCentral()
 }" > build.gradle
+    echo "rootProject.name = '$projectName'" > settings.gradle
+    logInfo "build.gradle and settings.gradle created."
 }
