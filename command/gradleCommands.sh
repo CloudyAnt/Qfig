@@ -2,9 +2,9 @@
 
 function gpkg() { #? gradle package & tell the size of jar
     logInfo "Packaging.."
-    [ "-s" = $1 ] && gradle clean build -x tset || gradle clean build
+    [ "-s" = $1 ] && gradle clean build -x test || gradle clean build
     logInfo "Target size: "
-    du -h target/*.jar
+    du -h build/libs/*.jar
 }
 
 function gdhl() { #? highlight a word in dependency tree
