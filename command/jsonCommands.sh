@@ -2,19 +2,32 @@
 #? No 3rd program needed.
 
 function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h for more
-    if [ "-h" = "$1" ]; then
-        logInfo "For json \e[34m{\"users\": [{\"name\": \"chai\"}]}\e[0m, you can get the 1st user's name by: \e[1mjsonget json users.0.name\e[0m
+    local finding=1
+    OPTIND=1
+    while getopts "nch" opt; do
+        case $opt in
+            n) # no type indication
+                local notype=1 # no type indication, pure value
+                ;;
+            c) # check only
+                finding=""
+                ;;
+            h) # help
+              logInfo \
+"For json \e[34m{\"users\": [{\"name\": \"chai\"}]}\e[0m, you can get the 1st user's name by: \e[1mjsonget json users.0.name\e[0m
   For json \e[34m[{\"name\": \"chai\"}]\e[0m, then the operation would be: \e[1mjsonget json 0.name\e[0m
   Use '\.' to escape .
   \e[1mNote\e[0m that the json syntax check will stop after target found. Use \e[1mjsoncheck\e[0m if you wish to check syntax first
-  Target value will be prefixed with type indication, e.g. I:123. Use -t to remove type indication
+  Target value will be prefixed with type indication, e.g. I:123. Use -n to remove type indication
   Possible types are: O(object), A(array), S(string), I(integer), F(float), T(true), X(false), N(null)"
-        return 0
-    fi
-    if [ "-t" = "$1" ]; then
-        local notype=1 # no type indication, pure value
-        shift 1
-    fi
+                return 0
+                ;;
+            \?)
+                echo "Invalid option: -$OPTARG" && return
+                ;;
+        esac
+    done
+    shift $((OPTIND -1))
     [[ -z "$1" || -z "$2" ]] && logError "Usage: jsonget json targetPath. -h for more" && return 1
     # --- CHECK options ---
 	declare -i arrayBase
@@ -76,7 +89,6 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
     declare -a cpai # current path array index
     toArray "$(repeatWord '0' ${#tp[@]})" && cpai=$_TEMP # init cpai array
     declare -i fc=0 # current float fractional part digits count
-    local finding=1
 
     local firstC=${json:0:1}
     if [ '!' = "$firstC" ]; then
@@ -384,7 +396,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
 function jsoncheck() { #? json checking. Usage: jsoncheck $json
     [ -z "$1" ] && logError "Usage: jsoncheck \$json" && return
     local res
-    res=$(jsonget "!$1" "-")
+    res=$(jsonget -c "$1" "-")
     if [ 0 -ne $? ]; then
         echo $res >&2 && return 1
     fi

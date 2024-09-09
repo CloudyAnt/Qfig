@@ -38,10 +38,10 @@ function mysqlc() { #x
 
     if [ -z "$port" ]
     then
-        logInfo "Executing: mysql -u $username -p$password -h $host ${options[*]}"
+        logInfo "Executing: mysql -u $username -p****** -h $host ${options[*]}"
         mysql -u "$username" -p"$password" -h "$host" "${options[@]}"
     else
-        logInfo "Executing: mysql -u $username -p$password -h $host -P $port ${options[*]}"
+        logInfo "Executing: mysql -u $username -p****** -h $host -P $port ${options[*]}"
         mysql -u "$username" -p"$password" -h "$host" -P "$port" "${options[@]}"
     fi
 }

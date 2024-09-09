@@ -72,7 +72,7 @@ function ggts() { #? Translate use Google Cloud Translation api. Sample usage: g
 function +outputTransResult() { #x
     local response="$1"
     local resultPath="$2"
-    result=$(jsonget -t "$response" "$resultPath")
+    result=$(jsonget -n "$response" "$resultPath")
     if [ $? -eq 0 ]; then
         echo "$result"
     else
