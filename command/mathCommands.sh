@@ -51,10 +51,10 @@ function hex2dec() { #? convert hex unicode code points to decimals
             arg=$((0x$arg))
         fi
         if [ "$not1st" ]; then
-            out="$out $((0x$arg))"
+            out="$out $arg"
         else
             not1st=1
-            out="$((0x$arg))"
+            out="$arg"
         fi
 		index=$((index + 1))
 	done
