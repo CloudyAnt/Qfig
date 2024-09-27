@@ -1,6 +1,8 @@
 #? Docker related commands, make sure it's available before use.
-#? Hint: install colima to get docker runtime under mac or linux
-
+#? For mac user, use 'brew install --cask docker' to install GUI, or 'brew install colima docker' if you prefer CLI.
+#? Hints: colima provides docker daemon. colima is also available on Linux.
+#? --------------------------------------------------------------------
+#? If use colima, run 'colima start/stop/...' to operate docker daemon.
 alias dstart='docker start'
 alias dstop='docker stop'
 alias dlog='docker logs --tail 200 --follow --timestamps'
