@@ -244,7 +244,7 @@ function GitBranchCompleter { #x
 
 function gco {
     param([Parameter(Mandatory)][ArgumentCompleter({ GitBranchCompleter @args })]$branch)
-    git checkout $branch 
+    git checkout $branch
 }
 
 $_git_stash_key = "_git_stash_:"
@@ -492,7 +492,7 @@ function gct() {
             $stepsCount += 1
         }
     }
-	
+
     # APPEND message step by step
     $message = ""
     If (Test-Path $r_step_values_cache_file -PathType Leaf) {
@@ -514,7 +514,7 @@ function gct() {
     $bCurStepNum = -1
     $stepKey = ""
     $stepRegex = ""
-    $stepOptions = @()	
+    $stepOptions = @()
     $proceedStep = $false
     $branchScope = $false
     For ($i = 0; $i -lt $tokens.Length; $i++) {
@@ -584,15 +584,11 @@ function gct() {
                 $stepPrompt += "($stepDefValue)"
                 If (1 -Lt $stepOptions.Length) {
                     $stepPrompt += " | "
-                    $j = 1
+                    $idx = 0
                     $stepOptions | ForEach-Object {
-                        If ($j -lt 7) {
-                            $stepPrompt += "`e[1;3${j}m${j}:$_ "
-                        }
-                        Else {
-                            $stepPrompt += "`e[1;37m${j}:$_ "
-                        }
-                        $j += 1
+                        $cidx = $idx % 6 + 1
+                        $stepPrompt += "`e[1;3${cidx}m${idx}:$_ "
+                        $idx += 1
                     }
                     $stepPrompt += "`e[0m"
                 }
@@ -633,7 +629,7 @@ function gct() {
             # RESET step metas
             $stepKey = ""
             $stepRegex = ""
-            $stepOptions = @()	
+            $stepOptions = @()
             $proceedStep = $false
             $branchScope = $false
         }
