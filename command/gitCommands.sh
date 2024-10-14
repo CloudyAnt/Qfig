@@ -805,7 +805,7 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 				stepPrompt+="($stepDefValue) "
 				if [ 1 -lt "${#stepOptions[@]}" ]; then
 					# append option id
-					stepPrompt+="|$(echo ${stepOptions[@]} | awk '{for (i = 0; i <= NF; i++) { j = i % 6 + 1;
+					stepPrompt+="|$(echo ${stepOptions[@]} | awk '{for (i = 1; i <= NF; i++) { j = (i - 1) % 6 + 1;
 					printf " \033[1;3" j "m" i ":" $i;}} END{printf "\033[0m"}')"
 				fi
 			else

@@ -584,9 +584,9 @@ function gct() {
                 $stepPrompt += "($stepDefValue)"
                 If (1 -Lt $stepOptions.Length) {
                     $stepPrompt += " | "
-                    $idx = 0
+                    $idx = 1
                     $stepOptions | ForEach-Object {
-                        $cidx = $idx % 6 + 1
+                        $cidx = ($idx - 1) % 6 + 1
                         $stepPrompt += "`e[1;3${cidx}m${idx}:$_ "
                         $idx += 1
                     }
