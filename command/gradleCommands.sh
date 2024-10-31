@@ -27,7 +27,7 @@ function ginit() { #? create a gradle project with minimal build.gradle and sett
         readTemp "\e[34mgroupId\e[0m: " && groupId=$_TEMP
     done
     while [ -z "$projectName" ]; do
-        readTemp "\e[34projectName\e[0m: " && projectName=$_TEMP
+        readTemp "\e[34mprojectName\e[0m: " && projectName=$_TEMP
     done
     while [ -z "$version" ]; do
         readTemp "\e[34mversion\e[0m: " && version=$_TEMP

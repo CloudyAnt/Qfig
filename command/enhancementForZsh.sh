@@ -1,4 +1,4 @@
-# Enhancement for bash
+# Enhancement for zsh
 
 function readWithPromptAndLimit() {
     local prompt=$1

@@ -46,6 +46,9 @@ fi
 if [[ "$OSTYPE" =~ darwin* ]]; then
 	source "$_QFIG_LOC/command/enhancementForDarwin.sh"
 fi
+if [ "$OSTYPE" = "cygwin" ]; then
+	source "$_QFIG_LOC/command/enhancementForCygwin.sh"
+fi
 
 function qfig() { #? Qfig operations
 	case $1 in
@@ -825,7 +828,7 @@ function toArrayVar() { #? toArray and save to specific var(It's global). Usage:
 }
 
 function unsetVar() { #? unset var if it exists
-   [ -z "$1" ] && logError "Usage: copyVar var" && return 1
+   [ -z "$1" ] && logError "Usage: $0 var" && return 1
    if [[ ! "$1" =~ [a-zA-Z_][a-zA-Z0-9_]* ]]; then
      logError "Variable name should match regex: [a-zA-Z_][a-zA-Z0-9_]*" && return 1
    fi
@@ -834,8 +837,8 @@ function unsetVar() { #? unset var if it exists
    fi
 }
 
-function copyVar() { #? copy value and type of a variable to another(It's global)
-  [[ -z "$1" || -z "$2" ]] && logError "Usage: copyVar var1 var2" && return 1
+function copyVar() { #? copy value and type of a variable to another(It's global!!!)
+  [[ -z "$1" || -z "$2" ]] && logError "Usage: $0 var1 var2" && return 1
   if [[ ! "$1" =~ [a-zA-Z_][a-zA-Z0-9_]* ]] || [[ ! "$2" =~ [a-zA-Z_][a-zA-Z0-9_]* ]]; then
     logError "Variable names should match regex: [a-zA-Z_][a-zA-Z0-9_]*" && return 1
   fi
