@@ -232,7 +232,7 @@ function qmap() { #? Edit or output(if specified) Qfig map. Usage: qmap $key $ou
     eval "$declaration"
   fi
   if [ "$badlines" ]; then
-    logWarn "Bad line indices: ${badlines}in mapping file of $class"
+    logWarn "Bad line indices: ${badlines}, in mapping file of $class"
   fi
 }
 

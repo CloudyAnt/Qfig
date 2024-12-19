@@ -77,9 +77,9 @@ for c in A B C D E F G H I J K L M N O P Q R S T U V W X Y Z; do
     v=$((v + 1))
 done
 unset v c
-function rebase() { #? convert integer to another base. base should in [2,6]. Usage: rebase num oldBase newBase
+function rebase() { #? convert integer to another base. base should in [2,36]. Usage: rebase num oldBase newBase
     if ! [[ "$1" =~ ^-{0,1}[0-9a-zA-Z]+$ ]] || ! [[ "$2" =~ [0-9]+ && $2 -ge 2 && $2 -le 36 ]] || ! [[ "$3" =~ [0-9]+ && $3 -ge 2 && $3 -le 36 ]]; then
-        logError "Usage: rebase num oldBase newBase. base should in [2-36]" && return 1
+        logError "Usage: rebase num oldBase newBase. base should in [2,36]" && return 1
     fi
     local num c minus
     declare -i ob nb len i v

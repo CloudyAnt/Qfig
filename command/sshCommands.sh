@@ -47,11 +47,11 @@ function cpt() { #? copy to server. Usage: cpt localFile mapping remoteFile pem[
     if ! +ssh:checkMapping "$2"; then return 1; fi
     local _SshEndpoint=${_SSH_MAPPING[$2]}
 
-    [ ! -f "$4" ] && logError "Specified pem file $4 doesn't exists!" && return 1
     if [ -z "$4" ]
     then
         scp "$1" "$_SshEndpoint:/$3"
     else
+        [ ! -f "$4" ] && logError "Specified pem file $4 doesn't exists!" && return 1
         scp -i "$4" "$1" "$_SshEndpoint:/$3"
     fi
 }
@@ -69,11 +69,11 @@ function cprt() { #? recursively copy entire directories to server. Usage: cprt 
     if ! +ssh:checkMapping "$2"; then return 1; fi
     local _SshEndpoint=${_SSH_MAPPING[$2]}
 
-    [ ! -f "$4" ] && logError "Specified pem file $4 doesn't exists!" && return 1
     if [ -z "$4" ]
     then
         scp -r "$1" "$_SshEndpoint:/$3"
     else
+        [ ! -f "$4" ] && logError "Specified pem file $4 doesn't exists!" && return 1
         scp -r -i "$4" "$1" "$_SshEndpoint:/$3"
     fi
 }
@@ -82,11 +82,11 @@ function cpf() { #? copy from server. Usage: cpf remoteFile mapping localFile pe
     if ! +ssh:checkMapping "$1"; then return 1; fi
     local _SshEndpoint=${_SSH_MAPPING[$1]}
 
-    [ ! -f "$4" ] && logError "Specified pem file $4 doesn't exists!" && return 1
     if [ -z "$4" ]
     then
         scp "$_SshEndpoint:/$2" "$3"
     else
+        [ ! -f "$4" ] && logError "Specified pem file $4 doesn't exists!" && return 1
         scp -i "$4" "$_SshEndpoint:/$2" "$3"
     fi
 }
@@ -103,11 +103,11 @@ function cprf() { #? copy folder from sever. cprf folder mapping localFile pem[o
     if ! +ssh:checkMapping "$1"; then return 1; fi
     local _SshEndpoint=${_SSH_MAPPING[$1]}
 
-    [ ! -f "$4" ] && logError "Specified pem file $4 doesn't exists!" && return 1
     if [ -z "$4" ]
     then
         scp -r "$_SshEndpoint:/$2" "$3"
     else
+        [ ! -f "$4" ] && logError "Specified pem file $4 doesn't exists!" && return 1
         scp -r -i "$4" "$_SshEndpoint:/$2" "$3"
     fi
 }
