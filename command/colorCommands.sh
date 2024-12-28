@@ -22,11 +22,26 @@ function rgb() { #? show rgb color(rgb values or hexadecimal color value). Usage
     printf "\e[48;2;$r;$g;${b}m  \e[0m\n"
 }
 
-function rgb2hsl() { #? convert RGB(integers) to HSL(floats). -s to show the rgb color
-    local show
-    if [ "-s" = "$1" ]; then
-        show=1
-        shift 1
+function rgb2hslv() { #? convert RGB(integers) to HSL(floats) or HSV(floats). -s to show the rgb color
+    local show value
+    OPTIND=1
+    while getopts "hsv" opt; do
+        case $opt in
+            h)
+              logInfo "Usage: rgb2hslv \$r \$g \$b.\n  \nFlags:\n"
+              printf "    %-5s%s\n" "h" "Print this help message"
+              printf "    %-5s%s\n" "s" "Show the color in a 24-bit color terminal"
+              printf "    %-5s%s\n" "v" "Specify the output to HSV"
+              printf "\e[0m"
+              echo ""
+              return 0;;
+            s) show=1;;
+            v) value=1;;
+            \?) logError "Invalid option: -$OPTARG"; return 1;;
+        esac
+    done
+    shift "$((OPTIND - 1))"
+    if [ "$show" ]; then
         [[ "$COLORTERM" = "truecolor" || "$COLORTERM" = "24bit" ]] && : || logSilence "This terminal may not support 24-bit color (truecolor)"
     fi
     local r=$1
@@ -42,8 +57,13 @@ function rgb2hsl() { #? convert RGB(integers) to HSL(floats). -s to show the rgb
         logError $err" is(are) invalid !" && return 1
     fi
 
-    # in zsh, you just use: $((r / 255.)), here is for the compatibility
-    echo "$r $g $b" | awk -f "$_QFIG_LOC/staff/rgb2hsl.awk"
+    local type
+    if [ $value ]; then
+        type="hsv"
+    else
+        type="hsl"
+    fi
+    echo "$r $g $b $type" | awk -f "$_QFIG_LOC/staff/rgb2hslv.awk"
     [ $show ] && printf " \e[48;2;$r;$g;${b}m  \e[0m\n" || printf "\n"
 }
 
