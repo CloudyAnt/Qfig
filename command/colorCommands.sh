@@ -115,7 +115,7 @@ function hslv2rgb() { #? convert HSL(floats) or HSV(floats) to RGB(integers). -s
     if [ $show ]; then
         toArray $rgb && declare -a rgb1=("${_TEMP[@]}")
         ab=$(getArrayBase)
-        local R=${rgb1[0]};G=${rgb1[$((ab + 1))]};B=${rgb1[$((ab + 2))]}
+        local R=${rgb1[$ab]};G=${rgb1[$((ab + 1))]};B=${rgb1[$((ab + 2))]}
         printf "$rgb \e[48;2;$R;$G;${B}m  \e[0m\n"
     else
         echo "$rgb"
