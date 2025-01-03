@@ -90,19 +90,21 @@ function hslv2rgb() { #? convert HSL(floats) or HSV(floats) to RGB(integers). -s
         [[ "$COLORTERM" = "truecolor" || "$COLORTERM" = "24bit" ]] && : || logSilence "This terminal may not support 24-bit color (truecolor)"
     fi
 
-    local h s lv h_ s_ lv_
-    h=$1;s=$2;lv=$3
+    local h=$1 s=$2 lv=$3
     declare -a errComp
-    h_=$(echo $h | awk '{if((/^[0-9]+$/ || /^[0-9]+\.[0-9]+$/) && $1 >= 0 && $1 <= 360){print 0}else{print 1}}')
-    s_=$(echo $s | awk '{if((/^[0-9]+$/ || /^[0-9]+\.[0-9]+$/) && $1 >= 0 && $1 <= 100){print 0}else{print 1}}')
-    lv_=$(echo $lv | awk '{if((/^[0-9]+$/ || /^[0-9]+\.[0-9]+$/) && $1 >= 0 && $1 <= 100){print 0}else{print 1}}')
-    [ $h_ -ne 0 ] && errComp+="Hue(0~360)"
-    [ $s_ -ne 0 ] && errComp+="Saturation(0~100)"
-    [ $lv_ -ne 0 ] && errComp+="Lightness/Value(0~100)"
 
-    if [ ${#errComp} -gt 0 ]; then
-        local err=$(concat '-, -' $errComp)
-        logError $err" is(are) invalid !" && return 1
+    local validation=$(awk -v h="$h" -v s="$s" -v lv="$lv" '
+        BEGIN {
+            err = ""
+            if (!(h ~ /^[0-9]+(\.[0-9]+)?$/ && h >= 0 && h <= 360)) err = err "Hue(0~360) "
+            if (!(s ~ /^[0-9]+(\.[0-9]+)?$/ && s >= 0 && s <= 100)) err = err "Saturation(0~100) "
+            if (!(lv ~ /^[0-9]+(\.[0-9]+)?$/ && lv >= 0 && lv <= 100)) err = err "Lightness/Value(0~100)"
+            print err
+        }
+    ')
+
+    if [ -n "$validation" ]; then
+        logError "${validation% } is(are) invalid !" && return 1
     fi
 
     local type rgb
