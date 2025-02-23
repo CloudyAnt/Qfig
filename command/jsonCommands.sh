@@ -6,13 +6,16 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
     OPTIND=1
     while getopts "nch" opt; do
         case $opt in
-            n) # no type indication
+            # no type indication
+            n)
                 local notype=1 # no type indication, pure value
                 ;;
-            c) # check only
+            # check only
+            c)
                 finding=""
                 ;;
-            h) # help
+            # help
+            h)
               logInfo \
 "For json \e[34m{\"users\": [{\"name\": \"chai\"}]}\e[0m, you can get the 1st user's name by: \e[1mjsonget json users.0.name\e[0m
   For json \e[34m[{\"name\": \"chai\"}]\e[0m, then the operation would be: \e[1mjsonget json 0.name\e[0m
@@ -201,7 +204,8 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
         c=${json:$i:1}
         
         case $x in
-            0) # waiting key
+            # waiting key
+            0)
                 s=""
                 if [ '"' = "$c" ]; then
                     x=1
@@ -211,7 +215,8 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
                     err="Invalid json (00000): expecting '\"' at index $i (after path: $(concatCP)), but got '$c'" && break
                 fi
             ;;
-            1) # appending key 
+            # appending key
+            1)
                 if [[ $escaping ]]; then
                     s=$s$c
                     escaping=""
@@ -229,14 +234,16 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
                     s=$s$c
                 fi
             ;;
-            2) # waiting colon
+            # waiting colon
+            2)
                 if [ ':' = "$c" ]; then
                     x=3
                 elif ! [[ ' ' = "$c" || $'\t' = "$c" || $'\n' = "$c" ]]; then
                     err="Invalid json (20000): expecting ':' at index $i (path: $(concatCP)), but got '$c'" && break
                 fi
             ;;
-            3) # waiting value
+            # waiting value
+            3)
                 s=""
                 cpt[cpi]="?"
                 if [ '"' = "$c" ]; then
@@ -297,7 +304,8 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
                     err="Invalid json (30002): expecting '\"' at index $i (path: $(concatCP)), but got '$c'" && break
                 fi
             ;;
-            4) # appending string value
+            # appending string value
+            4)
                 if [[ $escaping ]]; then
                     s=$s$c
                     escaping=""
@@ -309,7 +317,8 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
                     s=$s$c
                 fi
             ;;
-            41) # appending int value
+            # appending int value
+            41)
                 if [[ "$c" =~ ^[0-9]$ ]]; then
                     s=$s$c
                 elif [[ ' ' = "$c" || $'\t' = "$c" || $'\n' = "$c" ]]; then
@@ -330,7 +339,8 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
                     err="Invalid json (41001): expecting digit at index $i (path: $(concatCP)), but got '$c'" && break
                 fi
             ;;
-            42) # appending float value
+            # appending float value
+            42)
                 if [[ "$c" =~ ^[0-9]$ ]]; then
                     s=$s$c
                     fc=$((fc + 1))
@@ -351,7 +361,8 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
                     err="Invalid json (42001): expecting digit at index $i (path: $(concatCP)), but got '$c'" && break
                 fi
             ;;
-            5) # waiting comma
+            # waiting comma
+            5)
                 checkMatch || break
                 if [ ',' = "$c" ]; then
                     meetComma || break

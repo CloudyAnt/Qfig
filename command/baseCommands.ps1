@@ -48,7 +48,7 @@ function qfig { #? Qfig preserved command. -h(help) for more
                     }
                 }
                 Write-Host
-                logSuccess "Qfig updated!. Run '. `$profile' or open a new session to check"
+                logSuccess "Qfig updated! Run '. `$profile' or open a new session to check"
             }
         }
     } ElseIf ("config".Equals($command)) {
