@@ -1,25 +1,56 @@
 #? commands to operate colors
 function rgb() { #? show rgb color(rgb values or hexadecimal color value). Usage: rgb 100 200 255; rgb 64c8ff
-    local r g b
+    local r g b hex
+
+    # Handle RGB decimal values
     if [[ "$1" =~ ^[0-9]+$ && "$2" =~ ^[0-9]+$ && "$3" =~ ^[0-9]+$ ]]; then
-        r=$1;g=$2;b=$3
-        [[ $r -lt 0 || $r -gt 255 ]] && errComp+="Red(0~255)"
-        [[ $g -lt 0 || $g -gt 255 ]] && errComp+="Green(0~255)"
-        [[ $b -lt 0 || $b -gt 255 ]] && errComp+="Blue(0~255)"
-        if [ ${#errComp} -gt 0 ]; then
-            local err=$(concat '-, -' $errComp)
-            logError $err" is(are) invalid !" && return 1
+        r=$1; g=$2; b=$3
+        
+        # Validate RGB ranges in one pass
+        local validation=$(awk -v r="$r" -v g="$g" -v b="$b" '
+            BEGIN {
+                err = ""
+                if (r < 0 || r > 255) err = err "Red(0~255) "
+                if (g < 0 || g > 255) err = err "Green(0~255) " 
+                if (b < 0 || b > 255) err = err "Blue(0~255)"
+                print err
+            }
+        ')
+        
+        if [ -n "$validation" ]; then
+            logError "${validation% } is(are) invalid !" && return 1
         fi
+        hex=$(printf "%02x%02x%02x" "$r" "$g" "$b")
+    # Handle hex color value
     elif [[ $1 =~ ^[0-9a-fA-F]{6}$ ]]; then
         r=$(+convertHexColorUnit2Dec ${1:0:2})
         g=$(+convertHexColorUnit2Dec ${1:2:2})
         b=$(+convertHexColorUnit2Dec ${1:4:2})
+        hex=$1
     else
         logError "Please specify r, g, b values like '100 200 255' or hex color name like '64c8ff'" && return 1
     fi
 
-    [[ "$COLORTERM" = "truecolor" || "$COLORTERM" = "24bit" || "$OSTYPE" = "msys" ]] && : || logSilence "This terminal may not support 24-bit color (truecolor)"
-    printf "\e[48;2;$r;$g;${b}m  \e[0m\n"
+    # Check terminal support
+    [[ "$COLORTERM" = "truecolor" || "$COLORTERM" = "24bit" || "$OSTYPE" = "msys" ]] || \
+        logSilence "This terminal may not support 24-bit color (truecolor)"
+
+    # Display color
+    printf "\e[48;2;%d;%d;%dm  \e[0m\n" "$r" "$g" "$b"
+
+    printf "rgb: $r $g $b\n"
+    printf "hex: $hex\n"
+    # Convert to percentage
+    local rP=$(echo "scale=4; $r / 255 * 100" | bc | sed '/\./ s/\.\{0,1\}0\{1,\}$//')
+    local gP=$(echo "scale=4; $g / 255 * 100" | bc | sed '/\./ s/\.\{0,1\}0\{1,\}$//')
+    local bP=$(echo "scale=4; $b / 255 * 100" | bc | sed '/\./ s/\.\{0,1\}0\{1,\}$//')
+    printf "pct: $rP%% $gP%% $bP%%\n"
+
+    # Convert to hsl & hsv
+    local hsl=$(echo "$r $g $b" "hsl" | awk -f "$_QFIG_LOC/staff/rgb2hslv.awk")
+    local hsv=$(echo "$r $g $b" "hsv" | awk -f "$_QFIG_LOC/staff/rgb2hslv.awk")
+    printf "hsl: $hsl\n"
+    printf "hsv: $hsv\n"
 }
 
 function rgb2hslv() { #? convert RGB(integers) to HSL(floats) or HSV(floats). -s to show the rgb color
@@ -30,10 +61,9 @@ function rgb2hslv() { #? convert RGB(integers) to HSL(floats) or HSV(floats). -s
             h)
               logInfo "Usage: rgb2hslv \$r \$g \$b.\n  \nFlags:\n"
               printf "    %-5s%s\n" "h" "Print this help message"
-              printf "    %-5s%s\n" "s" "Show the color in a 24-bit color terminal"
+              printf "    %-5s%s\n" "s" "Show the color in a 24-bit color terminal" 
               printf "    %-5s%s\n" "v" "Specify the output to HSV"
-              printf "\e[0m"
-              echo ""
+              printf "\e[0m\n"
               return 0;;
             s) show=1;;
             v) value=1;;
@@ -41,28 +71,32 @@ function rgb2hslv() { #? convert RGB(integers) to HSL(floats) or HSV(floats). -s
         esac
     done
     shift "$((OPTIND - 1))"
+
+    local r=$1 g=$2 b=$3
+
+    # Validate RGB values
+    local validation=$(awk -v r="$r" -v g="$g" -v b="$b" '
+        BEGIN {
+            err = ""
+            if (!(r ~ /^[0-9]+$/ && r >= 0 && r <= 255)) err = err "Red(0~255) "
+            if (!(g ~ /^[0-9]+$/ && g >= 0 && g <= 255)) err = err "Green(0~255) "
+            if (!(b ~ /^[0-9]+$/ && b >= 0 && b <= 255)) err = err "Blue(0~255)"
+            print err
+        }
+    ')
+
+    if [ -n "$validation" ]; then
+        logError "${validation% } is(are) invalid !" && return 1
+    fi
+
+    # Check terminal support if showing color
     if [ "$show" ]; then
         [[ "$COLORTERM" = "truecolor" || "$COLORTERM" = "24bit" ]] && : || logSilence "This terminal may not support 24-bit color (truecolor)"
     fi
-    local r=$1
-    local g=$2
-    local b=$3
-    declare -a errComp
-    [[ ! "$r" =~ ^[0-9]+$ || $r -lt 0 || $r -gt 255 ]] && errComp+="Red(0~255)"
-    [[ ! "$g" =~ ^[0-9]+$ || $g -lt 0 || $g -gt 255 ]] && errComp+="Green(0~255)"
-    [[ ! "$b" =~ ^[0-9]+$ || $b -lt 0 || $b -gt 255 ]] && errComp+="Blue(0~255)"
 
-    if [ ${#errComp} -gt 0 ]; then
-        local err=$(concat '-, -' $errComp)
-        logError $err" is(are) invalid !" && return 1
-    fi
-
-    local type
-    if [ $value ]; then
-        type="hsv"
-    else
-        type="hsl"
-    fi
+    # Convert and output
+    local type=${value:+hsv}
+    type=${type:-hsl}
     echo "$r $g $b $type" | awk -f "$_QFIG_LOC/staff/rgb2hslv.awk"
     [ $show ] && printf " \e[48;2;$r;$g;${b}m  \e[0m\n" || printf "\n"
 }
@@ -77,8 +111,7 @@ function hslv2rgb() { #? convert HSL(floats) or HSV(floats) to RGB(integers). -s
               printf "    %-5s%s\n" "h" "Print this help message"
               printf "    %-5s%s\n" "s" "Show the color in a 24-bit color terminal"
               printf "    %-5s%s\n" "v" "Specify the input as HSV"
-              printf "\e[0m"
-              echo ""
+              printf "\e[0m\n"
               return 0;;
             s) show=1;;
             v) value=1;;
@@ -86,13 +119,10 @@ function hslv2rgb() { #? convert HSL(floats) or HSV(floats) to RGB(integers). -s
         esac
     done
     shift "$((OPTIND - 1))"
-    if [ "$show" ]; then
-        [[ "$COLORTERM" = "truecolor" || "$COLORTERM" = "24bit" ]] && : || logSilence "This terminal may not support 24-bit color (truecolor)"
-    fi
 
     local h=$1 s=$2 lv=$3
-    declare -a errComp
 
+    # Validate HSL/HSV values
     local validation=$(awk -v h="$h" -v s="$s" -v lv="$lv" '
         BEGIN {
             err = ""
@@ -107,17 +137,22 @@ function hslv2rgb() { #? convert HSL(floats) or HSV(floats) to RGB(integers). -s
         logError "${validation% } is(are) invalid !" && return 1
     fi
 
-    local type rgb
-    if [ $value ]; then
-        type="hsv"
-    else
-        type="hsl"
+    # Check terminal support if showing color
+    if [ "$show" ]; then
+        [[ "$COLORTERM" = "truecolor" || "$COLORTERM" = "24bit" ]] && : || logSilence "This terminal may not support 24-bit color (truecolor)"
     fi
-    rgb=$(echo "$h $s $lv $type" | awk -f "$_QFIG_LOC/staff/hslv2rgb.awk")
-    if [ $show ]; then
+
+    local type=${value:+hsv}
+    type=${type:-hsl}
+
+    # Convert HSL/HSV to RGB
+    local rgb=$(echo "$h $s $lv $type" | awk -f "$_QFIG_LOC/staff/hslv2rgb.awk")
+
+    # Output result
+    if [ "$show" ]; then
         toArray $rgb && declare -a rgb1=("${_TEMP[@]}")
-        ab=$(getArrayBase)
-        local R=${rgb1[$ab]};G=${rgb1[$((ab + 1))]};B=${rgb1[$((ab + 2))]}
+        local ab=$(getArrayBase)
+        local R=${rgb1[$ab]} G=${rgb1[$((ab + 1))]} B=${rgb1[$((ab + 2))]}
         printf "$rgb \e[48;2;$R;$G;${B}m  \e[0m\n"
     else
         echo "$rgb"

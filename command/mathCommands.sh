@@ -1,66 +1,60 @@
 #? Math related commands
 
 function dec2hex() { #? convert decimals to hexadecimals
-	local arg
-	declare -i index=1
-	local out=""
-    local not1st
-    local minus=""
-	for arg in "$@"
-	do
-		if ! [[ $arg =~ ^-{0,1}[0-9]+$ ]]; then
-			logError $index"th param '$arg' is not decimal" && return 1
-		fi
-		minus=""
-		if [ "$arg" -lt 0 ]; then
-		    minus="1"
-		    arg=$((arg * -1))
-		fi
-		arg=$(printf "%x" "$arg")
-		if [ "$minus" ]; then
-            arg="-$arg"
+    local arg out="" index=1
+    for arg in "$@"; do
+        # Validate decimal input
+        if ! [[ $arg =~ ^-?[0-9]+$ ]]; then
+            logError "${index}th param '$arg' is not decimal" && return 1
         fi
-        if [ "$not1st" ]; then
-            out="$out $arg"
+
+        # Convert to hex, preserving sign
+        local hex
+        if [ "$arg" -lt 0 ]; then
+            hex=$(printf "%x" "${arg#-}")
+            hex="-$hex"
         else
-            not1st=1
-            out=$arg
+            hex=$(printf "%x" "$arg") 
         fi
-		index=$((index + 1))
-	done
-	if [ $index -gt 1 ]; then
-		printf "%s\n" "$out"
-	fi
+
+        # Build output string
+        if [ "$out" ]; then
+            out="$out $hex"
+        else
+            out="$hex"
+        fi
+        
+        ((index++))
+    done
+
+    [ -n "$out" ] && printf "%s\n" "$out"
 }
 
 function hex2dec() { #? convert hex unicode code points to decimals
-	local arg
-	declare -i index=1
-	local out=""
-    local not1st
-    local minus=""
-	for arg in "$@"
-	do
+	local arg out="" index=1
+	for arg in "$@"; do
 		if ! [[ $arg =~ ^-{0,1}[0-9a-fA-F]+$ ]]; then
 			logWarn $index"th param '$arg' is not hexadecimal" && return 1
 		fi
-        if [[ $arg =~ ^-.+$ ]]; then
-            arg=${arg:1}
-            arg=$((0x$arg * -1))
-        else
-            arg=$((0x$arg))
-        fi
-        if [ "$not1st" ]; then
-            out="$out $arg"
-        else
-            not1st=1
-            out="$arg"
-        fi
+		
+		# Convert hex to decimal, handling negative numbers
+		if [[ $arg =~ ^-.+$ ]]; then
+			arg=$((0x${arg:1} * -1))
+		else
+			arg=$((0x$arg))
+		fi
+		
+		# Build output string
+		if [ "$out" ]; then
+			out="$out $arg"
+		else
+			out="$arg"
+		fi
+		
 		index=$((index + 1))
 	done
-	if [ $index -gt 0 ]; then
-		printf "%s\n" "$out"
-	fi
+	
+	[ -n "$out" ] && printf "%s\n" "$out"
 }
 
 declare -g -A _LETTER_VALUE_MAP

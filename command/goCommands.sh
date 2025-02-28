@@ -1,34 +1,40 @@
 function gorun() { #? go compile then run
-    [ -z $1 ] && logError "Which file to run ?" && return
+    [ -z "$1" ] && logError "Which file to run?" && return 1
     local file=$1
-    if [[ $file =~ ^[^.]+$ ]]; then
-        file=$file".go"
+    
+    # Add .go extension if not present
+    [[ $file =~ ^[^.]+$ ]] && file="${file}.go"
+    
+    # Validate file exists and has .go extension
+    [ ! -f "$file" ] && logError "File $file does not exist!" && return 1
+    [[ ! $file =~ \.go$ ]] && logWarn "File does not end with .go" && return 1
+
+    # Extract filename without extension
+    local simpleName=${file%.*}
+    
+    # Build and run
+    if go build "$file"; then
+        ./"$simpleName"
+        rm "$simpleName" # Clean up executable
     fi
-    [ ! -f "$file" ] && logError "File $file does not exist !" && return
-
-    local fileSuffix=$(echo $file | awk -F '.' '{print $2}')
-    [ "go" != "$fileSuffix" ] && logWarn "File is not end with .go" && return
-
-    local simpleName=$(echo $file | awk -F '.' '{print $1}')
-	go build $file
-
-    # return if javac failed
-    [ 1 -eq $? ] && return
-
-    ./$simpleName
 }
 
 function _gorun() { #x
+    # Handle array base for shell compatibility
     declare -i arrayBase
-	[[ -o ksharrays ]] && arrayBase=0 || arrayBase=1 # if KSH_ARRAYS option set, array based on 0, and '{}' are required to access index
-	if [ $COMP_CWORD -gt $(($arrayBase + 1)) ]; then
-		return 0
-	fi
+    [[ -o ksharrays ]] && arrayBase=0 || arrayBase=1
 
-	local latest="${COMP_WORDS[$COMP_CWORD]}"
-    local fff=$(ls $latest*.go)
-	COMPREPLY=($(compgen -W "$fff" -- $latest))
-	return 0
+    # Only complete first argument
+    [ $COMP_CWORD -gt $(($arrayBase + 1)) ] && return 0
+
+    # Get current word being completed
+    local current="${COMP_WORDS[$COMP_CWORD]}"
+    
+    # Generate completions for .go files
+    local gofiles=$(compgen -f -X "!*.go" -- "$current")
+    local noext=$(compgen -f -X "*.go" -- "$current")
+    COMPREPLY=($(compgen -W "$gofiles $noext" -- "$current"))
+    return 0
 }
 
-complete -F _gorun gorun 
+complete -F _gorun gorun

@@ -1,36 +1,41 @@
 #? These are commands about java, make sure it's available before use.
 
 function jrun() { #? java compile then run, jrun Hello => javac Hello.java && java Hello
-    [ -z $1 ] && logError "Which file to run ?" && return
+    [ -z "$1" ] && logError "Which file to run?" && return 1
     local file=$1
-    if [[ $file =~ ^[^.]+$ ]]; then
-        file=$file".java"
+    
+    # Add .java extension if not present
+    [[ $file =~ ^[^.]+$ ]] && file="${file}.java"
+    
+    # Validate file exists and has .java extension
+    [ ! -f "$file" ] && logError "File $file does not exist!" && return 1
+    [[ ! $file =~ \.java$ ]] && logWarn "File does not end with .java" && return 1
+
+    # Extract filename without extension
+    local simpleName=${file%.*}
+    
+    # Build and run
+    if javac "$file"; then
+        java "$simpleName"
     fi
-    [ ! -f "$file" ] && logError "File $file does not exist !" && return
-
-    local fileSuffix=$(echo $file | awk -F '.' '{print $2}')
-    [ "java" != "$fileSuffix" ] && logWarn "File is not end with .java" && return
-
-    local simpleName=$(echo $file | awk -F '.' '{print $1}')
-    javac $file
-
-    # return if javac failed
-    [ 1 -eq $? ] && return
-
-    java $simpleName
 }
 
 function +jrun() { #x
+    # Handle array base for shell compatibility
     declare -i arrayBase
-	[[ -o ksharrays ]] && arrayBase=0 || arrayBase=1 # if KSH_ARRAYS option set, array based on 0, and '{}' are required to access index
-	if [ $COMP_CWORD -gt $(($arrayBase + 1)) ]; then
-		return 0
-	fi
+    [[ -o ksharrays ]] && arrayBase=0 || arrayBase=1
 
-	local latest="${COMP_WORDS[$COMP_CWORD]}"
-    local fff=$(ls $latest*.java)
-	COMPREPLY=($(compgen -W "$fff" -- $latest))
-	return 0
+    # Only complete first argument
+    [ $COMP_CWORD -gt $(($arrayBase + 1)) ] && return 0
+
+    # Get current word being completed
+    local current="${COMP_WORDS[$COMP_CWORD]}"
+    
+    # Generate completions for .java files
+    local javafiles=$(compgen -f -X "!*.java" -- "$current") 
+    local noext=$(compgen -f -X "*.java" -- "$current")
+    COMPREPLY=($(compgen -W "$javafiles $noext" -- "$current"))
+    return 0
 }
 
 complete -F +jrun jrun

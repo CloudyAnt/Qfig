@@ -342,7 +342,7 @@ function utf82ucp() { #? covert utf8 bytes to unicode code points. If badly stop
                 n=$(((harg & 0x0F) << 12))
 			elif [ $((harg >> 3)) -eq 30 ]; then
 				bn=4; bc=1
-                n=$(((hArg & 0x07) << 18))
+                n=$(((harg & 0x07) << 18))
 			else
 				logError "Invalid 1st byte '0x$arg' (before index $i)! Should be one of 0xxxxxx, 110xxxxx, 1110xxxx, 11110xx" && return 2
 			fi

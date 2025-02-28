@@ -5,37 +5,51 @@ enable-qcmds encoding
 qmap -c translation _TRANS_MAPPING
 
 function bdts() { #? Translate use Baidu Fanyi api. Sample usage: bdts hello
+    # Check input
     [[ -z $1 ]] && logError "Sample usage: bdts hello" && return 1
+    
+    # Check API credentials
     [ -z "${_TRANS_MAPPING[baidu]}" ] && logError "Run 'qmap translation' to add a mapping in form baidu=appId#key.
   For appId, key, please refer to Baidu Fanyi open platform."  && return
+    
+    # Parse credentials
     toArray "${_TRANS_MAPPING[baidu]}" "#" && declare -a mapping=("${_TEMP[@]}")
     declare -i arrayBase=$(getArrayBase)
-    local q api appId key salt sign url response result u from to text
-    text=$@
-    api="https://fanyi-api.baidu.com/api/trans/vip/translate"
-    appId=${mapping[$((arrayBase))]}
-    key=${mapping[$((arrayBase + 1))]}
+    local appId=${mapping[$((arrayBase))]}
+    local key=${mapping[$((arrayBase + 1))]}
 
-    u=$(chr2ucp ${text:0:1})
+    # Setup API params
+    local text="$@"
+    local api="https://fanyi-api.baidu.com/api/trans/vip/translate"
+    local salt=$RANDOM
+    local sign=$(echo -n "$appId$text$salt$key" | md5x)
+    local q=$(enurlp "$text")
+
+    # Detect language
+    local u=$(chr2ucp "${text:0:1}")
+    local from to
     if [[ 0x$u -ge 0x41 && 0x$u -le 0x5A ]] || [[ 0x$u -ge 0x61 && 0x$u -le 0x7A ]]; then
         from="en"
         to="zh"
     else
-        from="zh"
+        from="zh" 
         to="en"
     fi
-    salt=$RANDOM
-    sign=$(echo -n "$appId$text$salt$key" | md5x)
-    q=$(enurlp $text)
-    url="$api?q=$q&from=$from&to=$to&appid=$appId&salt=$salt&sign=$sign"
-    response=$(echoe "$(curl -s $url)")
 
+    # Make API request
+    local url="$api?q=$q&from=$from&to=$to&appid=$appId&salt=$salt&sign=$sign"
+    local response=$(echoe "$(curl -s "$url")")
+
+    # Output result
     +outputTransResult "$response" "trans_result.0.dst"
 }
 
 
 function ggts() { #? Translate use Google Cloud Translation api. Sample usage: ggts hi
+    # Check input
     [[ -z $1 ]] && logError "Sample usage: ggts hello" && return 1
+
+    # Check dependencies
     if ! type gcloud >/dev/null 2>&1; then
         logError "\e[1mgcloud\e[0m CLI is required! Install from https://cloud.google.com/sdk/docs/install" && 
         if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]]; then
@@ -46,9 +60,10 @@ function ggts() { #? Translate use Google Cloud Translation api. Sample usage: g
         logError "Please export environment variable \e[1mGOOGLE_APPLICATION_CREDENTIALS\e[0m and set value to the path of your private key file" && return 1
     fi
 
-    local u source target text
-    text=$@
-    u=$(chr2ucp ${text:0:1})
+    # Detect language
+    local text="$@"
+    local u=$(chr2ucp "${text:0:1}")
+    local source target
     if [[ 0x$u -ge 0x41 && 0x$u -le 0x5A ]] || [[ 0x$u -ge 0x61 && 0x$u -le 0x7A ]]; then
         source="en"
         target="zh"
@@ -57,15 +72,15 @@ function ggts() { #? Translate use Google Cloud Translation api. Sample usage: g
         target="en"
     fi
 
-    local data response result
-    data="{\"q\":\"$text\",\"source\":\"$source\",\"target\":\"$target\",\"format\":\"text\"}"
+    # Setup API request
+    local data="{\"q\":\"$text\",\"source\":\"$source\",\"target\":\"$target\",\"format\":\"text\"}"
+    local response=$(curl -s -X POST \
+        -H "Authorization: Bearer $(gcloud auth application-default print-access-token)" \
+        -H "Content-Type: application/json; charset=utf-8" \
+        -d "$data" \
+        "https://translation.googleapis.com/language/translate/v2")
 
-    response=$(curl -s -X POST \
-    -H "Authorization: Bearer $(gcloud auth application-default print-access-token)" \
-    -H "Content-Type: application/json; charset=utf-8" \
-    -d "$data" \
-    "https://translation.googleapis.com/language/translate/v2")
-
+    # Output result
     +outputTransResult "$response" "data.translations.0.translatedText"
 }
 
