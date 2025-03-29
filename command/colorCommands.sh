@@ -58,29 +58,30 @@ function rgb() { #? show rgb color(rgb values or hexadecimal color value). Usage
         logSilence "This terminal may not support 24-bit color (truecolor)"
 
     # Display color
-    printf "\e[48;2;%d;%d;%dm  \e[0m\n" "$r" "$g" "$b"
+    local cs="\\e[48;2;$r;$g;${b}m \\e[0m "
 
-    printf "rgb: $r $g $b\n"
-    printf "hex: #$hex\n"
+    printf "${cs}rgb: $r $g $b\n"
+    printf "${cs}hex: #$hex\n"
 
     # Convert to percentage
     if [ -z "$noPct" ]; then
         local rP=$(echo "scale=4; $r / 255 * 100" | bc | sed '/\./ s/\.\{0,1\}0\{1,\}$//')
         local gP=$(echo "scale=4; $g / 255 * 100" | bc | sed '/\./ s/\.\{0,1\}0\{1,\}$//')
         local bP=$(echo "scale=4; $b / 255 * 100" | bc | sed '/\./ s/\.\{0,1\}0\{1,\}$//')
-        printf "pct: $rP%% $gP%% $bP%%\n"
+        printf "${cs}pct: $rP%% $gP%% $bP%%\n"
     fi
 
     # Convert to hsl & hsv
     if [ -z "$noHsl" ]; then
         local hsl=$(echo "$r $g $b" "hsl" | awk -f "$_QFIG_LOC/staff/rgb2hslv.awk")
-        printf "hsl: $hsl\n"
+        printf "${cs}hsl: $hsl\n"
     fi
     if [ -z "$noHsv" ]; then
         local hsv=$(echo "$r $g $b" "hsv" | awk -f "$_QFIG_LOC/staff/rgb2hslv.awk")
-        printf "hsv: $hsv\n"
+        printf "${cs}hsv: $hsv\n"
     fi
 }
+
 
 function +convertHslv2Rgb() { #x
     local value

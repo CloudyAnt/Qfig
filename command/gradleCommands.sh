@@ -33,7 +33,9 @@ function ginit() { #? create a gradle project with minimal build.gradle and sett
         readTemp "\e[34mversion\e[0m: " && version=$_TEMP
     done
 
-    echo "apply plugin: 'java'
+    echo "plugins {
+    id 'java'
+}
 group = '$groupId'
 version = '$version'
 
