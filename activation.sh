@@ -1,6 +1,12 @@
 # Activate Qfig for zsh(or bash). Please use activation-cygwin.sh if it's under cygwin
 
-currentLoc=$( cd $( dirname ${BASH_SOURCE[0]} ) >/dev/null 2>&1 && pwd )
+if [ -n "$ZSH_VERSION" ]; then
+  # shellcheck disable=SC2296
+  currentLoc=$(cd "$(dirname "${(%):-%x}")" >/dev/null 2>&1 && pwd)
+elif [ -n "$BASH_VERSION" ]; then
+  currentLoc=$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)
+fi
+
 baseConfig=$currentLoc/init.sh
 function activeQfigForProfile() {
     local profile=$1
