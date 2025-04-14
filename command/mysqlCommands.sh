@@ -1,4 +1,3 @@
-#!/usr/bin/env zsh
 #? These are commands about Mysql, make sure it's available before ues.
 #? You need to edit the mysql mapping file by execute 'qmap mysql'. A mapping like: key=server:port#username#userpass
 
