@@ -648,9 +648,9 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 	# CHECK options
 	declare -i arrayBase=$(getArrayBase)
 
-    # GET pattern & cache, use default if it not exists
-	local git_toplevel=$(git rev-parse --show-toplevel)
-    local git_commit_info_cache_folder=$_QFIG_LOC/.gcache/$(echo -n $git_toplevel | md5x)
+  # GET pattern & cache, use default if it not exists
+  local git_toplevel=$(git rev-parse --show-toplevel)
+  local git_commit_info_cache_folder=$git_toplevel/.git/qfig_gct_cache
 	[ ! -d "$git_commit_info_cache_folder" ] && mkdir -p $git_commit_info_cache_folder
 	local pattern_tokens_file=$git_commit_info_cache_folder/pts
 	local r_step_values_cache_file=$git_commit_info_cache_folder/rsvc # r = repository

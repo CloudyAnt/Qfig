@@ -402,7 +402,7 @@ function gct() {
 
     # GET pattern & cache, use default if it not exists
     $git_toplevel = git rev-parse --show-toplevel
-    $git_commit_info_cache_folder = "$_QFIG_LOC/.gcache/$($git_toplevel | md5)"
+    $git_commit_info_cache_folder = "$git_toplevel/.git/qfig_gct_cache"
     $null = New-Item -Path $git_commit_info_cache_folder -Force -ItemType Container
 
     $pattern_tokens_file = "$git_commit_info_cache_folder/pts"
