@@ -16,7 +16,7 @@ alias gamdn='git commit --amend --no-edit'
 alias gco='git checkout'
 alias gco-='git checkout -'
 alias gcp='combiningGit cherry-pick'
-alias gcpa='git cherry-pick --abort'
+alias gcpa='abortGitProcess cherry-pick'
 alias gcpc='combiningGit cherry-pick --continue'
 alias glo='git log --oneline'
 alias glog='git log --oneline --abbrev-commit --graph'
@@ -24,12 +24,12 @@ alias glog='git log --oneline --abbrev-commit --graph'
 alias glogdc='git log --graph --oneline --decorate $( git fsck --no-reflog | awk "/dangling commit/ {print $3}" )'
 alias gmg='combiningGit merge'
 alias gmg-='combiningGit merge -'
-alias gmga='git merge --abort'
+alias gmga='abortGitProcess merge'
 alias gmgc='git merge --continue'
 alias gpr='combiningGit pull --rebase'
 alias grb='combiningGit rebase'
 alias grb-='combiningGit rebase -'
-alias grba='git rebase --abort'
+alias grba='abortGitProcess rebase'
 alias grbc='combiningGit rebase --continue'
 alias grmc='git rm --cached'
 alias gst='git status'
@@ -875,6 +875,47 @@ function isNotGitRepository() { #x
         fi
 	    logError "Not a git repository!"
     fi
+}
+
+function abortGitProcess() { #x
+  local process=$1
+  if [ "merge" = "$process" ]; then
+    if [ -f .git/MERGE_HEAD ]; then
+      if confirm -w "Abort merge?"; then
+        git merge --abort
+      fi
+    else
+      logWarn "No merge in progress"
+      return 1
+    fi
+  elif [ "rebase" = "$process" ]; then
+    if [ -d .git/rebase-apply ] || [ -d .git/rebase-merge ] || [ -d .git/rebasing ]; then
+      if confirm -w "Abort rebase?"; then
+        git rebase --abort
+      fi
+    else
+      logWarn "No rebase in progress"
+      return 1
+    fi
+  elif [ "cherry-pick" = "$process" ]; then
+    if [ -f .git/CHERRY_PICK_HEAD ]; then
+      if confirm -w "Abort cherry-pick?"; then
+        git cherry-pick --abort
+      fi
+    else
+      logWarn "No cherry-pick in progress"
+      return 1
+    fi
+  elif [ "revert" = "$process" ]; then
+    if [ -f .git/REVERT_HEAD ]; then
+      if confirm -w "Abort revert?"; then
+        git revert --abort
+      fi
+    else
+      logWarn "No revert in progress"
+      return 1
+    fi
+  fi
 }
 
 function hasObstacleProcess() { #x
