@@ -7,6 +7,7 @@ function dquarantine() {  #? delete quarantine attr
   xattr -d com.apple.quarantine $1;
 }
 
+#? Brew related
 alias bstart="brew services start"
 alias bstop="brew services stop"
 alias brestart="brew services restart"

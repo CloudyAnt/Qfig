@@ -1,14 +1,5 @@
 #? Git related
 
-function combiningGit() { #x
-	if ! git diff --cached --quiet --exit-code; then
-		# commit first
-		git add -A
-		git commit
-	fi
-	git $@ | awk '{if(/^CONFLICT /){print "\033[31m" $0 "\033[0m" }else{print $0}}'
-}
-
 alias gaa='git add -A'
 alias gaap='git add -p'
 alias gamd='git commit --amend'
@@ -650,7 +641,7 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 
   # GET pattern & cache, use default if it not exists
   local git_toplevel=$(git rev-parse --show-toplevel)
-  local git_commit_info_cache_folder=$git_toplevel/.git/qfig_gct_cache
+  local git_commit_info_cache_folder=$git_toplevel/.git/qfig/gct_cache
 	[ ! -d "$git_commit_info_cache_folder" ] && mkdir -p $git_commit_info_cache_folder
 	local pattern_tokens_file=$git_commit_info_cache_folder/pts
 	local r_step_values_cache_file=$git_commit_info_cache_folder/rsvc # r = repository
@@ -877,6 +868,15 @@ function isNotGitRepository() { #x
     fi
 }
 
+function combiningGit() { #x
+	if ! git diff --cached --quiet --exit-code; then
+		# commit first
+		git add -A
+		git commit
+	fi
+	git $@ | awk '{if(/^CONFLICT /){print "\033[31m" $0 "\033[0m" }else{print $0}}'
+}
+
 function abortGitProcess() { #x
   local process=$1
   if [ "merge" = "$process" ]; then
@@ -945,4 +945,26 @@ function getLastGitBranchName() {
             echo $lastBranch
         fi
     fi
+}
+
+function gitRemote() { #? Edit or switch remotes. Usage: gitRemote [remote_key]
+	# CHECK if this is a git repository
+    isNotGitRepository && return 1
+	local gitTopLevel=$(git rev-parse --show-toplevel)
+	local mappingFile=$gitTopLevel/.git/qfig/gct_cache/repo_map
+
+	if [ -z "$1" ]; then
+		# Edit remotes
+		qmap -pc $mappingFile
+	else
+		# Switch remote
+		qmap -pc $mappingFile _TEMP
+		local remote=${_TEMP[$1]}
+		if [ -z "$remote" ]; then
+			logError "Remote not found"
+			return 1
+		fi
+		git remote set-url origin $remote
+		logSuccess "Remote set to $remote"
+	fi
 }

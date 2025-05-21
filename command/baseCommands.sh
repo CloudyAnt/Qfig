@@ -195,44 +195,89 @@ function editfile() { #? edit a file using preferredTextEditor
     eval "$_PREFER_TEXT_EDITOR $1"
 }
 
-function qmap() { #? Edit or output(if specified) Qfig map. Usage: qmap $key $out(optional). Use -c to auto create.
+function qmap() { #? Edit or output Qfig map. Usage: qmap [options] [mapKey|filePath] [output]
+  # Options:
+  #   -c    Auto create mapping file if not exists
+  #   -p    Treat first argument as custom file path instead of map key
+  #   -h    Show this help message
+  local autoCreate=""
+  local isCustomPath=""
+  local help=""
+
+  # Parse options
   OPTIND=1
-  while getopts "c" opt; do
-      case $opt in
-          c)
-              local autoCreate="1"
-              ;;
-          \?)
-              ;;
-      esac
+  while getopts "cph" opt; do
+    case $opt in
+      c)
+        autoCreate="1"
+        ;;
+      p)
+        isCustomPath="1"
+        ;;
+      h)
+        help="1"
+        ;;
+      \?)
+        logError "Invalid option: -$OPTARG"
+        return 1
+        ;;
+    esac
   done
   shift "$((OPTIND - 1))"
 
-  [ -z "$1" ] && logError "Which map ?" && return 1
-
-  local class=$1
-  local file="$_QFIG_LOCAL/${class}MappingFile"
-  if [ ! -f "$file" ]; then
-      if [ "$autoCreate" ]; then
-        echoe "#For each line, the 1st occurrence of separator's left & right will be the key & value respectively.
-#The default separator is '=', change it by a line like '#?-'(change to '-'), it can be changed multi times." > "$file"
-      else
-        logError "Mapping file $file doesn't exist! (Use -c if you wish to auto create)" && return 1
-      fi
+  # Show help
+  if [ "$help" ]; then
+    logInfo "Usage: qmap [options] [key|file] [output]"
+    echo "  Options:"
+    printf "    %-5s%s\n" "-c" "Auto create mapping file if not exists"
+    printf "    %-5s%s\n" "-p" "Treat first argument as custom file path instead of map key"
+    printf "    %-5s%s\n" "-h" "Show this help message"
+    echo "  Examples:"
+    echo "    qmap myMap                   # Edit default mapping file for 'myMap'"
+    echo "    qmap -c myMap                # Create and edit mapping file for 'myMap'"
+    echo "    qmap -p /path/to/file        # Edit custom mapping file"
+    echo "    qmap myMap outputVar         # Read mapping into variable 'outputVar'"
+    return 0
   fi
-  local output=$2
+
+  # Determine target file
+  local file
+  if [ "$isCustomPath" ]; then
+    [ -z "$1" ] && logError "Missing file path" && return 1
+    file="$1"
+  else
+    [ -z "$1" ] && logError "Missing map key" && return 1
+    file="$_QFIG_LOCAL/${1}MappingFile"
+  fi
+
+  # Handle file existence
+  if [ ! -f "$file" ]; then
+    if [ "$autoCreate" ]; then
+      echoe "#For each line, the 1st occurrence of separator's left & right will be the key & value respectively.
+#The default separator is '=', change it by a line like '#?-'(change to '-'), it can be changed multi times." > "$file"
+    else
+      logError "Mapping file $file doesn't exist! (Use -c to auto create)" && return 1
+    fi
+  fi
+
+  # Handle output
+  local output="$2"
   local declaration
   if [ "$output" ]; then
     declaration=$(awk -f "$_QFIG_LOC/staff/readMapFile.awk" "$file")
     eval "$declaration"
-    copyVar _TEMP "$output"
+	if [ "$output" != "$_TEMP" ]; then
+		copyVar _TEMP "$output"
+	fi
   else
     editfile "$file"
     declaration=$(awk -f "$_QFIG_LOC/staff/readMapFile.awk" "$file")
     eval "$declaration"
   fi
+
+  # Report bad lines if any
   if [ "$badlines" ]; then
-    logWarn "Bad line indices: ${badlines}, in mapping file of $class"
+    logWarn "Bad line indices: ${badlines}, in mapping file $file"
   fi
 }
 
