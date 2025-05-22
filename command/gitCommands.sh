@@ -951,7 +951,7 @@ function gitRemote() { #? Edit or switch remotes. Usage: gitRemote [remote_key]
 	# CHECK if this is a git repository
     isNotGitRepository && return 1
 	local gitTopLevel=$(git rev-parse --show-toplevel)
-	local mappingFile=$gitTopLevel/.git/qfig/gct_cache/repo_map
+	local mappingFile=$gitTopLevel/.git/qfig/repo_map
 
 	if [ -z "$1" ]; then
 		# Edit remotes
