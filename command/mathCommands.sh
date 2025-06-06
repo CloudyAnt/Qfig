@@ -1,7 +1,7 @@
 #? Math related commands
 
 function dec2hex() { #? convert decimals to hexadecimals
-    local arg out="" index=1
+    local arg out="" index=1 hex
     for arg in "$@"; do
         # Validate decimal input
         if ! [[ $arg =~ ^-?[0-9]+$ ]]; then
@@ -9,7 +9,6 @@ function dec2hex() { #? convert decimals to hexadecimals
         fi
 
         # Convert to hex, preserving sign
-        local hex
         if [ "$arg" -lt 0 ]; then
             hex=$(printf "%x" "${arg#-}")
             hex="-$hex"
