@@ -5,6 +5,18 @@ enable-qcmds encoding
 qmap -c translation _TRANS_MAPPING
 
 function bdts() { #? Translate use Baidu Fanyi api. Sample usage: bdts hello
+    # Check for verbose flag
+    local verbose=false
+    OPTIND=1
+	while getopts ":v" opt; do
+        case $opt in
+			v)
+                verbose=true
+                ;;
+        esac
+    done
+    shift $((OPTIND-1))
+
     # Check input
     [[ -z $1 ]] && logError "Sample usage: bdts hello" && return 1
     
@@ -41,11 +53,27 @@ function bdts() { #? Translate use Baidu Fanyi api. Sample usage: bdts hello
     local response=$(echoe "$(curl -s "$url")")
 
     # Output result
-    +outputTransResult "$response" "trans_result.0.dst"
+    if [[ "$verbose" == "true" ]]; then
+        echo "$response"
+    else
+        +outputTransResult "$response" "trans_result.0.dst"
+    fi
 }
 
 
 function ggts() { #? Translate use Google Cloud Translation api. Sample usage: ggts hi
+    # Check for verbose flag
+    local verbose=false
+    OPTIND=1
+	while getopts ":v" opt; do
+        case $opt in
+			v)
+                verbose=true
+                ;;
+        esac
+    done
+    shift $((OPTIND-1))
+
     # Check input
     [[ -z $1 ]] && logError "Sample usage: ggts hello" && return 1
 
@@ -81,7 +109,11 @@ function ggts() { #? Translate use Google Cloud Translation api. Sample usage: g
         "https://translation.googleapis.com/language/translate/v2")
 
     # Output result
-    +outputTransResult "$response" "data.translations.0.translatedText"
+    if [[ "$verbose" == "true" ]]; then
+        echo "$response"
+    else
+        +outputTransResult "$response" "data.translations.0.translatedText"
+    fi
 }
 
 function +outputTransResult() { #x
