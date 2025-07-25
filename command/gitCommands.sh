@@ -603,13 +603,15 @@ function gct() { #? git commit step by step
 	# READ flags
 	local setPattern=""
 	local verbose=""
-	while getopts "phv" opt; do
+    local forcibly=""
+	while getopts "phvf" opt; do
 		case $opt in
 			h)
 				logInfo "A command to git-commit step by step\n\n  Available flags:"
 				printf "    %-6s%s\n" "-h" "Print this help message and return"
 				printf "    %-6s%s\n" "-p" "Specify the pattern"
 				printf "    %-6s%s\n" "-v" "Show more verbose info"
+                printf "    %-6s%s\n" "-f" "Commit forcibly (no verify)"
 				echo
 				echoe "  \e[34;1mPattern Hint\e[0m:\n  Example: \e[34m<step1:default> <#step2:default option2 option3>: <step3@[^\\:]+>\e[0m. \
 The \e[1m#\e[0m in step2 behind char \e[1m<\e[0m indicates it's a branch-scope step. \
@@ -625,6 +627,10 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 			v) # display verbose infos
 				verbose=1
 				;;
+            f) # commit forcibly
+                forcibly=1
+                logSilence "Will commit forcibly"
+                ;;
 			\?)
 				logError "Invalid option: -$OPTARG" && return 1
 				;;
@@ -847,7 +853,11 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
 	echoe "$newBStepValues" > $b_step_values_cache_file
 
 	# COMMIT 
-	git commit -m "$message"
+    if [ "$forcibly" ]; then
+	    git commit -m "$message" --no-verify
+    else
+	    git commit -m "$message"
+    fi
 }
 
 function isNotGitRepository() { #x
