@@ -905,3 +905,19 @@ function copyVar() { #? copy value and type of a variable to another(It's global
   finalMeta+=" $2"
   eval "$finalMeta${declaration:$eqIdx}"
 }
+
+function memod() { #? memories current directory. release it by rmemod
+    local _pwd_=$(pwd)
+    echo $_pwd_ > $_QFIG_LOC/.memod
+}
+
+function rmemod() { #? release the memorised directory
+    local memodFile=$_QFIG_LOC/.memod
+    if [ -f $memodFile ]; then
+        local _d_=$(cat $memodFile)
+        logInfo "Go to: $_d_"
+        cd $_d_
+    else
+       logWarn "No memorised directory!"
+    fi
+}
