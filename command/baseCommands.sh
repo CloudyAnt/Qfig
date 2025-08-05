@@ -129,6 +129,31 @@ function qfig() { #? Qfig operations
 	esac
 }
 
+function +base:checkParams() { #x
+    if [ $(( $# % 2 )) -ne 0 ]; then
+        return 1
+    fi
+
+    local args=("$@")
+    local i=$(getArrayBase)
+    local idx=1
+    local hasError=""
+    while [ $i -lt $# ]; do
+        local param_name="${args[i]}"
+        local param_value="${args[i+1]}"
+
+        if [ -z "$param_value" ]; then
+            logError "${idx}th parameter \033[1m$param_name\033[0m can't be empty!"
+            hasError="1"
+        fi
+
+        i=$((i + 2))
+        idx=$((idx + 1))
+    done
+
+    [ "$hasError" ] && return 1 || :
+}
+
 function qcmds() { #? operate available commands. Usage: qcmds $commandsPrefix $subcommands. -h for more
 	local help
 	OPTIND=1

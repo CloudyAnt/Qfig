@@ -21,6 +21,7 @@ function +ssh:checkMapping() { #x
 }
 
 function cs() { #? connect server. Usage: cs mapping; cs mapping 'your remote command'
+    if ! +base:checkParams "mapping" "$1"; then return 1; fi
     if ! +ssh:checkMapping "$1"; then return 1; fi
     local _SshEndpoint=${_SSH_MAPPING[$1]}
 
@@ -28,6 +29,7 @@ function cs() { #? connect server. Usage: cs mapping; cs mapping 'your remote co
 }
 
 function csc() { #? connect server & send command. Usage: csc mapping 'your remote command'
+    if ! +base:checkParams "mapping" "$1" "command" "$2"; then return 1; fi
     if ! +ssh:checkMapping "$1"; then return 1; fi
     [ -z "$2" ] && logWarn "Need command" && return # check command
     local _SshEndpoint=${_SSH_MAPPING[$1]}
@@ -36,6 +38,7 @@ function csc() { #? connect server & send command. Usage: csc mapping 'your remo
 }
 
 function csi() { #? connect server (or send command) with pem. Usage: csi mapping; csi mapping 'your remote command'
+    if ! +base:checkParams "mapping" "$1"; then return 1; fi
     if ! +ssh:checkMapping "$1" 1; then return 1; fi
     local _SshEndpoint=${_SSH_MAPPING[$1]}
     local _PemFile=${_PEM_MAPPING[$1]}
@@ -43,84 +46,98 @@ function csi() { #? connect server (or send command) with pem. Usage: csi mappin
     ssh -i "$_PemFile" "ssh://$_SshEndpoint" "$2"
 }
 
-function cpt() { #? copy to server. Usage: cpt localFile mapping remoteFile pem[optional]
+function cpt() { #? copy to server. Usage: cpt localFile mapping remoteFile[optional] pem[optional]
+    if ! +base:checkParams "local file" "$1" "mapping" "$2"; then return 1; fi
     if ! +ssh:checkMapping "$2"; then return 1; fi
     local _SshEndpoint=${_SSH_MAPPING[$2]}
 
-    if [ -z "$4" ]
-    then
-        scp "$1" "$_SshEndpoint:/$3"
+    local lf="$1"
+    local rf="$3"
+    if [ -z "$rf" ]; then
+        logInfo "Coping file to remote user home as name \e[1m$lf\e[0m"
+        rf=$lf
+    fi
+    local pem=$4
+    if [ -z "$pem" ]; then
+        scp "$lf" "$_SshEndpoint:$rf"
     else
-        [ ! -f "$4" ] && logError "Specified pem file $4 doesn't exists!" && return 1
-        scp -i "$4" "$1" "$_SshEndpoint:/$3"
+        [ ! -f "$pem" ] && logError "Specified pem file $pem doesn't exists!" && return 1
+        scp -i "$pem" "$lf" "$_SshEndpoint:$rf"
     fi
 }
 
 function cpti() { #? copy to server with pem. Usage: cpti localFile mapping remoteFile
+    if ! +base:checkParams "local file" "$1" "mapping" "$2" "remote file" "$3"; then return 1; fi
     if ! +ssh:checkMapping "$2" 1; then return 1; fi
     local _SshEndpoint=${_SSH_MAPPING[$2]}
     local _PemFile=${_PEM_MAPPING[$2]}
 
-    logInfo "Transferring $1 to $_SshEndpoint:/$3"
-    scp -i "$_PemFile" "$1" "$_SshEndpoint:/$3"
+    logInfo "Transferring $1 to $_SshEndpoint:$3"
+    scp -i "$_PemFile" "$1" "$_SshEndpoint:$3"
 }
 
 function cprt() { #? recursively copy entire directories to server. Usage: cprt dir mapping remoteDir pem[optional]
+    if ! +base:checkParams "local dir" "$1" "mapping" "$2" "remote dir" "$3"; then return 1; fi
     if ! +ssh:checkMapping "$2"; then return 1; fi
     local _SshEndpoint=${_SSH_MAPPING[$2]}
 
     if [ -z "$4" ]
     then
-        scp -r "$1" "$_SshEndpoint:/$3"
+        scp -r "$1" "$_SshEndpoint:$3"
     else
         [ ! -f "$4" ] && logError "Specified pem file $4 doesn't exists!" && return 1
-        scp -r -i "$4" "$1" "$_SshEndpoint:/$3"
+        scp -r -i "$4" "$1" "$_SshEndpoint:$3"
     fi
 }
 
 function cpf() { #? copy from server. Usage: cpf remoteFile mapping localFile pem[optional]
+    if ! +base:checkParams "remote file" "$1" "mapping" "$2" "local file" "$3"; then return 1; fi
     if ! +ssh:checkMapping "$1"; then return 1; fi
     local _SshEndpoint=${_SSH_MAPPING[$1]}
 
     if [ -z "$4" ]
     then
-        scp "$_SshEndpoint:/$2" "$3"
+        scp "$_SshEndpoint:$2" "$3"
     else
         [ ! -f "$4" ] && logError "Specified pem file $4 doesn't exists!" && return 1
-        scp -i "$4" "$_SshEndpoint:/$2" "$3"
+        scp -i "$4" "$_SshEndpoint:$2" "$3"
     fi
 }
 
 function cpfi() { #? copy from server with pem. Usage: cpfi remoteFile mapping localFile
+    if ! +base:checkParams "remote file" "$1" "mapping" "$2" "local file" "$3"; then return 1; fi
     if ! +ssh:checkMapping "$1" 1; then return 1; fi
     local _SshEndpoint=${_SSH_MAPPING[$1]}
     local _PemFile=${_PEM_MAPPING[$1]}
 
-    scp -i "$_PemFile" "$_SshEndpoint:/$2" "$3"
+    scp -i "$_PemFile" "$_SshEndpoint:$2" "$3"
 }
 
-function cprf() { #? copy folder from sever. cprf folder mapping localFile pem[optional]
+function cprf() { #? copy folder from sever. cprf remoteDir mapping localDir pem[optional]
+    if ! +base:checkParams "remote dir" "$1" "mapping" "$2" "local dir" "$3"; then return 1; fi
     if ! +ssh:checkMapping "$1"; then return 1; fi
     local _SshEndpoint=${_SSH_MAPPING[$1]}
 
     if [ -z "$4" ]
     then
-        scp -r "$_SshEndpoint:/$2" "$3"
+        scp -r "$_SshEndpoint:$2" "$3"
     else
         [ ! -f "$4" ] && logError "Specified pem file $4 doesn't exists!" && return 1
-        scp -r -i "$4" "$_SshEndpoint:/$2" "$3"
+        scp -r -i "$4" "$_SshEndpoint:$2" "$3"
     fi
 }
 
-function cprfi() { #? copy folder from sever. Usage: cprfi folder mapping localFile
+function cprfi() { #? copy folder from sever. Usage: cprfi remoteDir mapping localDir
+    if ! +base:checkParams "remote dir" "$1" "mapping" "$2" "local dir" "$3"; then return 1; fi
     if ! +ssh:checkMapping "$1" 1; then return 1; fi
     local _SshEndpoint=${_SSH_MAPPING[$1]}
     local _PemFile=${_PEM_MAPPING[$1]}
 
-    scp -r -i "$_PemFile" "$4" "$_SshEndpoint:/$2" "$3"
+    scp -r -i "$_PemFile" "$4" "$_SshEndpoint:$2" "$3"
 }
 
 function sshcopyid() { #? copy ssh id to server
+    if ! +base:checkParams "mapping" "$1" ; then return 1; fi
     if ! +ssh:checkMapping "$1"; then return 1; fi
     local _SshEndpoint=${_SSH_MAPPING[$1]}
 
