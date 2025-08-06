@@ -3,7 +3,7 @@
 alias gaa='git add -A'
 alias gaap='git add -p'
 alias gamd='git commit --amend'
-alias gamdn='git commit --amend --no-edit'
+alias gamdn='git commit --amend --no-edit --no-verify'
 alias gco='git checkout'
 alias gco-='git checkout -'
 alias gcp='combiningGit cherry-pick'
