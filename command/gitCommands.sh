@@ -2,7 +2,7 @@
 
 alias gaa='git add -A'
 alias gaap='git add -p'
-alias gamd='git commit --amend'
+alias gamd='git commit --amend --no-verify'
 alias gamdn='git commit --amend --no-edit --no-verify'
 alias gco='git checkout'
 alias gco-='git checkout -'
@@ -576,7 +576,7 @@ function gpush() { #? git push with automatic branch creation
 		else
 			logWarn "Push seems failed, check the above message"
 		fi
-	elif confirm "No upstream branch, create it ?"; then
+	elif confirm "No upstream branch \e[1m$dst\e[0m, create it ?"; then
 		logInfo "Creating upstream branch [$src] .."
 		git push -u origin $src:$dst
 		if [ $? = 0 ]; then

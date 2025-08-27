@@ -4,7 +4,7 @@ enable-qcmds encoding
 
 qmap -c translation _TRANS_MAPPING
 
-function bdts() { #? Translate use Baidu Fanyi api. Sample usage: bdts hello
+function bdts() { #? Translate use Baidu Fanyi api. Sample usage: bdts hello. -v to print verbose response
     # Check for verbose flag
     local verbose=false
     OPTIND=1
@@ -61,7 +61,7 @@ function bdts() { #? Translate use Baidu Fanyi api. Sample usage: bdts hello
 }
 
 
-function ggts() { #? Translate use Google Cloud Translation api. Sample usage: ggts hi
+function ggts() { #? Translate use Google Cloud Translation api. Sample usage: ggts hi. -v to print verbose response
     # Check for verbose flag
     local verbose=false
     OPTIND=1
