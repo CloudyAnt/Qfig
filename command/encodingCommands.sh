@@ -466,7 +466,7 @@ function b64e() { #? encode string with base64. -u for URL
     local ucpStr=($(chr2ucp $@))
     local bytes=($(ucp2utf8 ${ucpStr[@]}))
     local out=""
-    declare -i pi=-1
+    declare -i pi=-1 # -1 makes padding -eq 2 at the beginning
     declare -i padding
     declare -i high=0
     declare -i arrayBase=$(getArrayBase)
@@ -513,30 +513,30 @@ function b64d() { #? decode base64 encoded string
     declare -i byte=0
     declare -i filter=0
     declare -i padding=0
-    for (( i=0,j=0; i<${#all}; i++,j++ )); do
+    for (( i=0,step=0; i<${#all}; i++,step++ )); do
         c=${all:$i:1}
         if [ $c = '=' ]; then
-            j=$((j - 1))
+            step=$((step - 1))
             break
         fi
 
-        j=$((j % 4))
+        step=$((step % 4))  # 8 / (8 - 6) = 4, so 4 steps make 1 loop
         v=${_B64_LETTER_VALUE_MAP[$c]}
         if [ -z "$v" ]; then
             logError "Invalid char '$c' at index ${i}" && return 1
         fi
         pool=$(((pool << 6) + v))
         filter=0
-        if [ $j -eq 1 ]; then
+        if [ $step -eq 1 ]; then
             byte=$((pool >> 4))
-            filter=11
-        elif [ $j -eq 2 ]; then
+            filter=15
+        elif [ $step -eq 2 ]; then
             byte=$((pool >> 2))
             filter=3
-        elif [ $j -eq 3 ]; then
+        elif [ $step -eq 3 ]; then
             byte=$pool
         fi
-        if [ $j -ge 1 ]; then
+        if [ $step -ge 1 ]; then
             bytes+=($byte)
             pool=$((pool & filter))
         fi
