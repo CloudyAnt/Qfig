@@ -874,27 +874,27 @@ function toArray() { #? split string to array and save to _TEMP. Usage: toArray 
     local splitter=$IFS
     [ "$2" ] && splitter="$2"
     if [[ "$_CURRENT_SHELL" = "zsh" ]]; then
-        IFS=$splitter _TEMP=($(echo "$1")); rdIFS
+        IFS=$splitter read -rA _TEMP <<< "$1"; rdIFS # another solution: _TEMP=($(echo "$1"))
     else
         IFS=$splitter read -ra _TEMP <<< "$1"; rdIFS
     fi
 }
 
 function toArrayVar() { #? toArray and save to specific var(It's global). Usage: toArray $str $var $splitter(optional)
-    unsetVar _TEMP
     local splitter=$IFS
-    local var=$2
-    if [[ ! "$var" =~ [a-zA-Z_][a-zA-Z0-9_]* ]]; then
+    local var0=$2
+    if [[ ! "$var0" =~ [a-zA-Z_][a-zA-Z0-9_]* ]]; then
       logError "Variable name should match regex: [a-zA-Z_][a-zA-Z0-9_]*" && return 1
     fi
+
+    var=$var0
     [ "$3" ] && splitter="$3"
     if [[ "$_CURRENT_SHELL" = "zsh" ]]; then
-        IFS=$splitter _TEMP=($(echo "$1")); rdIFS
+        IFS=$splitter read -rA "$var" <<< "$1"; rdIFS # another solution: _TEMP=($(echo "$1"))
     else
-        IFS=$splitter read -ra _TEMP <<< "$1"; rdIFS
+        # shellcheck disable=SC2229
+        IFS=$splitter read -ra "$var" <<< "$1"; rdIFS
     fi
-
-    copyVar _TEMP "$var"
 }
 
 function unsetVar() { #? unset var if it exists
