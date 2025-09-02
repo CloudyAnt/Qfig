@@ -319,7 +319,7 @@ function utf82ucp() { #? covert utf8 bytes to unicode code points. If badly stop
     i=0;bn=0;bc=0;n=0;offs=0
     for arg in "$@"; do
         i=$((i + 1))
-        if [[ "$arg" =~ [0-9a-fA-F][0-9a-fA-F] ]]; then
+        if [[ "$arg" =~ ^[0-9a-fA-F]?[0-9a-fA-F]$ ]]; then
             local harg="0x$arg"
             if [ $bn -gt $bc ]; then
                 if [ $((harg >> 6)) -eq 2 ]; then
