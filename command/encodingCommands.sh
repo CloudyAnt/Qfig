@@ -354,7 +354,7 @@ function utf82ucp() { #? covert utf8 bytes to unicode code points. If badly stop
 		[ "$silent" ] && : || logError "Bytes recording badly stopped"
 		return 1
 	fi
-    echo $out
+  echo "${out%% }"
 }
 
 _NO_URL_ENCODING_CHARS="0-9a-zA-Z._~\!\$\'\(\)*+,=\;-"
