@@ -1,59 +1,63 @@
 #? Math related commands
 
 function dec2hex() { #? convert decimals to hexadecimals
-    local arg out="" index=1 hex
+    local arg index=1 hex
+    local -a outs=()
     for arg in "$@"; do
-        # Validate decimal input
-        if ! [[ $arg =~ ^-?[0-9]+$ ]]; then
+        # Validate decimal input (allow optional leading + or -)
+        if ! [[ $arg =~ ^[+-]?[0-9]+$ ]]; then
             logError "${index}th param '$arg' is not decimal" && return 1
         fi
 
         # Convert to hex, preserving sign
-        if [ "$arg" -lt 0 ]; then
+        if [[ $arg == -* ]]; then
             hex=$(printf "%x" "${arg#-}")
-            hex="-$hex"
+            outs+=("-$hex")
         else
-            hex=$(printf "%x" "$arg") 
+            # strip optional leading + for printf
+            hex=$(printf "%x" "${arg#+}")
+            outs+=("$hex")
         fi
-
-        # Build output string
-        if [ "$out" ]; then
-            out="$out $hex"
-        else
-            out="$hex"
-        fi
-        
         ((index++))
     done
 
-    [ -n "$out" ] && printf "%s\n" "$out"
+    if ((${#outs[@]})); then
+        printf "%s\n" "${outs[*]}"
+    fi
 }
 
 function hex2dec() { #? convert hex unicode code points to decimals
-	local arg out="" index=1
-	for arg in "$@"; do
-		if ! [[ $arg =~ ^-{0,1}[0-9a-fA-F]+$ ]]; then
-			logWarn $index"th param '$arg' is not hexadecimal" && return 1
-		fi
-		
-		# Convert hex to decimal, handling negative numbers
-		if [[ $arg =~ ^-.+$ ]]; then
-			arg=$((0x${arg:1} * -1))
-		else
-			arg=$((0x$arg))
-		fi
-		
-		# Build output string
-		if [ "$out" ]; then
-			out="$out $arg"
-		else
-			out="$arg"
-		fi
-		
-		index=$((index + 1))
-	done
-	
-	[ -n "$out" ] && printf "%s\n" "$out"
+    local arg index=1 sign trimmed
+    local -a outs=()
+    for arg in "$@"; do
+        sign=""
+        trimmed="$arg"
+        # Handle optional sign
+        if [[ $trimmed == -* ]]; then
+            sign="-"
+            trimmed=${trimmed#-}
+        elif [[ $trimmed == +* ]]; then
+            trimmed=${trimmed#+}
+        fi
+        # Accept optional 0x/0X prefix
+        if [[ $trimmed == 0[xX]* ]]; then
+            trimmed=${trimmed:2}
+        fi
+        # Validate hex digits
+        if ! [[ $trimmed =~ ^[0-9a-fA-F]+$ ]]; then
+            logError "${index}th param '$arg' is not hexadecimal" && return 1
+        fi
+        # Convert
+        if [[ $sign == - ]]; then
+            outs+=($(( (16#${trimmed}) * -1 )))
+        else
+            outs+=($((16#${trimmed})))
+        fi
+        index=$((index + 1))
+    done
+    if ((${#outs[@]})); then
+        printf "%s\n" "${outs[*]}"
+    fi
 }
 
 declare -g -A _LETTER_VALUE_MAP
