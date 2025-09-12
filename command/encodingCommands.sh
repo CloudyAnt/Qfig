@@ -555,3 +555,45 @@ function b64d() { #? decode base64 encoded string
     done
     echo "$out"
 }
+
+function jwtd() { #? decode a json web token
+    local token="$1"
+    [ -z "$token" ] && logError "Usage: jwtd <jwt>" && return 1
+
+    # check format: three dot-separated parts, header and payload must be base64url charset
+    if [[ ! "$token" =~ ^([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]*)$ ]]; then
+        logError "Invalid JWT format" && return 1
+    fi
+
+    local header_b64url payload_b64url signature_b64url
+    header_b64url=$(getMatch 1)
+    payload_b64url=$(getMatch 2)
+    signature_b64url=$(getMatch 3)
+
+    # convert base64url to standard base64 and pad
+    local h_b64=${header_b64url//-/+}
+    h_b64=${h_b64//_/\/}
+    local p_b64=${payload_b64url//-/+}
+    p_b64=${p_b64//_/\/}
+
+    # add padding to make length % 4 == 0
+    local rem
+    rem=$(( ${#h_b64} % 4 ))
+    if [ $rem -ne 0 ]; then
+        h_b64+=$(repeatWord "=" $((4 - rem)))
+    fi
+    rem=$(( ${#p_b64} % 4 ))
+    if [ $rem -ne 0 ]; then
+        p_b64+=$(repeatWord "=" $((4 - rem)))
+    fi
+
+    local h_dec u_h_dec p_dec u_p_dec
+    u_h_dec=$(b64d "$h_b64") || return 1
+    h_dec=$(echoe "$u_h_dec")
+
+    u_p_dec=$(b64d "$p_b64") || return 1
+    p_dec=$(echoe "$u_p_dec")
+
+    echo "$h_dec"
+    echo "$p_dec"
+}
