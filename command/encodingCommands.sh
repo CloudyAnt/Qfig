@@ -1,6 +1,6 @@
 #? Encodings related commands
 enable-qcmds math
-#? If you want to check a file's encoding, use xxd, od etc. instead of chr2ucp, chr2uni etc., the latte are designed for in-terminal strings only
+#? If you want to check a file's encoding, use xxd, od etc. instead of chr2ucp, chr2uni etc., the laters are designed for in-terminal strings only
 
 function chr2uni() { #? convert characters to unicodes(4 digits with '\u' prefix)
 	local hexes
@@ -449,8 +449,8 @@ for c in ${_B64_CHARS[@]}; do
     _B64_LETTER_VALUE_MAP[$c]=$v
     v=$((v + 1))
 done
-_B64_LETTER_VALUE_MAP["-"]=62
-_B64_LETTER_VALUE_MAP["_"]=63
+_B64_LETTER_VALUE_MAP[-]=62
+_B64_LETTER_VALUE_MAP[_]=63
 unset v c
 
 function b64e() { #? encode string with base64. -u for URL
@@ -503,6 +503,25 @@ function b64e() { #? encode string with base64. -u for URL
 }
 
 function b64d() { #? decode base64 encoded string
+	OPTIND=1
+	local showByte=0
+	while getopts ":b" opt; do
+        case $opt in
+			h)
+				logInfo "Usage: b64d \$flags(optional) \$base64String\n  Flags:\n"
+				printf "    %-5s%s\n" "h" "Print this help message"
+				printf "    %-5s%s\n" "b" "Output byte result instead of decoded utf8 string"
+				return 0
+				;;
+			b)
+				showByte=1
+				;;
+      \?)
+          echo "Invalid option: -$OPTARG" && return
+          ;;
+        esac
+    done
+	shift "$((OPTIND - 1))"
     local all=$@
     if [ -z "$all" ]; then
         return
@@ -544,8 +563,27 @@ function b64d() { #? decode base64 encoded string
     if [ $pool -ne 0 ]; then
         logError "Invalid sequence! "
     fi
-    local hexes=($(dec2hex ${bytes[@]}))
-    local ucps=($(utf82ucp ${hexes[@]}))
+    # decimal to hexadecimal
+    local result=$(dec2hex ${bytes[@]})
+    if [ $? -gt 0 ]; then
+      echo "$result"
+      return 1
+    fi
+    if [ "$showByte" ]; then
+      echo "$result"
+      return
+    fi
+    # hexadecimal to unicode code point
+    toArray "$result"
+    result=$(utf82ucp ${_TEMP[@]})
+    if [ $? -gt 0 ]; then
+      logError "Unable to decode by utf8 due to the following error:"
+      echo "$result"
+      logError "Run again with -b to show byte result"
+      return 1
+    fi
+    toArray "$_TEMP"
+    local ucps=("${_TEMP[@]}")
     local out
     for ucp in "${ucps[@]}";do
         while [ ${#ucp} -lt 4 ]; do
