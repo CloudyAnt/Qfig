@@ -1,5 +1,6 @@
 #? Ssh related commands.
 #? You need to edit the ssh mapping file by execute 'qmap ssh'. A ssh mapping like: a=user@111.222.333.444:555
+#? To penetrate a jump server, add ssh mapping like: a=jump_user@server_user@server_ip@jump_ip:jump_port
 #? You also need to edit the pem mapping file by execute 'qmap pem' if needed. A pem mapping like: a=/path/to/pem
 
 # Resolve ssh & pem mappings
@@ -142,4 +143,21 @@ function sshcopyid() { #? copy ssh id to server
     local _SshEndpoint=${_SSH_MAPPING[$1]}
 
     ssh-copy-id "$_SshEndpoint"
+}
+
+function csjump() { #? connect server through a jump server
+    if ! +base:checkParams "mapping" "$1"; then return 1; fi
+    if ! +ssh:checkMapping "$1" 1; then return 1; fi
+    local _SshEndpoint=${_SSH_MAPPING[$1]}
+    local _PemFile=${_PEM_MAPPING[$1]}
+
+    if [[ "$_SshEndpoint" =~  ^[[:alnum:]_-]+@[[:alnum:]_-]+@[[:alnum:]._-]+@[[:alnum:]._-]+$ ]]; then
+      ssh -i "$_PemFile" "$_SshEndpoint"
+    elif [[ "$_SshEndpoint" =~  ^[[:alnum:]_-]+@[[:alnum:]_-]+@[[:alnum:]._-]+@[[:alnum:]._-]+:([[:digit:]]+)$ ]]; then
+      # specify a port
+      local port=$(getMatch 1)
+      ssh -p "$port" -i "$_PemFile" "${_SshEndpoint%:*}"
+    else
+      logError "Invalid ssh mapping !"
+    fi
 }
