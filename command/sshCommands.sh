@@ -1,7 +1,7 @@
 #? Ssh related commands.
 #? You need to edit the ssh mapping file by execute 'qmap ssh'. A ssh mapping like: a=user@111.222.333.444:555
-#? To penetrate a jump server, add ssh mapping like: a=jump_user@server_user@server_ip@jump_ip:jump_port
 #? You also need to edit the pem mapping file by execute 'qmap pem' if needed. A pem mapping like: a=/path/to/pem
+#? Use csjump to jump, the ssh mapping should be like: a=jump_user@server_user@server_ip@jump_ip:jump_port
 
 # Resolve ssh & pem mappings
 qmap -c ssh _SSH_MAPPING

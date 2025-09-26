@@ -504,8 +504,8 @@ function b64e() { #? encode string with base64. -u for URL
 
 function b64d() { #? decode base64 encoded string
 	OPTIND=1
-	local showByte=0
-	while getopts ":b" opt; do
+	local showByte=""
+	while getopts ":hb" opt; do
         case $opt in
 			h)
 				logInfo "Usage: b64d \$flags(optional) \$base64String\n  Flags:\n"
