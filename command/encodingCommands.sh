@@ -2,7 +2,7 @@
 enable-qcmds math
 #? If you want to check a file's encoding, use xxd, od etc. instead of chr2ucp, chr2uni etc., the laters are designed for in-terminal strings only
 
-function chr2uni() { #? convert characters to unicodes(4 digits with '\u' prefix)
+function chr2ues() { #? convert characters to unicode escape sequence
 	local hexes
 	hexes=($(echo $(chr2ucp "$@")))
 	for hex in "${hexes[@]}"; do
@@ -12,7 +12,7 @@ function chr2uni() { #? convert characters to unicodes(4 digits with '\u' prefix
 	printf "\n"
 }
 
-function chr2uni8() { #? convert characters to unicodes(4 digits with '\u' prefix or 8 digits with '\U' prefix)
+function chr2ues8() { #? convert characters to unicode escape sequence(4 digits with '\u' prefix or 8 digits with '\U' prefix)
 	local hexes
 	hexes=($(echo $(chr2ucpx "$@")))
 	for hex in "${hexes[@]}"; do

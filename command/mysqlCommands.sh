@@ -4,7 +4,7 @@
 alias mysqll='mysql -uroot -p' # Connect local mysql
 qmap -c mysql _MYSQL_MAPPING
 
-function mysqlc() { #x
+function mysqlc() { #? Connect mysql by mapping
     [ -z "$1" ] && logError "Please specify the mysql mapping key!" && return 1
     [ -z "${_MYSQL_MAPPING[$1]}" ] && logWarn "No mysql mapping for: $1. Use 'qmap mysql' to add." && return 1
     toArray "${_MYSQL_MAPPING[$1]}" "#" && declare -a mapping=("${_TEMP[@]}")
