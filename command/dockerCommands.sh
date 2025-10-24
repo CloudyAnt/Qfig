@@ -14,6 +14,7 @@ alias dis='docker images'
 alias dcs='docker container ls'
 alias dcsa='docker container ls -a'
 alias drun='docker run'
+alias dins='docker inspect'
 
 function dbash() { #? enter docker bash
 	[ -z "$1" ] && logError "Which one?" && return

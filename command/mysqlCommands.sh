@@ -50,3 +50,14 @@ function mysqlo() { #? Connect mysql by mapping THEN pass selection command and 
     [ -z "$3" ] && logError "Need Output File" && return 1
     mysqlc "$1" "-e \"$2 INTO OUTFILE '$3' FIELDS TERMINATED BY ',';\""
 }
+
+function mysqllogin() { #? Connect mysql using login path
+  if ! +base:checkParams "login path" "$1"; then return 1; fi
+  local loginPath
+  loginPath=$1
+
+  if ! mysql --login-path="$loginPath"; then
+      logWarn "If it's login failed due to missing path, add it by:
+mysql_config_editor set --login-path=$loginPath --host=db_host --user=db_user --password"
+  fi
+}
