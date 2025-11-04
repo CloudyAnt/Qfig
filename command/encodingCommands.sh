@@ -454,10 +454,11 @@ _B64_LETTER_VALUE_MAP[_]=63
 unset v c
 
 function b64e() { #? encode string with base64. -u for URL
-    declare -a chars=(${_B64_CHARS[@]})
     if [ "$1" = "-u" ]; then
-        local chars=$_B64_URL_CHARS
+        declare -a chars=(${_B64_URL_CHARS[@]})
         shift 1
+    else
+        declare -a chars=(${_B64_CHARS[@]})
     fi
     local all=$@
     if [ -z "$all" ]; then
@@ -632,6 +633,8 @@ function jwtd() { #? decode a json web token
     u_p_dec=$(b64d "$p_b64") || return 1
     p_dec=$(echoe "$u_p_dec")
 
+    logInfo "Header:"
     echo "$h_dec"
+    logInfo "Payload:"
     echo "$p_dec"
 }
