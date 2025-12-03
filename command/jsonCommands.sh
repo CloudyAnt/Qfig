@@ -38,7 +38,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
 
     local json s c
     json="$1"
-    local escaping=""
+    local escaping="" # escaping flag for path parsing
     # --- RESOLVE path ---
     declare -a tp # target path sections
     declare -i tpi=$arrayBase # target path section index
@@ -46,7 +46,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
     local i
     for (( i=0; i<${#2}; i++ )); do
         c=${2:$i:1}
-        if [ $escaping ]; then
+        if [[ -n "$escaping" ]]; then
             s=$s$c
             escaping=""
             continue
@@ -67,7 +67,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
             s=$s$c
         fi
     done
-    if [ $escaping ]; then
+    if [[ -n "$escaping" ]]; then
         logError "Invalid path: '\' was used to escape '.' or '\', do you mean '\ \b\' (double slashes) at index $((i - 1)) ?" && return 1
     fi
     if [ -n "$s" ]; then
@@ -200,6 +200,9 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
         fi
     }
 
+    # Reset escaping for JSON parsing (different from path parsing)
+    escaping=""
+
     for (( ; i<${#json}; i++)); do
         c=${json:$i:1}
         
@@ -217,7 +220,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
             ;;
             # appending key
             1)
-                if [[ $escaping ]]; then
+                if [[ -n "$escaping" ]]; then
                     s=$s$c
                     escaping=""
                 elif [ '"' = "$c" ]; then
@@ -249,13 +252,29 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
                 if [ '"' = "$c" ]; then
                     x=4
                     cpt[cpi]="S"
+                elif [ '-' = "$c" ]; then
+                    # Check if next character is a digit
+                    local nextIdx=$((i + 1))
+                    if [ $nextIdx -lt ${#json} ]; then
+                        local nextChar=${json:$nextIdx:1}
+                        if [[ "$nextChar" =~ ^[0-9]$ ]]; then
+                            x=41
+                            fc=0
+                            s=$s$c
+                            cpt[cpi]="I"
+                        else
+                            err="Invalid json (30004): expecting digit after '-' at index $i (path: $(concatCP)), but got '$nextChar'" && break
+                        fi
+                    else
+                        err="Invalid json (30005): unexpected end after '-' at index $i (path: $(concatCP))" && break
+                    fi
                 elif [[ "$c" =~ ^[0-9]$ ]]; then
                     x=41
                     fc=0
                     s=$s$c
                     cpt[cpi]="I"
                 elif [ 't' = "$c" ]; then
-                    local following=${1:$i:4}
+                    local following=${json:$i:4}
                     if [ "true" = "$following" ]; then
                         s=$following
                         x=5
@@ -265,7 +284,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
                         err="Invalid json (30000): (may) expecting 'true' as value of path: $(concatCP), but got '$following' following" && break
                     fi
                 elif [ 'f' = "$c" ]; then
-                    local following=${1:$i:5}
+                    local following=${json:$i:5}
                     if [ "false" = "$following" ]; then
                         s=$following
                         x=5
@@ -275,7 +294,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
                         err="Invalid json (30001): (may) expecting 'false' as value of path: $(concatCP), but got '$following' following" && break
                     fi
                 elif [ 'n' = "$c" ]; then
-                    local following=${1:$i:4}
+                    local following=${json:$i:4}
                     if [ "null" = "$following" ]; then
                         s=$following
                         x=5
@@ -306,7 +325,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
             ;;
             # appending string value
             4)
-                if [[ $escaping ]]; then
+                if [[ -n "$escaping" ]]; then
                     s=$s$c
                     escaping=""
                 elif [ '"' = "$c" ]; then

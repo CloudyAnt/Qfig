@@ -139,7 +139,7 @@ function +gtag() { #x
 	return 0
 }
 
-complete -F +gtag gtag
+complete -F +gtag gtag # TODO complete is an omz command, use our command instead
 
 function gb() { #? operate branch. Usage: gb $branch(optional, . stands for current branch) $cmd(default 'create') $cmdArg(optional). gb -h for more
 	if [ "-h" = "$1" ]; then
