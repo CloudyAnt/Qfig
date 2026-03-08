@@ -388,3 +388,29 @@ Function du() {
         }
     }
 }
+
+function ps2port() { #? get port which listening by process id
+    param([Parameter(Mandatory = $false)][string]$Pid)
+    if ([string]::IsNullOrWhiteSpace($Pid)) {
+        logError "Which pid ?"
+        return
+    }
+    Get-NetTCPConnection -OwningProcess $Pid -ErrorAction SilentlyContinue | Where-Object { $_.State -eq "Listen" }
+}
+
+function port2ps() { #? get process which listening to port
+    param([Parameter(Mandatory = $false)][string]$Port)
+    if ([string]::IsNullOrWhiteSpace($Port)) {
+        logError "Which port ?"
+        return
+    }
+    Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | Where-Object { $_.LocalPort -eq $Port } | ForEach-Object {
+        $proc = Get-Process -Id $_.OwningProcess -ErrorAction SilentlyContinue
+        [PSCustomObject]@{
+            LocalAddress = $_.LocalAddress
+            LocalPort = $_.LocalPort
+            OwningProcess = $_.OwningProcess
+            ProcessName = $proc.ProcessName
+        }
+    }
+}
