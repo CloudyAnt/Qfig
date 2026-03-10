@@ -978,3 +978,11 @@ function gitRemote() { #? Edit or switch remotes. Usage: gitRemote [remote_key]
 		logSuccess "Remote set to $remote"
 	fi
 }
+
+function pruneLocalBranches() {
+    isNotGitRepository && return 1
+    if confirm -w "Prune all local orphan branches?"; then
+        git fetch --prune # or -p
+        git for-each-ref --format='%(refname:short) %(upstream:track)' refs/heads | grep '\[gone\]$' | awk '{print $1}' | xargs git branch -d
+    fi
+}
