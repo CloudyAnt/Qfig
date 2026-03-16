@@ -2,7 +2,7 @@
     if (/^#\? /) {
         printf "\033[34m▍\033[39m";
         for (i = 2; i <= NF; i++) {
-            printf $i " ";
+            printf "%s ", $i;
         }
         printf "\033[0m\n";
     } else if (/^function /) {
@@ -20,7 +20,7 @@
             printf " ";
         }
         for (i = 5; i <= NF; i++) {
-            printf $i " ";
+            printf "%s ", $i;
         }
         printf "\033[0m\n";
     } else if (/^alias /) {
