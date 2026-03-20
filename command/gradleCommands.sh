@@ -16,9 +16,23 @@ function gkilldaemons() {
     pkill -f '.*GradleDaemon.*'
 }
 
-function ginit() { #? create a gradle project with minimal build.gradle and settings.gradle
-    if [ -f "build.gradle" ] || [ -f "settings.gradle" ]; then
-        logWarn "build.gradle or settings.gradle already exists in this directory."
+function ginit() { #? create a gradle project. Usage: ginit [-k]
+    local ext="gradle"
+    OPTIND=1
+    while getopts ":k" opt; do
+        case $opt in
+            k)
+                ext="gradle.kts"
+                logInfo "Will create kts build files"
+                ;;
+            \?)
+                return 1
+                ;;
+        esac
+    done
+
+    if [ -f "build.$ext" ] || [ -f "settings.$ext" ]; then
+        logWarn "build.$ext or settings.$ext already exists in this directory."
         return
     fi
 
@@ -34,14 +48,14 @@ function ginit() { #? create a gradle project with minimal build.gradle and sett
     done
 
     echo "plugins {
-    id 'java'
+    id(\"java\")
 }
-group = '$groupId'
-version = '$version'
+group = \"$groupId\"
+version = \"$version\"
 
 repositories {
     mavenCentral()
-}" > build.gradle
-    echo "rootProject.name = '$projectName'" > settings.gradle
-    logInfo "build.gradle and settings.gradle created."
+}" > build.$ext
+    echo "rootProject.name = \"$projectName\"" > settings.$ext
+    logInfo "build.$ext and settings.$ext created."
 }
