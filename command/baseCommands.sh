@@ -186,10 +186,10 @@ function qcmds() { #? operate available commands. Usage: qcmds $commandsPrefix $
 	fi
 
 	case $2 in
-		cat|read)
+		read)
 			cat $targetFile && return
 			;;
-		vim|edit)
+		edit)
 			editfile $targetFile && return
 			;;
 		""|explain)
