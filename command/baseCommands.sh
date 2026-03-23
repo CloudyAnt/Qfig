@@ -170,7 +170,7 @@ function qcmds() { #? operate available commands. Usage: qcmds $commandsPrefix $
 	if [[ "$help" || -z "$1" ]]; then
 		logInfo "Usage: qcmds \$toolCommandsPrefix \$subcommands(optional). e.g., 'qcmds base'"
 		echo "  Available Qfig tool commands(prefix): $(ls $_QFIG_LOC/command | perl -n -e'/(.+)Commands\.sh/ && print "$1 "')"
-		echo "  Subcommands: explain(default), cat(or read), vim(or edit)"
+		echo "  Subcommands: explain(default), read, edit"
 		return
 	fi
 
