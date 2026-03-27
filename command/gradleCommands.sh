@@ -57,5 +57,8 @@ repositories {
     mavenCentral()
 }" > build.$ext
     echo "rootProject.name = \"$projectName\"" > settings.$ext
-    logInfo "build.$ext and settings.$ext created."
+    echo "version=$version
+org.gradle.jvmargs=-Dfile.encoding=UTF-8
+org.gradle.daemon.idletimeout=30000" > gradle.properties
+    logInfo "build.$ext, settings.$ext and gradle.properties created."
 }
