@@ -20,7 +20,7 @@ function jrun() { #? java compile then run, jrun Hello => javac Hello.java && ja
     fi
 }
 
-function +jrun() { #x
+function _jrun() { #x
     # Handle array base for shell compatibility
     declare -i arrayBase
     [[ -o ksharrays ]] && arrayBase=0 || arrayBase=1
@@ -31,11 +31,9 @@ function +jrun() { #x
     # Get current word being completed
     local current="${COMP_WORDS[$COMP_CWORD]}"
     
-    # Generate completions for .java files
-    local javafiles=$(compgen -f -X "!*.java" -- "$current") 
-    local noext=$(compgen -f -X "*.java" -- "$current")
-    COMPREPLY=($(compgen -W "$javafiles $noext" -- "$current"))
+    local IFS=$'\n'
+    COMPREPLY=($(compgen -f -X "!*.java" -- "$current"))
     return 0
 }
 
-complete -F +jrun jrun
+complete -F _jrun jrun

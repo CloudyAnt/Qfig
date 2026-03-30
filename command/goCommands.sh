@@ -30,10 +30,8 @@ function _gorun() { #x
     # Get current word being completed
     local current="${COMP_WORDS[$COMP_CWORD]}"
     
-    # Generate completions for .go files
-    local gofiles=$(compgen -f -X "!*.go" -- "$current")
-    local noext=$(compgen -f -X "*.go" -- "$current")
-    COMPREPLY=($(compgen -W "$gofiles $noext" -- "$current"))
+    local IFS=$'\n'
+    COMPREPLY=($(compgen -f -X "!*.go" -- "$current"))
     return 0
 }
 

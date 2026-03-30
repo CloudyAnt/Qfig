@@ -204,6 +204,24 @@ function qcmds() { #? operate available commands. Usage: qcmds $commandsPrefix $
 	esac
 }
 
+# Completion function for qcmds
+function _qcmds_completion() { #x completion for qcmds command
+	local subcommands="explain read edit"
+  # bash completion
+  local prefixes=$(ls "$_QFIG_LOC/command" 2>/dev/null | grep -oE '^[a-zA-Z]+Commands\.sh$' | sed 's/Commands\.sh$//')
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  local prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+  if [ $COMP_CWORD -eq 1 ]; then
+    # First argument - complete with prefixes
+    COMPREPLY=($(compgen -W "$prefixes" -- "$cur"))
+  elif [ $COMP_CWORD -eq 2 ]; then
+    # Second argument - complete with subcommands
+    COMPREPLY=($(compgen -W "$subcommands" -- "$cur"))
+  fi
+}
+complete -o bashdefault -o default -o nospace -F _qcmds_completion qcmds
+
 function resh() { #? refresh current shell session by config file(zsh.rc, etc)
     logInfo "Refreshing $_CURRENT_SHELL.."
     if [ "$_CURRENT_SHELL" = "zsh" ]; then
