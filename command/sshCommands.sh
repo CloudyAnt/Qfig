@@ -161,3 +161,25 @@ function csjump() { #? connect server through a jump server
       logError "Invalid ssh mapping !"
     fi
 }
+
+function _ssh_completion() {
+    local cur
+    local -a keys
+
+    if [ -n "$ZSH_VERSION" ]; then
+        cur="${words[CURRENT]}"
+        keys=(${(k)_SSH_MAPPING})
+        compadd -Q -- "${(@)keys}"
+        return 0
+    fi
+
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    eval "keys=(\${!_SSH_MAPPING[@]})"
+    COMPREPLY=($(compgen -W "${keys[*]}" -- "$cur"))
+}
+
+if [ -n "$ZSH_VERSION" ] && command -v compdef >/dev/null 2>&1; then
+    compdef _ssh_completion cs csc csi
+elif command -v complete >/dev/null 2>&1; then
+    complete -F _ssh_completion cs csc csi
+fi
