@@ -37,3 +37,7 @@ function _jrun() { #x
 }
 
 complete -F _jrun jrun
+
+function jsh() {
+    jshell --startup "$_QFIG_LOC/staff/jshell_enhancement.jsh"
+}
