@@ -56,4 +56,13 @@ String formatArray(Object arr) {
     }
 }
 
-print("\033[2mQfig jshell enhancement enabled\033[0m")
+void bytes(String s) {
+    byte[] bytes = s.getBytes();
+    for (byte b : bytes) {
+        System.out.print(Integer.toHexString((b & 0xFF)) + " ");
+    }
+    System.out.println();
+}
+
+print("\033[2mQfig jshell enhancement enabled\033[0m");
+
