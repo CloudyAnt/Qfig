@@ -92,3 +92,72 @@ function ipt() { #? [iptables] simplified iptables ops
         logInfo "Deleted port $port from INPUT chain."
     fi
 }
+
+function myip() { #? get current public ip address
+    local type=${1:-""}
+    if [ "$type" = "-4" ] || [ "$type" = "ipv4" ]; then
+        if command -v curl >/dev/null 2>&1; then
+            curl -s -4 ifconfig.me
+        elif command -v wget >/dev/null 2>&1; then
+            wget -q -O- -4 ifconfig.me
+        else
+            logError "Neither curl nor wget is available"
+            return 1
+        fi
+    elif [ "$type" = "-6" ] || [ "$type" = "ipv6" ]; then
+        if command -v curl >/dev/null 2>&1; then
+            curl -s -6 ifconfig.me
+        elif command -v wget >/dev/null 2>&1; then
+            wget -q -O- -6 ifconfig.me
+        else
+            logError "Neither curl nor wget is available"
+            return 1
+        fi
+    else
+        if command -v curl >/dev/null 2>&1; then
+            logInfo "IPv4: $(curl -s -4 ifconfig.me)"
+            logInfo "IPv6: $(curl -s -6 ifconfig.me 2>/dev/null || echo 'N/A')"
+        elif command -v wget >/dev/null 2>&1; then
+            logInfo "IPv4: $(wget -q -O- -4 ifconfig.me)"
+            logInfo "IPv6: $(wget -q -O- -6 ifconfig.me 2>/dev/null || echo 'N/A')"
+        else
+            logError "Neither curl nor wget is available"
+            return 1
+        fi
+    fi
+}
+
+function localip() { #? get local network ip address, -4 for ipv4 only, -6 for ipv6 only
+    local type=${1:-""}
+    _strip_ansi() { /usr/bin/sed 's/[[:cntrl:]]\[[0-9;]*m//g'; }
+    if [ "$type" = "-4" ] || [ "$type" = "ipv4" ]; then
+        if command -v ip >/dev/null 2>&1; then
+            ip -4 addr show | grep -E 'inet [0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | grep -v '127\.' | awk '{print $2}' | cut -d'/' -f1 | head -1
+        elif command -v ifconfig >/dev/null 2>&1; then
+            ifconfig | _strip_ansi | grep -E 'inet [0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | grep -v '127\.' | awk '{print $2}' | head -1
+        else
+            logError "Neither ip nor ifconfig is available"
+            return 1
+        fi
+    elif [ "$type" = "-6" ] || [ "$type" = "ipv6" ]; then
+        if command -v ip >/dev/null 2>&1; then
+            ip -6 addr show | grep -E 'inet6 [0-9a-f:]+' | grep -v '^inet6 ::' | grep -v 'fe80' | awk '{print $2}' | cut -d'/' -f1 | head -1
+        elif command -v ifconfig >/dev/null 2>&1; then
+            ifconfig | _strip_ansi | grep -E 'inet6 [0-9a-f:]+' | grep -v 'inet6 ::' | grep -v 'fe80' | awk '{print $2}' | head -1
+        else
+            logError "Neither ip nor ifconfig is available"
+            return 1
+        fi
+    else
+        if command -v ip >/dev/null 2>&1; then
+            logInfo "IPv4: $(ip -4 addr show | grep -E 'inet [0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | grep -v '127\.' | awk '{print $2}' | cut -d'/' -f1 | head -1)"
+            logInfo "IPv6: $(ip -6 addr show | grep -E 'inet6 [0-9a-f:]+' | grep -v '^inet6 ::' | grep -v 'fe80' | awk '{print $2}' | cut -d'/' -f1 | head -1)"
+        elif command -v ifconfig >/dev/null 2>&1; then
+            logInfo "IPv4: $(ifconfig | _strip_ansi | grep -E 'inet [0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | grep -v '127\.' | awk '{print $2}' | head -1)"
+            logInfo "IPv6: $(ifconfig | _strip_ansi | grep -E 'inet6 [0-9a-f:]+' | grep -v 'inet6 ::' | grep -v 'fe80' | awk '{print $2}' | head -1)"
+        else
+            logError "Neither ip nor ifconfig is available"
+            return 1
+        fi
+    fi
+}
