@@ -1,7 +1,21 @@
 #? github related command
 enable-qcmds json
 
-function github:getSize() {
+function github:getInfo() {
+    OPTIND=1
+    local full=""
+    while getopts ":f" opt; do
+        case "$opt" in
+            f)# Print full response
+                full=1
+                ;;
+            \?)
+                logError "Invalid option: -$OPTARG" && return 1
+                ;;
+        esac
+    done
+    shift "$((OPTIND - 1))"
+
     if ! +base:checkParams "repo" "$1"; then return 1; fi
 
     local repo="$1"
@@ -10,13 +24,29 @@ function github:getSize() {
     fi
 
     local resp=$(curl -s "https://api.github.com/repos/$repo")
-    local size=$(jsonget -n "$resp" size | sed 's/\x1b\[[0-9;]*m//g')
+    local http_code=$(jsonget -n "$resp" "status")
 
-    if [ "$size" -lt 1024 ]; then
-        echo "${size}K"
-    elif [ "$size" -lt 1048576 ]; then
-        echo "$((size / 1024))M"
-    else
-        echo "$((size / 1048576))G"
+    if [ "404" = "$http_code" ]; then
+        logWarn "The repo doesn't exists!" && return
+    elif [ "200" = "$http_code" ]; then
+        logWarn "Request failed with status: $http_code, check the full responese:"
+        echo $resp
+        return
     fi
+
+    if [ "$full" ]; then
+        echo $resp
+        return
+    fi
+
+    local size=$(jsonget -n "$resp" size)
+    if [ "$size" -lt 1024 ]; then
+        size="${size}K"
+    elif [ "$size" -lt 1048576 ]; then
+        size="$((size / 1024))M"
+    else
+        size="$((size / 1048576))G"
+    fi
+    local createdAt=$(jsonget -n "$resp" "created_at")
+    logInfo "Size: $size. Created At: $createdAt" 
 }
