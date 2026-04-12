@@ -4,7 +4,9 @@
 function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h for more
     local finding=1
     OPTIND=1
-    while getopts "nch" opt; do
+    local fromFile=""
+    local filePath=""
+    while getopts "nchf:" opt; do
         case $opt in
             # no type indication
             n)
@@ -22,8 +24,13 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
   Use '\.' to escape .
   \e[1mNote\e[0m that the json syntax check will stop after target found. Use \e[1mjsoncheck\e[0m if you wish to check syntax first
   Target value will be prefixed with type indication, e.g. I:123. Use -n to remove type indication
-  Possible types are: O(object), A(array), S(string), I(integer), F(float), T(true), X(false), N(null)"
+  Possible types are: O(object), A(array), S(string), I(integer), F(float), T(true), X(false), N(null)
+  Use \e[1m-f <file>\e[0m to read json from file instead of passing json directly"
                 return 0
+                ;;
+            f)
+                fromFile=1
+                filePath="$OPTARG"
                 ;;
             \?)
                 echo "Invalid option: -$OPTARG" && return
@@ -31,21 +38,36 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
         esac
     done
     shift $((OPTIND -1))
-    [[ -z "$1" || -z "$2" ]] && logError "Usage: jsonget json targetPath. -h for more" && return 1
+    if [[ -n "$fromFile" ]]; then
+        [[ -z "$1" ]] && logError "Usage: jsonget -f <file> <targetPath>. -h for more" && return 1
+    else
+        [[ -z "$1" || -z "$2" ]] && logError "Usage: jsonget json targetPath. -h for more" && return 1
+    fi
+
+    # --- READ JSON FROM FILE if -f specified ---
+    local targetPath
+    if [[ -n "$fromFile" ]]; then
+        [[ ! -f "$filePath" ]] && logError "File not found: $filePath" && return 1
+        json=$(cat "$filePath")
+        targetPath="$1"
+    else
+        local json
+        json="$1"
+        targetPath="$2"
+    fi
     # --- CHECK options ---
 	declare -i arrayBase
 	arrayBase=$(getArrayBase)
 
-    local json s c
-    json="$1"
+    local s c
     local escaping="" # escaping flag for path parsing
     # --- RESOLVE path ---
     declare -a tp # target path sections
     declare -i tpi=$arrayBase # target path section index
     tp[arrayBase]="$"
     local i
-    for (( i=0; i<${#2}; i++ )); do
-        c=${2:$i:1}
+    for (( i=0; i<${#targetPath}; i++ )); do
+        c=${targetPath:$i:1}
         if [[ -n "$escaping" ]]; then
             s=$s$c
             escaping=""
@@ -182,16 +204,16 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
     function checkMatch {
         if [[ $finding && ${cpm[cpi]} && ${cpm[cpi]} -ge 0 && $cpi -eq $tpi ]]; then
             found=1
-            [ "$notype" ] && local prefix="" || local prefix="${cpt[cpi]}:"
+            local prefix="${cpt[cpi]}:"
             case ${cpt[cpi]} in
 		        O)
-                    echoe "\e[34m$prefix\e[0mObject" && return 1 # 1 to break loop
+                    [ "$notype" ] && echo "Object" || echoe "\e[34m$prefix\e[0mObject" && return 1 # 1 to break loop
                 ;;
                 A)
-                    echoe "\e[34m$prefix\e[0mArray" && return 1
+                    [ "$notype" ] && echo "Array" || echoe "\e[34m$prefix\e[0mArray" && return 1
                 ;;
                 S|I|F|T|X|N)
-                    echoe "\e[34m$prefix\e[0m$s" && return 1
+                    [ "$notype" ] && echo "$s" || echoe "\e[34m$prefix\e[0m$s" && return 1
                 ;;
                 *)
                     err="Internal logic error (E5). Unexpected type ${cpt[cpi]}" && return 1
@@ -214,7 +236,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
                     x=1
                 elif [ '}' = "$c" ]; then
                     meetObjectEnd || break
-                elif ! [[ ' ' = "$c" || $'\t' = "$c" || $'\n' = "$c" ]]; then
+                elif ! [[ ' ' = "$c" || $'\t' = "$c" || $'\n' = "$c" || $'\r' = "$c" ]]; then
                     err="Invalid json (00000): expecting '\"' at index $i (after path: $(concatCP)), but got '$c'" && break
                 fi
             ;;
@@ -241,7 +263,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
             2)
                 if [ ':' = "$c" ]; then
                     x=3
-                elif ! [[ ' ' = "$c" || $'\t' = "$c" || $'\n' = "$c" ]]; then
+                elif ! [[ ' ' = "$c" || $'\t' = "$c" || $'\n' = "$c" || $'\r' = "$c" ]]; then
                     err="Invalid json (20000): expecting ':' at index $i (path: $(concatCP)), but got '$c'" && break
                 fi
             ;;
@@ -319,7 +341,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
                     cpi=$((cpi + 1))
                 elif [ ']' = "$c" ]; then
                     meetArrayEnd || break
-                elif ! [[ ' ' = "$c" || $'\t' = "$c" || $'\n' = "$c" ]]; then
+                elif ! [[ ' ' = "$c" || $'\t' = "$c" || $'\n' = "$c" || $'\r' = "$c" ]]; then
                     err="Invalid json (30002): expecting '\"' at index $i (path: $(concatCP)), but got '$c'" && break
                 fi
             ;;
@@ -340,7 +362,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
             41)
                 if [[ "$c" =~ ^[0-9]$ ]]; then
                     s=$s$c
-                elif [[ ' ' = "$c" || $'\t' = "$c" || $'\n' = "$c" ]]; then
+                elif [[ ' ' = "$c" || $'\t' = "$c" || $'\n' = "$c" || $'\r' = "$c" ]]; then
                     x=5
                 elif [ "," = "$c" ]; then
                     checkMatch || break
@@ -363,7 +385,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
                 if [[ "$c" =~ ^[0-9]$ ]]; then
                     s=$s$c
                     fc=$((fc + 1))
-                elif [[ ' ' = "$c" || $'\t' = "$c" || $'\n' = "$c" ]]; then
+                elif [[ ' ' = "$c" || $'\t' = "$c" || $'\n' = "$c" || $'\r' = "$c" ]]; then
                     x=5
                 elif [ "," = "$c" ]; then
                     [ $fc -eq 0 ] && err="Invalid json (42002): expecting digit (fractional part) at index $i (path: $(concatCP)), but got '$c'" && break
@@ -389,7 +411,7 @@ function jsonget() { #? get value by path. Usage: jsonget $json $targetPath, -h 
                     meetObjectEnd || break
                 elif [ ']' = "$c" ]; then
                     meetArrayEnd || break
-                elif ! [[ ' ' = "$c" || $'\t' = "$c" || $'\n' = "$c" ]]; then
+                elif ! [[ ' ' = "$c" || $'\t' = "$c" || $'\n' = "$c" || $'\r' = "$c" ]]; then
                     err="Invalid json (50000): expecting ',' (or '}', ']) at index $i (path: $(concatCP)), but got '$c'" && break
                 fi
             ;;
