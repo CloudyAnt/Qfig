@@ -16,11 +16,31 @@ function github:getInfo() {
     done
     shift "$((OPTIND - 1))"
 
-    if ! +base:checkParams "repo" "$1"; then return 1; fi
-
     local repo="$1"
-    if [[ "$repo" =~ ^https?://.*github\.com/(.+)\.git$ ]]; then
-        repo="${BASH_REMATCH[1]}"
+
+    # Auto-detect repo from current git repository if not specified
+    if [ -z "$repo" ]; then
+        if [ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" = "true" ]; then
+            local remote_url=$(git remote get-url origin 2>/dev/null)
+            if [ -n "$remote_url" ]; then
+                # Extract GitHub repo from various URL formats
+                # Handles: git@github.com:owner/repo.git, https://github.com/owner/repo.git, etc.
+                local tmp_repo="${remote_url##*github.com[/:]}"
+                tmp_repo="${tmp_repo%.git}"
+                if [[ "$tmp_repo" == */* ]]; then
+                    repo="$tmp_repo"
+                    logInfo "Getting info for current repo \e[1m$tmp_repo\e[0m"
+                else
+                    logError "Origin remote is not a GitHub repository"
+                fi
+            else
+                logError "No repo specified and no origin remote found"
+                return 1
+            fi
+        else
+            logError "No repo specified and not in a git repository"
+            return 1
+        fi
     fi
 
     local resp=$(curl -s "https://api.github.com/repos/$repo")
