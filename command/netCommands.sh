@@ -72,9 +72,8 @@ function shellproxy() { #? operate shell proxies. -p to set shell proxies to a p
     unset -f _saveProxiesToFile
 }
 
-function curld() { #? [curl] curl directly (--noproxy)
-	curl --noproxy '*' $@
-}
+#? curl directly without preoxy
+alias direct="curl --noproxy '*'"
 
 function ipt() { #? [iptables] simplified iptables ops
     local command=$1
