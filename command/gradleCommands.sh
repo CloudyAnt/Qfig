@@ -18,11 +18,13 @@ function gkilldaemons() {
 
 function ginit() { #? create a gradle project. Usage: ginit [-k]
     local ext="gradle"
+    local templateExt="gradle"
     OPTIND=1
     while getopts ":k" opt; do
         case $opt in
             k)
                 ext="gradle.kts"
+                templateExt="gradle.kts"
                 logInfo "Will create kts build files"
                 ;;
             \?)
@@ -47,16 +49,13 @@ function ginit() { #? create a gradle project. Usage: ginit [-k]
         readTemp "\e[34mversion\e[0m: " && version=$_TEMP
     done
 
-    echo "plugins {
-    id(\"java\")
-}
-group = \"$groupId\"
-version = \"$version\"
+    sed -e "s/@@GROUPID@@/$groupId/g" \
+        -e "s/@@VERSION@@/$version/g" \
+        "$_QFIG_LOC/staff/build.$templateExt.template" > build.$ext
 
-repositories {
-    mavenCentral()
-}" > build.$ext
-    echo "rootProject.name = \"$projectName\"" > settings.$ext
+    sed "s/@@PROJECTNAME@@/$projectName/g" \
+        "$_QFIG_LOC/staff/settings.$templateExt.template" > settings.$ext
+
     echo "version=$version
 org.gradle.jvmargs=-Dfile.encoding=UTF-8
 org.gradle.daemon.idletimeout=30000" > gradle.properties
