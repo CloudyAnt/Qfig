@@ -19,19 +19,23 @@ function gkilldaemons() {
 function ginit() { #? create a gradle project. Usage: ginit [-k]
     local ext="gradle"
     local templateExt="gradle"
+    local type="java"
     OPTIND=1
     while getopts ":k" opt; do
         case $opt in
             k)
                 ext="gradle.kts"
                 templateExt="gradle.kts"
-                logInfo "Will create kts build files"
+                type="kotlin"
                 ;;
             \?)
                 return 1
                 ;;
         esac
     done
+
+    [ $type = "kotlin" ] && logInfo "Will create kts build files" \
+        || logInfo "Will create normal build files, add -k to create kts build files"
 
     if [ -f "build.$ext" ] || [ -f "settings.$ext" ]; then
         logWarn "build.$ext or settings.$ext already exists in this directory."
@@ -60,4 +64,10 @@ function ginit() { #? create a gradle project. Usage: ginit [-k]
 org.gradle.jvmargs=-Dfile.encoding=UTF-8
 org.gradle.daemon.idletimeout=30000" > gradle.properties
     logInfo "build.$ext, settings.$ext and gradle.properties created."
+
+    if [ ! -d "src" ]; then
+        local pkgPath=$(echo "$groupId" | sed 's/\./\//g')
+        mkdir -p "src/main/$type/$pkgPath/$projectName"
+        logInfo "Created src/main/$type/$pkgPath/$projectName"
+    fi
 }
