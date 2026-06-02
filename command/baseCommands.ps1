@@ -73,7 +73,7 @@ function qfig { #? Qfig preserved command. -h(help) for more
 function funAlias() { #? works like bash 'alias', note that it would spent more time due to usage of Invoke-Expression
     param ([Parameter(Mandatory = $true)][string]$alias, [Parameter(Mandatory = $true)][string]$original, [switch]$hasArgs)
     If ($hasArgs) {
-        "function global:$alias() {$original `$args}" | Invoke-Expression
+        "function global:$alias() {$original @args}" | Invoke-Expression
     } Else {
         "function global:$alias() {$original}" | Invoke-Expression
     }
@@ -161,7 +161,7 @@ function qcmds() { #? operate available commands. Usage: qcmds commandsPrefix su
                 } ElseIf ($_.StartsWith("funAlias ")) {
                     $parts = $_.Split(" ")
                     $exp = "`e[32mfunAlias`e[34m $($parts[1])`e[39m = `e[36m$($parts[2])"
-                    for ($i = 2; $i -lt $parts.Count; $i++) {
+                    for ($i = 3; $i -lt $parts.Count; $i++) {
                         $exp += " $($parts[$i])"
                     }
                     "$exp`e[0m"
