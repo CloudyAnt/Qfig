@@ -70,6 +70,10 @@ function qfig { #? Qfig preserved command. -h(help) for more
     }
 }
 
+function refresh-qifg() {
+    logInfo "Please run '. `$profile' manully to refresh qfig"
+}
+
 function funAlias() { #? works like bash 'alias', note that it would spent more time due to usage of Invoke-Expression
     param ([Parameter(Mandatory = $true)][string]$alias, [Parameter(Mandatory = $true)][string]$original, [switch]$hasArgs)
     If ($hasArgs) {
