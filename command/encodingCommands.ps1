@@ -14,8 +14,12 @@ function chr2ucp() {
     } else {
         $prefix = ""
     }
-    foreach ($char in $str.ToCharArray()) {
-        $ucp = "$prefix$(Convert1Char2Ucp $char)"
+    # Use UTF-32 to iterate by code point rather than UTF-16 code unit,
+    # so surrogate pairs (e.g. emojis) are kept together.
+    $utf32bytes = [System.Text.Encoding]::UTF32.GetBytes($str)
+    for ($i = 0; $i -lt $utf32bytes.Length; $i += 4) {
+        $intucp = [System.BitConverter]::ToUInt32($utf32bytes, $i)
+        $ucp = "$prefix$($intucp.ToString("X"))"
         if ($not1st -And (-Not $noSpace)) {
             $ucps += " $ucp"
         } else {
@@ -31,7 +35,7 @@ function chr2ucp() {
 }
 
 function Convert1Char2Ucp() {
-    param([char]$char, [switch]$decimal)
+    param([string]$char, [switch]$decimal)
 
     $utf32bytes = [System.Text.Encoding]::UTF32.GetBytes($char)
     $intucp = [System.BitConverter]::ToUint32($utf32bytes)
