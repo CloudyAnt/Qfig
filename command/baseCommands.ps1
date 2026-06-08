@@ -376,19 +376,41 @@ function tail() {
     }
 }
 
-Function du() {
-    param($Path = ".")
-    forEach ($File in (Get-ChildItem $Path)) {
-        if ($File.PSisContainer){   
-            $Size = [Math]::Round((Get-ChildItem $File.FullName -Recurse | Measure-Object -Property Length -Sum).Sum / 1KB,2)
-            $Type = "Folder"
+function du() { #? disk usage. -h for human readable, -s for summary total, -sh combines both
+    param($Path = ".", [switch]$s, [switch]$h, [switch]$sh)
+
+    if ($sh) { $s = $true; $h = $true }
+
+    function _hrSize($bytes) {
+        if (-not $h) { return "$([Math]::Round($bytes / 1KB, 2)) KB" }
+        $u = 'B', 'K', 'M', 'G', 'T'
+        $b = 1024
+        $n = [double]$bytes; $i = 0
+        while ($n -ge $b -and $i -lt ($u.Length - 1)) { $n /= $b; $i++ }
+        if ($i -eq 0) { return "$([int]$n) $($u[$i])" }
+        return "$([Math]::Round($n, 1)) $($u[$i])"
+    }
+
+    if ($s) {
+        $bytes = if (Test-Path $Path -PathType Container) {
+            (Get-ChildItem $Path -Recurse -File -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum).Sum
         } else {
-            $Size = $File.Length
-            $Type = ""
-        } [PSCustomObject]@{
-            Name = $File.Name
-            Type = $Type
-            Size = $Size
+            (Get-Item $Path -ErrorAction SilentlyContinue).Length
+        }
+        [PSCustomObject]@{ Name = (Resolve-Path $Path).Path; Size = _hrSize $bytes }
+        return
+    }
+
+    Get-ChildItem $Path -ErrorAction SilentlyContinue | ForEach-Object {
+        $bytes = if ($_.PSIsContainer) {
+            (Get-ChildItem $_.FullName -Recurse -File -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum).Sum
+        } else {
+            $_.Length
+        }
+        [PSCustomObject]@{
+            Name = $_.Name
+            Type = if ($_.PSIsContainer) { "Folder" } else { "" }
+            Size = _hrSize $bytes
         }
     }
 }
