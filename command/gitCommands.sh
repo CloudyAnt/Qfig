@@ -561,16 +561,54 @@ function ghttpproxy() { #? Usage: gttpproxy proxy. unsert proxy if 'proxy' is em
     fi
 }
 
-function gpush() { #? git push with automatic branch creation
+function gpush() { #? git push with automatic branch creation. Usage: gpush [-r remote] [src] [dst]
 	isNotGitRepository && return 1
 	local current_branch=$(git rev-parse --abbrev-ref HEAD)
+
+	# Parse flags
+	local remote=""
+	local OPTIND=1
+	while getopts "r:" opt; do
+		case $opt in
+			r) remote="$OPTARG" ;;
+			\?) logError "Invalid option: -$OPTARG" && return 1 ;;
+		esac
+	done
+	shift "$((OPTIND - 1))"
+
 	local src=$1
 	local dst=$2
 	[ "$src" = "" ] && src=$current_branch || :
 	[ "$dst" = "" ] && dst=$src || :
+
+	# Resolve remote: use -r flag if given, otherwise auto-detect
+	if [ -z "$remote" ]; then
+		local remotes
+		IFS=$'\n' remotes=($(git remote)); rdIFS
+		if [ ${#remotes[@]} -eq 0 ]; then
+			logError "No remote configured! Add one with 'git remote add <name> <url>'"
+			return 1
+		elif [ ${#remotes[@]} -eq 1 ]; then
+			remote="${remotes[0]}"
+			logSilence "Pushing to the only remote: $remote"
+		else
+			logInfo "Multiple remotes found, select one:"
+			local i
+			for ((i=0; i<${#remotes[@]}; i++)); do
+				echo "  $((i+1)): ${remotes[$i]}"
+			done
+			readTemp && local choice=$_TEMP || return 1
+			if [[ $choice =~ ^[0-9]+$ && $choice -ge 1 && $choice -le ${#remotes[@]} ]]; then
+				remote="${remotes[$((choice - 1))]}"
+			else
+				logError "Invalid selection" && return 1
+			fi
+		fi
+	fi
+
 	if git rev-parse --verify --quiet "${dst}@{u}" >/dev/null; then
 		logInfo "Push starting.."
-		git push origin $src:$dst
+		git push $remote $src:$dst
 		if [ $? = 0 ]; then
 			logSuccess "Push done"
 		else
@@ -578,7 +616,7 @@ function gpush() { #? git push with automatic branch creation
 		fi
 	elif confirm "No upstream branch \e[1m$dst\e[0m, create it ?"; then
 		logInfo "Creating upstream branch [$src] .."
-		git push -u origin $src:$dst
+		git push -u $remote $src:$dst
 		if [ $? = 0 ]; then
 			logSuccess "Upstream branch just created"
 		else

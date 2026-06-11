@@ -335,7 +335,7 @@ function ghttpproxy() {
 }
 
 function gpush() {
-    param([string]$src, [string]$dst)
+    param([string]$src, [string]$dst, [Alias("r")][string]$remote)
     if (isNotGitRepository) {
         Return
     }
@@ -346,9 +346,32 @@ function gpush() {
     If ([string]::IsNullOrWhiteSpace($dst)) {
         $dst = $src
     }
+    # Resolve remote: use -remote flag if given, otherwise auto-detect
+    If ([string]::IsNullOrWhiteSpace($remote)) {
+        $remotes = @(git remote)
+        If ($remotes.Length -Eq 0) {
+            logError "No remote configured! Add one with 'git remote add <name> <url>'"
+            Return
+        } ElseIf ($remotes.Length -Eq 1) {
+            $remote = $remotes[0]
+            logSilence "Pushing to the only remote: $remote"
+        } Else {
+            logInfo "Multiple remotes found, select one:"
+            For ($i = 0; $i -lt $remotes.Length; $i++) {
+                Write-Host "  $($i+1): $($remotes[$i])"
+            }
+            $choice = Read-Host "Enter number (1-$($remotes.Length))"
+            If ([int]::TryParse($choice, [ref]$null) -And $choice -ge 1 -And $choice -le $remotes.Length) {
+                $remote = $remotes[$choice - 1]
+            } Else {
+                logError "Invalid selection"
+                Return
+            }
+        }
+    }
     If (git rev-parse --verify --quiet "${current_branch}@{u}" > $null && $?) {
         logInfo "Push starting.."
-        git push origin "${src}:$dst"
+        git push $remote "${src}:$dst"
         If ($?) {
             logSuccess "Push done"
         } Else {
@@ -356,7 +379,7 @@ function gpush() {
         }
     } ElseIf (confirm "No upstream branch, create it ?") {
         logInfo "Creating upstream branch.."
-        git push -u origin "${src}:$dst"
+        git push -u $remote "${src}:$dst"
         if ($?) {
             logSuccess "Upstream branch just created"
         } Else {
