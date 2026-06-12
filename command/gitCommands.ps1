@@ -358,7 +358,8 @@ function gpush() {
         } Else {
             logInfo "Multiple remotes found, select one:"
             For ($i = 0; $i -lt $remotes.Length; $i++) {
-                Write-Host "  $($i+1): $($remotes[$i])"
+                $url = (git remote get-url $remotes[$i] 2>$null)
+                Write-Host "  $($i+1): $($remotes[$i])  $url"
             }
             $choice = Read-Host "Enter number (1-$($remotes.Length))"
             If ([int]::TryParse($choice, [ref]$null) -And $choice -ge 1 -And $choice -le $remotes.Length) {

@@ -595,7 +595,7 @@ function gpush() { #? git push with automatic branch creation. Usage: gpush [-r 
 			logInfo "Multiple remotes found, select one:"
 			local i
 			for ((i=0; i<${#remotes[@]}; i++)); do
-				echo "  $((i+1)): ${remotes[$i]}"
+				echo "  $((i+1)): ${remotes[$i]}  $(git remote get-url ${remotes[$i]})"
 			done
 			readTemp && local choice=$_TEMP || return 1
 			if [[ $choice =~ ^[0-9]+$ && $choice -ge 1 && $choice -le ${#remotes[@]} ]]; then
