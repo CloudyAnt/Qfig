@@ -47,3 +47,10 @@ function readWithPromptAndLimit() {
     cleanup
     return 0
 }
+
+
+# If it's linux-gnu with zsh, enable 'bashcompinit' so that 'complete' function can work
+if [ "$OSTYPE" = "linux-gnu" ]; then
+    autoload -U +X compinit && compinit
+    autoload -U +X bashcompinit && bashcompinit
+fi
