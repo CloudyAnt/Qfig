@@ -36,3 +36,7 @@ function jrun() { #? java compile then run, jrun Hello => javac Hello.java && ja
 
     java $filenameParts[0]
 }
+
+function jsh() {
+    jshell --startup "$_QFIG_LOC/staff/jshell_enhancement.jsh"
+}
