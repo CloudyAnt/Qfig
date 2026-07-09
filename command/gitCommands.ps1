@@ -3,6 +3,7 @@
 funAlias gco- "gco -"
 funAlias glo "git log --oneline"
 funAlias glog "git log --oneline --abbrev-commit --graph"
+funAlias glod "git log --pretty=format:'%h - %an, %ad : %s' --date=iso"
 funAlias gamd "git commit --amend"
 funAlias gamdn "git commit --amend --no-edit"
 funAlias gaa "git add -A"
@@ -212,7 +213,7 @@ function gb() { #? operate branch. Usage: gb $branch(optional, . stands for curr
     }
 }
 
-function gaaf() {
+function gaac() {
     #? git add files in pattern
     param($pattern)
     If ($pattern.Length -Eq 0) {
