@@ -73,29 +73,37 @@ function gt() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'create'
 				git tag $tag && logSuccess "Created tag: $tag"
 			;;
 			p|push)
-				git push origin tag $tag
+				resolveGitRemote || return 1
+				git push $_TEMP tag $tag
 			;;
 			cp)
-				git tag $tag && logSuccess "Created tag: $tag" && git push origin tag $tag
+				git tag $tag && logSuccess "Created tag: $tag" || return 1
+				resolveGitRemote || return 1
+				git push $_TEMP tag $tag
 			;;
 			d|delete)
 				git tag -d $tag
 			;;
 			dr|delete-remote)
-				git push origin :refs/tags/$tag
+				resolveGitRemote || return 1
+				git push $_TEMP :refs/tags/$tag
 			;;
 			ddr)
-				git tag -d $1 && git push origin :refs/tags/$tag
+				git tag -d $1 || return 1
+				resolveGitRemote || return 1
+				git push $_TEMP :refs/tags/$tag
 			;;
 			ddrcp)
 				git tag -d $tag
 				[ 0 -ne $? ] && return
-				git push origin :refs/tags/$tag
+				resolveGitRemote || return 1
+				local remote="$_TEMP"
+				git push $remote :refs/tags/$tag
 				[ 0 -ne $? ] && return
 				git tag $1
 				[ 0 -ne $? ] && return
 				logSuccess "Created tag: $tag"
-				git push origin tag $tag
+				git push $remote tag $tag
 			;;
 			m|move|mr|move-remote|mmr)
 				local newTag=$3
@@ -107,13 +115,15 @@ function gt() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'create'
 					git tag $newTag $tag && git tag -d $tag && logSuccess "Renamed tag $tag to $newTag" || goon=""
 				fi
 				if [ $goon ] && [[ "mr" = $cmd || "move-remote" = $cmd || "mmr" = $cmd ]]; then
-					git push origin $newTag :$tag && logSuccess "Renamed remote tag $tag to $newTag"
+					resolveGitRemote || return 1
+					git push $_TEMP $newTag :$tag && logSuccess "Renamed remote tag $tag to $newTag"
 				fi
 			;;
 			df|delete-fetch)
 				git tag -d $tag
 				[ 0 -ne $? ] && return
-				git fetch origin tag $tag --no-tags
+				resolveGitRemote || return 1
+				git fetch $_TEMP tag $tag --no-tags
 			;;
 			*)
 				logError "Unknown command: $cmd"
@@ -210,7 +220,9 @@ function gb() { #? operate branch. Usage: gb $branch(optional, . stands for curr
 				git branch -D $branch
 			;;
 			dr|delete-remote)
-				confirm -w "Are you sure to delete the remote branch \e[1m$branch\e[0m ?" && git push origin --delete $branch || logInfo "NOT deleted"
+				confirm -w "Are you sure to delete the remote branch \e[1m$branch\e[0m ?" || { logInfo "NOT deleted"; return 0; }
+				resolveGitRemote || return 1
+				git push $_TEMP --delete $branch
 			;;
 			m|move)
 				local newB=$3
@@ -581,30 +593,8 @@ function gpush() { #? git push with automatic branch creation. Usage: gpush [-r 
 	[ "$src" = "" ] && src=$current_branch || :
 	[ "$dst" = "" ] && dst=$src || :
 
-	# Resolve remote: use -r flag if given, otherwise auto-detect
-	if [ -z "$remote" ]; then
-		local remotes
-		IFS=$'\n' remotes=($(git remote)); rdIFS
-		if [ ${#remotes[@]} -eq 0 ]; then
-			logError "No remote configured! Add one with 'git remote add <name> <url>'"
-			return 1
-		elif [ ${#remotes[@]} -eq 1 ]; then
-			remote="${remotes[0]}"
-			logSilence "Pushing to the only remote: $remote"
-		else
-			logInfo "Multiple remotes found, select one:"
-			local i
-			for ((i=0; i<${#remotes[@]}; i++)); do
-				echo "  $((i+1)): ${remotes[$i]}  $(git remote get-url ${remotes[$i]})"
-			done
-			readTemp && local choice=$_TEMP || return 1
-			if [[ $choice =~ ^[0-9]+$ && $choice -ge 1 && $choice -le ${#remotes[@]} ]]; then
-				remote="${remotes[$((choice - 1))]}"
-			else
-				logError "Invalid selection" && return 1
-			fi
-		fi
-	fi
+	resolveGitRemote "$remote" || return 1
+	remote="$_TEMP"
 
 	if git rev-parse --verify --quiet "${dst}@{u}" >/dev/null; then
 		logInfo "Push starting.."
@@ -896,6 +886,42 @@ You can also \e[34mchoose one option by input number\e[0m if there are multi opt
     else
 	    git commit -m "$message"
     fi
+}
+
+function resolveGitRemote() { #x
+	# Resolve git remote: use $1 if given, else auto-detect or prompt user. Result in $_TEMP
+	local remote="$1"
+	if [ -n "$remote" ]; then
+		if ! git remote get-url "$remote" &>/dev/null; then
+			logError "Remote '$remote' not found"
+			return 1
+		fi
+		_TEMP="$remote"
+		return 0
+	fi
+
+	local remotes
+	IFS=$'\n' remotes=($(git remote)); rdIFS
+	if [ ${#remotes[@]} -eq 0 ]; then
+		logError "No remote configured! Add one with 'git remote add <name> <url>'"
+		return 1
+	elif [ ${#remotes[@]} -eq 1 ]; then
+		_TEMP="${remotes[0]}"
+		logSilence "Using the only remote: $_TEMP"
+	else
+		logInfo "Multiple remotes found, select one:"
+		local i
+		for ((i=0; i<${#remotes[@]}; i++)); do
+			echo "  $((i+1)): ${remotes[$i]}  $(git remote get-url ${remotes[$i]})"
+		done
+		readTemp && local choice=$_TEMP || return 1
+		if [[ $choice =~ ^[0-9]+$ && $choice -ge 1 && $choice -le ${#remotes[@]} ]]; then
+			_TEMP="${remotes[$((choice - 1))]}"
+		else
+			logError "Invalid selection"
+			return 1
+		fi
+	fi
 }
 
 function isNotGitRepository() { #x

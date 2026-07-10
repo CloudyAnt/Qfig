@@ -61,29 +61,44 @@ function gt() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'create'
                 If ($?) { logSuccess "Created tag: $tag" }
             }
             { "p", "push" -contains $_ } {
-                git push origin tag $tag
+                $remote = resolveGitRemote
+                If (-not $remote) { Return }
+                git push $remote tag $tag
             }
             "cp" {
-                git tag $tag && logSuccess "Created tag: $tag" && git push origin tag $tag
+                git tag $tag
+                If (-Not $?) { Return }
+                logSuccess "Created tag: $tag"
+                $remote = resolveGitRemote
+                If (-not $remote) { Return }
+                git push $remote tag $tag
             }
             { "d", "delete" -contains $_ } {
                 git tag -d $tag
             }
             { "dr", "delete-remote" -contains $_ } {
-                git push origin :refs/tags/$tag
+                $remote = resolveGitRemote
+                If (-not $remote) { Return }
+                git push $remote :refs/tags/$tag
             }
             "ddr" {
-                git tag -d $tag && git push origin :refs/tags/$tag
+                git tag -d $tag
+                If (-Not $?) { Return }
+                $remote = resolveGitRemote
+                If (-not $remote) { Return }
+                git push $remote :refs/tags/$tag
             }
             "ddrcp" {
                 git tag -d $tag
                 if (-Not $?) { Return }
-                git push origin :refs/tags/$tag
+                $remote = resolveGitRemote
+                If (-not $remote) { Return }
+                git push $remote :refs/tags/$tag
                 if (-Not $?) { Return }
                 git tag $tag
                 if (-Not $?) { Return }
                 logSuccess "Created tag: $tag"
-                git push origin tag $tag
+                git push $remote tag $tag
             }
             { "m", "move", "mr", "move-remote", "mmr" -contains $_ } {
                 $newTag = $cmdArg
@@ -97,14 +112,18 @@ function gt() { #? operate tag. Usage: gtag $tag(optional) $cmd(default 'create'
                     If ($?) { logSuccess "Renamed tag $tag to $newTag" } Else { $goon = $false }
                 }
                 If ($goon -And "mr", "move-remote", "mmr" -contains $_) {
-                    git push origin $newTag :$tag
+                    $remote = resolveGitRemote
+                    If (-not $remote) { Return }
+                    git push $remote $newTag :$tag
                     If ($?) { logSuccess "Renamed remote tag $tag to $newTag" }
                 }
             }
             {"df", "delete-fetch" -contains $_} {
                 git tag -d $tag
                 if (-Not $?) { Return }
-                git fetch origin tag $tag --no-tags
+                $remote = resolveGitRemote
+                If (-not $remote) { Return }
+                git fetch $remote tag $tag --no-tags
             }
             Default {
                 logError "Unknown command: $cmd"
@@ -176,9 +195,10 @@ function gb() { #? operate branch. Usage: gb $branch(optional, . stands for curr
                 git branch -D $branch
             }
             { "dr", "delete-remote" -contains $_ } {
-                If (confirm -w "Are you sure to delete remote branch `e[1m$branch`e[0m ?") {
-                    git push origin --delete $branch
-                }
+                If (-not (confirm -w "Are you sure to delete remote branch `e[1m$branch`e[0m ?")) { Return }
+                $remote = resolveGitRemote
+                If (-not $remote) { Return }
+                git push $remote --delete $branch
             }
             { "m", "move" -contains $_ } {
                 $newB = $cmdArg
@@ -347,30 +367,8 @@ function gpush() {
     If ([string]::IsNullOrWhiteSpace($dst)) {
         $dst = $src
     }
-    # Resolve remote: use -remote flag if given, otherwise auto-detect
-    If ([string]::IsNullOrWhiteSpace($remote)) {
-        $remotes = @(git remote)
-        If ($remotes.Length -Eq 0) {
-            logError "No remote configured! Add one with 'git remote add <name> <url>'"
-            Return
-        } ElseIf ($remotes.Length -Eq 1) {
-            $remote = $remotes[0]
-            logSilence "Pushing to the only remote: $remote"
-        } Else {
-            logInfo "Multiple remotes found, select one:"
-            For ($i = 0; $i -lt $remotes.Length; $i++) {
-                $url = (git remote get-url $remotes[$i] 2>$null)
-                Write-Host "  $($i+1): $($remotes[$i])  $url"
-            }
-            $choice = Read-Host "Enter number (1-$($remotes.Length))"
-            If ([int]::TryParse($choice, [ref]$null) -And $choice -ge 1 -And $choice -le $remotes.Length) {
-                $remote = $remotes[$choice - 1]
-            } Else {
-                logError "Invalid selection"
-                Return
-            }
-        }
-    }
+    $remote = resolveGitRemote $remote
+    If (-not $remote) { Return }
     If (git rev-parse --verify --quiet "${current_branch}@{u}" > $null && $?) {
         logInfo "Push starting.."
         git push $remote "${src}:$dst"
@@ -664,6 +662,38 @@ function gct() {
     Write-Output $newBStepValues > $b_step_values_cache_file
 
     git commit -m "$message"
+}
+
+function resolveGitRemote { #x
+    param([string]$remote)
+    If (-not [string]::IsNullOrWhiteSpace($remote)) {
+        If (-not (git remote get-url $remote 2>$null)) {
+            logError "Remote '$remote' not found"
+            Return $null
+        }
+        Return $remote
+    }
+    $remotes = @(git remote)
+    If ($remotes.Length -Eq 0) {
+        logError "No remote configured! Add one with 'git remote add <name> <url>'"
+        Return $null
+    } ElseIf ($remotes.Length -Eq 1) {
+        logSilence "Using the only remote: $($remotes[0])"
+        Return $remotes[0]
+    } Else {
+        logInfo "Multiple remotes found, select one:"
+        For ($i = 0; $i -lt $remotes.Length; $i++) {
+            $url = (git remote get-url $remotes[$i] 2>$null)
+            Write-Host "  $($i+1): $($remotes[$i])  $url"
+        }
+        $choice = Read-Host "Enter number (1-$($remotes.Length))"
+        If ([int]::TryParse($choice, [ref]$null) -And $choice -ge 1 -And $choice -le $remotes.Length) {
+            Return $remotes[$choice - 1]
+        } Else {
+            logError "Invalid selection"
+            Return $null
+        }
+    }
 }
 
 function isNotGitRepository() { #x
