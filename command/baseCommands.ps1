@@ -91,6 +91,10 @@ function open() {
     param([string]$dir)
     if ([string]::IsNullOrWhiteSpace($dir)) {
         $dir = "."
+    } elseif ($dir -eq '~') {
+        $dir = $HOME
+    } elseif ($dir.StartsWith('~/') -or $dir.StartsWith('~\')) {
+        $dir = Join-Path $HOME $dir.Substring(2)
     }
     Start-Process $dir
 }
