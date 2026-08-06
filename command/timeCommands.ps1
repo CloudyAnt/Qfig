@@ -1,7 +1,6 @@
 #? Commands about time
 
-function eut {
-    #? describe an epoch unix timestamp (default now), -m to indicate a milliseconds
+function eut { #? describe an epoch unix timestamp (default now), -m to indicate a milliseconds
     $millis = $false
     $remaining = @($args)
 
