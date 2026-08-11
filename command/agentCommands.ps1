@@ -78,6 +78,11 @@ function yolo { #? run a CLI agent with auto-approve / yolo flags. Usage: yolo [
         $agentKey = [string]$allArgs[0]
         $remaining = @($allArgs | Select-Object -Skip 1)
         $useDefault = $false
+    } ElseIf ($allArgs.Count -ge 1 -And $allArgs[0] -ne "default") {
+        $keys = Get-YoloMappingKeys
+        If ([string]::IsNullOrWhiteSpace($keys)) { $keys = "(none)" }
+        logWarn "Unknown agent '$($allArgs[0])'. Available: $keys. Edit with 'qmap yolo'."
+        Return
     }
 
     If ($useDefault) {
@@ -86,13 +91,14 @@ function yolo { #? run a CLI agent with auto-approve / yolo flags. Usage: yolo [
             logError "No 'default' agent in map. Use 'qmap yolo' to set default=<name>."
             Return
         }
+        logInfo "Using default agent '$agentKey'."
     }
 
     $mapped = $_YOLO_MAPPING["$agentKey"]
     If ([string]::IsNullOrWhiteSpace($mapped)) {
         $keys = Get-YoloMappingKeys
         If ([string]::IsNullOrWhiteSpace($keys)) { $keys = "(none)" }
-        logError "Unknown agent '$agentKey'. Known: $keys. Edit with 'qmap yolo'."
+        logError "Default agent '$agentKey' is not mapped. Available: $keys. Edit with 'qmap yolo'."
         Return
     }
 

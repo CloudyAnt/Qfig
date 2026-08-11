@@ -95,6 +95,10 @@ function yolo() { #? run a CLI agent with auto-approve / yolo flags. Usage: yolo
         agentKey="$1"
         shift
         useDefault=0
+    elif [ -n "$1" ] && [ "$1" != "default" ]; then
+        +yolo:listKeys
+        logWarn "Unknown agent '$1'. Available: ${_TEMP:-(none)}. Edit with 'qmap yolo'."
+        return 1
     fi
 
     if [ "$useDefault" = 1 ]; then
@@ -103,12 +107,13 @@ function yolo() { #? run a CLI agent with auto-approve / yolo flags. Usage: yolo
             logError "No 'default' agent in map. Use 'qmap yolo' to set default=<name>."
             return 1
         fi
+        logInfo "Using default agent '$agentKey'."
     fi
 
     local mapped="${_YOLO_MAPPING[$agentKey]}"
     if [ -z "$mapped" ]; then
         +yolo:listKeys
-        logError "Unknown agent '$agentKey'. Known: ${_TEMP:-(none)}. Edit with 'qmap yolo'."
+        logError "Default agent '$agentKey' is not mapped. Available: ${_TEMP:-(none)}. Edit with 'qmap yolo'."
         return 1
     fi
 
