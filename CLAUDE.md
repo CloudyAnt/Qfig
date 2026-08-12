@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+> **Sync rule:** This file mirrors `AGENTS.md`. Keep their contents identical except for the title and the "provides guidance to ..." line above. When you change one, apply the same change to the other.
+
 ## Overview
 
 Qfig is a cross-shell (bash 5+, zsh 5+, PowerShell 7+) library of tool commands that extends the terminal with productivity functions. Users activate it by sourcing `init.sh` or `init.ps1` from their shell profile.

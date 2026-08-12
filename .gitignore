@@ -16,6 +16,7 @@
 !configTemplate
 !README.md
 !CLAUDE.md
+!AGENTS.md
 !.claude
 
 # Third, exclude files again
