@@ -44,7 +44,10 @@ if [ ! -f "$localConfigFile" ]; then
 	localConfigFile=$_QFIG_LOC/configTemplate
 fi
 if [ -f "$localConfigFile" ]; then
-	[[ "true" = $(sed -rn 's|<showVerboseInitMsg>(.+)</showVerboseInitMsg>|\1|p' $localConfigFile) ]] && verbose=1 || verbose=""
+	if grep -q '<enabledCommands>' $localConfigFile; then
+		logWarn "Legacy XML-style config detected. Run \e[1m./fix.sh\e[0m under the Qfig repo to convert it."
+	fi
+	[[ "true" = $(sed -E -n 's|^showVerboseInitMsg=(.+)|\1|p' $localConfigFile) ]] && verbose=1 || verbose=""
 	enabledCommands=""
 	declare -A enabledCommandsMap
 
@@ -81,12 +84,12 @@ if [ -f "$localConfigFile" ]; then
 	while read -r cmds; do
 	  _CURRENT_SOURCING=$(get-actual-cmds $cmds)
 		enable-qcmds $cmds
-	done < <(awk '/<enabledCommands>/{f = 1; next} /<\/enabledCommands>/{f = 0} f' $localConfigFile)
+	done < <(awk '/^\[enabledCommands\]/{f = 1; next} /^\[/{f = 0} f && NF && $1 !~ /^#/ && $0 !~ /=/ {print $1}' $localConfigFile)
 
 	_INIT_MSG=""
 	[ "$enabledCommands" ] && _INIT_MSG+="Enabled commands:$enabledCommands. " || _INIT_MSG+="None enabled commands. "
     
-    preferTextEditor=$(sed -rn 's|<preferTextEditor>(.+)</preferTextEditor>|\1|p' $localConfigFile)
+    preferTextEditor=$(sed -E -n 's|^preferTextEditor=(.+)|\1|p' $localConfigFile)
     if [ -n "$preferTextEditor" ]
     then
         _PREFER_TEXT_EDITOR=$preferTextEditor

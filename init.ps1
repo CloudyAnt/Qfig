@@ -27,7 +27,10 @@ If (-Not (Test-Path -PathType Leaf $localConfigFile)) {
 
 If (Test-Path -PathType Leaf $localConfigFile) {
 	$content = $(Get-Content "$localConfigFile") -join "`n"
-	$verbose = $($content -match '<showVerboseInitMsg>(.+)</showVerboseInitMsg>' -And "true".Equals($matches[1])) ? 1 : 0
+	If ($content.Contains('<enabledCommands>')) {
+		logWarn "Legacy XML-style config detected. Run ./fix.sh under the Qfig repo to convert it."
+	}
+	$verbose = $($content -match '(?m)^showVerboseInitMsg=(.+)' -And "true".Equals($matches[1].trim())) ? 1 : 0
 	$enabledCommands = ""
 	$enabledCommandsMap = @{}
 
@@ -57,12 +60,13 @@ If (Test-Path -PathType Leaf $localConfigFile) {
 		return " "
 	}
 
-	If ($content -match '<enabledCommands>([\s\S]*)</enabledCommands>') {
+	If ($content -match '\[enabledCommands\]([\s\S]*?)(\n\[|$)') {
 		$matches[1].Split("`n") | ForEach-Object {
-			If ([string]::IsNullOrEmpty($_)) {
+			$line = $_.trim()
+			If ([string]::IsNullOrEmpty($line) -Or $line.StartsWith("#") -Or $line.Contains("=")) {
 				Return
 			} Else {
-				Get-EnableQcmdsExpr $_ | Invoke-Expression
+				Get-EnableQcmdsExpr $line | Invoke-Expression
 			}
 		}
 	}
@@ -75,7 +79,7 @@ If (Test-Path -PathType Leaf $localConfigFile) {
 	}
 
 	$preferTextEditor = ""
-	If ($content -match '<preferTextEditor>(.+)</preferTextEditor>') {
+	If ($content -match '(?m)^preferTextEditor=(.+)') {
 		$preferTextEditor = $matches[1].trim()
 
 		If (-Not [string]::IsNullOrEmpty($preferTextEditor)) {
@@ -89,17 +93,17 @@ If (Test-Path -PathType Leaf $localConfigFile) {
 		$initMsg += "Text editor: $_PREFER_TEXT_EDITOR(default). "
 	}
 
-	If ($content -match '<psTabStyle>(.+)</psTabStyle>') {
-		If ("Windows".Equals($matches[1])) {
+	If ($content -match '(?m)^psTabStyle=(.+)') {
+		If ("Windows".Equals($matches[1].trim())) {
 			Set-PSReadLineOption -EditMode Windows
 			Set-PSReadLineKeyHandler -Key Tab -Function TabCompleteNext
 			$initMsg += "Tab style: Windows. "
-		} ElseIf ("Unix".Equals($matches[1])) {
+		} ElseIf ("Unix".Equals($matches[1].trim())) {
 			Set-PSReadLineOption -EditMode Emacs
 			Set-PSReadLineKeyHandler -Key Tab -Function Complete
 			$initMsg += "Tab style: Unix. "
 		} Else {
-			logWarn "Unsupported tab key action style: $(matches[1])"
+			logWarn "Unsupported tab key action style: $($matches[1])"
 		}
 	}
 

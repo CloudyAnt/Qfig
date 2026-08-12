@@ -1,5 +1,5 @@
 #? CLI agent helpers (yolo / auto-approve launcher).
-#? Enable with 'agent' in <enabledCommands> via 'qfig config'. Edit agents via 'qmap yolo', then refresh-qfig.
+#? Enable with 'agent' in [enabledCommands] via 'qfig config'. Edit agents via 'qmap yolo', then refresh-qfig.
 #? 'yolo' runs the mapped binary with auto-approve flags. Danger: agents may run commands without asking.
 
 $_YOLO_MAPPING_FILE = "$_QFIG_LOCAL\yoloMappingFile"

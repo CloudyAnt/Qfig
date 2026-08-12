@@ -33,7 +33,7 @@ When `init.sh` is sourced, these globals are available to all command files. **D
 
 ### Command module pattern
 
-Each domain has paired files: `command/<name>Commands.sh` and `command/<name>Commands.ps1`. Users enable them by listing the prefix (e.g., `git`) in the `<enabledCommands>` block of `.local/config`. Append `:sh` or `:ps1` to restrict to one shell (e.g., `docker:sh`).
+Each domain has paired files: `command/<name>Commands.sh` and `command/<name>Commands.ps1`. Users enable them by listing the prefix (e.g., `git`) in the `[enabledCommands]` section of `.local/config`. Append `:sh` or `:ps1` to restrict to one shell (e.g., `docker:sh`).
 
 **Function annotation convention:**
 - `#?` — user-facing function (shown in `qcmds explain` output)

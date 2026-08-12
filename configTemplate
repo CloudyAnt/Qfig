@@ -1,19 +1,18 @@
 # This is a config example, you may need to cp this as 'config'
 
-# Add needed commands in this label, one command one raw. Run 'qcmds' to check available commands.
+# Add needed commands in this section, one command one raw. Run 'qcmds' to check available commands.
 # If both fooCommands.sh and fooCommands.ps1 are required, add 'foo' else add foo:sh or foo:ps1
 # Some commands require corresponding program, e.g. 'mysqlCommands.sh' which requires 'mysql'
-<enabledCommands>
+[enabledCommands]
 git
-</enabledCommands>
 
 # Set prefer text editor. A text editor can be a command line editor(vim, nvim, nano) or a command line shortcut of a editor with UI(NotePad, code).
 # Default text editor for Powershell(Windows) is Notepad, otherwise is vim
-<preferTextEditor></preferTextEditor>
+preferTextEditor=
 
 # Whether to show verbose initiation message. Fields: true, false(default)
-<showVerboseInitMsg></showVerboseInitMsg>
+showVerboseInitMsg=
 
 # Powershell Tab key action style. Fields: Unix, Windows
 # Your os determine the default style
-<psTabStyle></psTabStyle>
+psTabStyle=

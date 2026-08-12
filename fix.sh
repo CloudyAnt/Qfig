@@ -16,3 +16,15 @@ if [ -f "./config" ] && [ ! -f "$config" ]; then
 
     echo "√ Moved configs to $configFolder"
 fi
+
+## Convert legacy XML-style config to the INI-style format
+config="$configFolder/config"
+if [ -f "$config" ] && grep -q '<enabledCommands>' "$config"; then
+    sed -i.bak \
+        -e 's|^[[:space:]]*<enabledCommands>[[:space:]]*$|[enabledCommands]|' \
+        -e '/^[[:space:]]*<\/enabledCommands>[[:space:]]*$/d' \
+        -e 's|<preferTextEditor>\(.*\)</preferTextEditor>|preferTextEditor=\1|' \
+        -e 's|<showVerboseInitMsg>\(.*\)</showVerboseInitMsg>|showVerboseInitMsg=\1|' \
+        -e 's|<psTabStyle>\(.*\)</psTabStyle>|psTabStyle=\1|' \
+        "$config" && echo "√ Converted $config to the new format (backup: $config.bak)"
+fi

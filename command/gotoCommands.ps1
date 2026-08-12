@@ -1,5 +1,5 @@
 #? Directory shortcuts (goto).
-#? Enable with 'goto' in <enabledCommands> via 'qfig config'. Edit paths via 'qmap goto', then refresh-qfig.
+#? Enable with 'goto' in [enabledCommands] via 'qfig config'. Edit paths via 'qmap goto', then refresh-qfig.
 #? Mapping like: pa=/path/to/the/awesome/project  then: goto pa
 
 $_GOTO_MAPPING_FILE = "$_QFIG_LOCAL\gotoMappingFile"
