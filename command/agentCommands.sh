@@ -7,9 +7,6 @@ _YOLO_DANGER_WARNED=""
 
 function +yolo:seedMappingFile() { #x
     # Prefer new name; migrate legacy agentMappingFile if present
-    if [ ! -f "$_YOLO_MAPPING_FILE" ] && [ -f "$_QFIG_LOCAL/agentMappingFile" ]; then
-        mv "$_QFIG_LOCAL/agentMappingFile" "$_YOLO_MAPPING_FILE"
-    fi
     [ -f "$_YOLO_MAPPING_FILE" ] && return 0
     cat > "$_YOLO_MAPPING_FILE" <<'EOF'
 #For each line, the 1st occurrence of separator's left & right will be the key & value respectively.

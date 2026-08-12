@@ -5,11 +5,6 @@
 $_YOLO_MAPPING_FILE = "$_QFIG_LOCAL\yoloMappingFile"
 $global:_YOLO_DANGER_WARNED = $false
 
-$legacyAgentMap = "$_QFIG_LOCAL\agentMappingFile"
-If (-Not (Test-Path $_YOLO_MAPPING_FILE -PathType Leaf) -And (Test-Path $legacyAgentMap -PathType Leaf)) {
-    Move-Item $legacyAgentMap $_YOLO_MAPPING_FILE
-}
-
 If (-Not (Test-Path $_YOLO_MAPPING_FILE -PathType Leaf)) {
     @"
 #For each line, the 1st occurrence of separator's left & right will be the key & value respectively.
