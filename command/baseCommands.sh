@@ -122,7 +122,8 @@ function qfig() { #? Qfig operations
 		v|version)
 			local curHead=$(getCurrentHead)
 			local branch=$(git -C $_QFIG_LOC symbolic-ref --short HEAD)
-			echo "$branch ($curHead)"
+			local commitTime=$(git -C $_QFIG_LOC log -1 --format=%ci)
+			echo "$branch ($curHead) $commitTime"
 			;;
 		*)
 			qfig help
