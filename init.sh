@@ -44,8 +44,22 @@ if [ ! -f "$localConfigFile" ]; then
 	localConfigFile=$_QFIG_LOC/configTemplate
 fi
 if [ -f "$localConfigFile" ]; then
-	if grep -q '<enabledCommands>' $localConfigFile; then
-		logWarn "Legacy XML-style config detected. Run \e[1m./fix.sh\e[0m under the Qfig repo to convert it."
+	if grep -q '<enabledCommands>' "$localConfigFile"; then
+		if confirm "Legacy XML-style config detected. Convert it to INI format now?"; then
+			if sed -i.bak \
+				-e 's|^[[:space:]]*<enabledCommands>[[:space:]]*$|[enabledCommands]|' \
+				-e '/^[[:space:]]*<\/enabledCommands>[[:space:]]*$/d' \
+				-e 's|<preferTextEditor>\(.*\)</preferTextEditor>|preferTextEditor=\1|' \
+				-e 's|<showVerboseInitMsg>\(.*\)</showVerboseInitMsg>|showVerboseInitMsg=\1|' \
+				-e 's|<psTabStyle>\(.*\)</psTabStyle>|psTabStyle=\1|' \
+				"$localConfigFile"; then
+				logSuccess "Converted $localConfigFile to INI format (backup: $localConfigFile.bak)."
+			else
+				logError "Failed to convert $localConfigFile to INI format."
+			fi
+		else
+			logWarn "Legacy config was not converted."
+		fi
 	fi
 	[[ "true" = $(sed -E -n 's|^showVerboseInitMsg=(.+)|\1|p' $localConfigFile) ]] && verbose=1 || verbose=""
 	enabledCommands=""

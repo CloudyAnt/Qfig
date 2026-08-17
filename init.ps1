@@ -28,7 +28,24 @@ If (-Not (Test-Path -PathType Leaf $localConfigFile)) {
 If (Test-Path -PathType Leaf $localConfigFile) {
 	$content = $(Get-Content "$localConfigFile") -join "`n"
 	If ($content.Contains('<enabledCommands>')) {
-		logWarn "Legacy XML-style config detected. Run ./fix.sh under the Qfig repo to convert it."
+		If (confirm "Legacy XML-style config detected. Convert it to INI format now?") {
+			$convertedContent = $content `
+				-replace '(?m)^[ \t]*<enabledCommands>[ \t]*$', '[enabledCommands]' `
+				-replace '(?m)^[ \t]*</enabledCommands>[ \t]*\r?\n?', '' `
+				-replace '<preferTextEditor>(.*)</preferTextEditor>', 'preferTextEditor=$1' `
+				-replace '<showVerboseInitMsg>(.*)</showVerboseInitMsg>', 'showVerboseInitMsg=$1' `
+				-replace '<psTabStyle>(.*)</psTabStyle>', 'psTabStyle=$1'
+			Try {
+				Copy-Item -Path $localConfigFile -Destination "$localConfigFile.bak" -Force -ErrorAction Stop
+				Set-Content -Path $localConfigFile -Value $convertedContent -ErrorAction Stop
+				$content = $convertedContent
+				logSuccess "Converted $localConfigFile to INI format (backup: $localConfigFile.bak)."
+			} Catch {
+				logError "Failed to convert $localConfigFile to INI format: $_"
+			}
+		} Else {
+			logWarn "Legacy config was not converted."
+		}
 	}
 	$verbose = $($content -match '(?m)^showVerboseInitMsg=(.+)' -And "true".Equals($matches[1].trim())) ? 1 : 0
 	$enabledCommands = ""
