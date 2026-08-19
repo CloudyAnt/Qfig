@@ -136,10 +136,12 @@ function Set-GotoMapping { #x
     If ($null -eq $abs) { Return }
 
     $existed = $_GOTO_MAPPING.ContainsKey($key)
+    $previous = If ($existed) { [string]$_GOTO_MAPPING[$key] } Else { "" }
     If (-Not (Save-GotoMapping -key $key -value $abs)) { Return }
     $_GOTO_MAPPING[$key] = $abs
     If ($existed) {
         logSuccess "Updated shortcut '$key' -> $abs"
+        logInfo "Previous: $previous (revert with: goto $key '$previous')"
     } Else {
         logSuccess "Added shortcut '$key' -> $abs"
     }

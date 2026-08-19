@@ -157,13 +157,17 @@ function +goto:setMapping() { #x
 
     +goto:toAbsolute "$path" || return 1
     local abs="$_TEMP"
-    local existed=0
-    [ -n "${_GOTO_MAPPING[$key]+x}" ] && existed=1
+    local existed=0 previous=""
+    if [ -n "${_GOTO_MAPPING[$key]+x}" ]; then
+        existed=1
+        previous="${_GOTO_MAPPING[$key]}"
+    fi
 
     +goto:saveMapping "$key" "$abs" || return 1
     _GOTO_MAPPING[$key]="$abs"
     if [ "$existed" = 1 ]; then
         logSuccess "Updated shortcut '$key' -> $abs"
+        logInfo "Previous: $previous (revert with: goto $key '$previous')"
     else
         logSuccess "Added shortcut '$key' -> $abs"
     fi
