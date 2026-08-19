@@ -76,7 +76,6 @@ function +goto:printHelp() { #x
     printf "    %-22s%s\n" "-l, --list" "List all shortcuts"
     printf "    %-22s%s\n" "-d, --delete <key>" "Remove a shortcut"
     echo "  After editing via 'qmap goto', run refresh-qfig to reload."
-    +goto:printList
 }
 
 function +goto:resolvePath() { #x
@@ -202,7 +201,13 @@ function +goto:deleteMapping() { #x
 +goto:loadMapping
 
 function goto() { #? jump to / manage mapped directories. Usage: goto <key> | goto <key> <path> | goto -d <key> | goto -l
-    if [ -z "$1" ] || [ "$1" = "-h" ] || [ "$1" = "--help" ] || [ "$1" = "help" ]; then
+    if [ -z "$1" ]; then
+        +goto:printList
+        logInfo "Run 'goto -h' for help."
+        return 0
+    fi
+
+    if [ "$1" = "-h" ] || [ "$1" = "--help" ] || [ "$1" = "help" ]; then
         +goto:printHelp
         return 0
     fi

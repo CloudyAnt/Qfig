@@ -49,7 +49,6 @@ function Show-GotoHelp { #x
     "    {0,-22}{1}" -f "-l, --list", "List all shortcuts"
     "    {0,-22}{1}" -f "-d, --delete <key>", "Remove a shortcut"
     Write-Host "  After editing via 'qmap goto', run refresh-qfig / re-source profile to reload."
-    Show-GotoList
 }
 
 function Resolve-GotoPath { #x
@@ -168,7 +167,8 @@ function Remove-GotoMapping { #x
 function goto() { #? jump to / manage mapped directories. Usage: goto <key> | goto <key> <path> | goto -d <key> | goto -l
     $allArgs = @($args)
     If ($allArgs.Count -eq 0) {
-        Show-GotoHelp
+        Show-GotoList
+        logInfo "Run 'goto -h' for help."
         Return
     }
 
