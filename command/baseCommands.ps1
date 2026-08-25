@@ -248,9 +248,78 @@ function qfigLog() { #x
 	Write-Host "$color$prefix`e[0m $text"
 }
 
-function qmap() { #? view or edit a map(which may be recognized by Qfig commands)
-    param([Parameter(Mandatory)]$prefix)
-    editFile "$_QFIG_LOCAL/$prefix`MappingFile"
+function qmap() { #? Edit or output Qfig map. Usage: qmap [options] [mapKey|filePath]
+    param(
+        [Parameter(Position = 0)][string]$Map,
+        [Alias('c')][switch]$Create,
+        [Alias('p')][switch]$CustomPath,
+        [switch]$Output,
+        [Alias('h')][switch]$Help
+    )
+
+    If ($Help) {
+        logInfo "Usage: qmap [options] [key|file]"
+        Write-Host "  Options:"
+        "    {0,-12}{1}" -f "-c", "Auto create mapping file if not exists"
+        "    {0,-12}{1}" -f "-p", "Treat first argument as custom file path instead of map key"
+        "    {0,-12}{1}" -f "-Output", "Return the map as a hashtable instead of editing"
+        "    {0,-12}{1}" -f "-h", "Show this help message"
+        Write-Host "  Examples:"
+        Write-Host "    qmap myMap                 # Edit default mapping file for 'myMap'"
+        Write-Host "    qmap -c myMap              # Create and edit mapping file for 'myMap'"
+        Write-Host "    qmap -p /path/to/file      # Edit custom mapping file"
+        Write-Host "    `$v = qmap myMap -Output   # Read mapping into `$v"
+        Return
+    }
+
+    If ([string]::IsNullOrWhiteSpace($Map)) {
+        If ($CustomPath) { logError "Missing file path" } Else { logError "Missing map key" }
+        Return
+    }
+
+    $file = If ($CustomPath) { $Map } Else { Join-Path $_QFIG_LOCAL "${Map}MappingFile" }
+
+    If (-Not (Test-Path -LiteralPath $file -PathType Leaf)) {
+        If ($Create) {
+            @"
+#For each line, the 1st occurrence of separator's left & right will be the key & value respectively.
+#The default separator is '=', change it by a line like '#?-'(change to '-'), it can be changed multi times.
+"@ | Set-Content -LiteralPath $file -Encoding utf8 | Out-Null
+        } Else {
+            logError "Mapping file $file doesn't exist! (Use -c to auto create)"
+            Return
+        }
+    }
+
+    If (-Not $Output) {
+        editFile $file
+    }
+
+    $sep = "="
+    $parsed = @{}
+    $bad = @()
+    $n = 0
+    foreach ($line in Get-Content -LiteralPath $file) {
+        $n++
+        If ($line -match '^#\?(.+)$') {
+            $sep = $Matches[1]
+            Continue
+        }
+        If ([string]::IsNullOrWhiteSpace($line) -Or $line.StartsWith("#")) { Continue }
+        $idx = $line.IndexOf($sep)
+        If ($idx -lt 0) {
+            $bad += $n
+            Continue
+        }
+        $parsed[$line.Substring(0, $idx)] = $line.Substring($idx + $sep.Length)
+    }
+    If ($bad.Count) {
+        logWarn "Bad line indices: $($bad -join ' '), in mapping file $file"
+    }
+    If ($Output) {
+        # Unary comma keeps the hashtable as one object (PS would otherwise enumerate it).
+        ,$parsed
+    }
 }
 
 function md5() { #? calculate md5. Supporting pipe.

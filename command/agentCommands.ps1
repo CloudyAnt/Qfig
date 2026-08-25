@@ -20,14 +20,7 @@ kimi=kimi --yolo
 "@ | Set-Content -Path $_YOLO_MAPPING_FILE -Encoding utf8
 }
 
-$_YOLO_MAPPING = @{}
-Get-Content $_YOLO_MAPPING_FILE | ForEach-Object {
-    If ([string]::IsNullOrWhiteSpace($_) -Or $_.StartsWith("#")) { Return }
-    $parts = $_.Split("=", 2)
-    If ($parts.Length -eq 2) {
-        $_YOLO_MAPPING[$parts[0]] = $parts[1]
-    }
-}
+$_YOLO_MAPPING = qmap yolo -Output
 
 function Get-YoloMappingKeys { #x
     ($_YOLO_MAPPING.Keys | Where-Object { $_ -ne "default" } | Sort-Object) -join " "

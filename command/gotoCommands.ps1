@@ -14,14 +14,7 @@ If (-Not (Test-Path $_GOTO_MAPPING_FILE -PathType Leaf)) {
 "@ | Set-Content -Path $_GOTO_MAPPING_FILE -Encoding utf8
 }
 
-$_GOTO_MAPPING = @{}
-Get-Content $_GOTO_MAPPING_FILE | ForEach-Object {
-    If ([string]::IsNullOrWhiteSpace($_) -Or $_.StartsWith("#")) { Return }
-    $parts = $_.Split("=", 2)
-    If ($parts.Length -eq 2) {
-        $_GOTO_MAPPING[$parts[0]] = $parts[1]
-    }
-}
+$_GOTO_MAPPING = qmap goto -Output
 
 function Get-GotoMappingKeys { #x
     ($_GOTO_MAPPING.Keys | Sort-Object) -join " "

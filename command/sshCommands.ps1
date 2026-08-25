@@ -3,33 +3,8 @@
 #? You also need to edit the pem mapping file by execute 'qmap pem' if needed. A pem mapping like: a=/path/to/pem
 #? Use csjump to jump, the ssh mapping should be like: a=jump_user@server_user@server_ip@jump_ip:jump_port
 
-$_SSH_MAPPING_FILE = "$_QFIG_LOCAL\sshMappingFile"
-$_PEM_MAPPING_FILE = "$_QFIG_LOCAL\pemMappingFile"
-
-If (-Not (Test-Path $_SSH_MAPPING_FILE -PathType Leaf)) {
-    New-Item $_SSH_MAPPING_FILE | Out-Null
-}
-If (-Not (Test-Path $_PEM_MAPPING_FILE -PathType Leaf)) {
-    New-Item $_PEM_MAPPING_FILE | Out-Null
-}
-
-$_SSH_MAPPING = @{}
-Get-Content $_SSH_MAPPING_FILE | ForEach-Object {
-    If ([string]::IsNullOrWhiteSpace($_) -Or $_.StartsWith("#")) { Return }
-    $parts = $_.Split("=", 2)
-    If ($parts.Length -eq 2) {
-        $_SSH_MAPPING[$parts[0]] = $parts[1]
-    }
-}
-
-$_PEM_MAPPING = @{}
-Get-Content $_PEM_MAPPING_FILE | ForEach-Object {
-    If ([string]::IsNullOrWhiteSpace($_) -Or $_.StartsWith("#")) { Return }
-    $parts = $_.Split("=", 2)
-    If ($parts.Length -eq 2) {
-        $_PEM_MAPPING[$parts[0]] = $parts[1]
-    }
-}
+$_SSH_MAPPING = qmap ssh -c -Output
+$_PEM_MAPPING = qmap pem -c -Output
 
 function Test-SshMapping { #x
     param([Parameter(Mandatory)]$key, [switch]$checkPem)
