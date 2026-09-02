@@ -31,12 +31,12 @@ function Show-YoloHelp { #x
     If ([string]::IsNullOrWhiteSpace($defKey)) { $defKey = "(unset)" }
     $keys = Get-YoloMappingKeys
     If ([string]::IsNullOrWhiteSpace($keys)) { $keys = "(none)" }
-    logInfo "Usage: yolo [agent|--] [args...]"
+    logInfo "Usage: yolo [agent|default] [args...]"
     Write-Host "  Run a CLI agent with its auto-approve / yolo flags."
     Write-Host "  With no agent name, uses 'default' -> $defKey"
     Write-Host "  Options:"
     "    {0,-12}{1}" -f "-h, help", "Show this help"
-    "    {0,-12}{1}" -f "--", "Force default agent; pass remaining args through"
+    "    {0,-12}{1}" -f "default", "Force default agent; pass remaining args through"
     Write-Host "  Agents (qmap yolo): $keys"
     Write-Host "  After editing the map, run refresh-qfig / re-source profile to reload."
 }
@@ -48,7 +48,7 @@ function Write-YoloDangerWarnOnce { #x
     }
 }
 
-function yolo { #? run a CLI agent with auto-approve / yolo flags. Usage: yolo [agent|--] [args...]
+function yolo { #? run a CLI agent with auto-approve / yolo flags. Usage: yolo [agent|default] [args...]
     $allArgs = @($args)
     If ($allArgs.Count -ge 1 -And ($allArgs[0] -eq "-h" -Or $allArgs[0] -eq "--help" -Or $allArgs[0] -eq "help")) {
         Show-YoloHelp
@@ -59,7 +59,7 @@ function yolo { #? run a CLI agent with auto-approve / yolo flags. Usage: yolo [
     $remaining = @($allArgs)
     $useDefault = $true
 
-    If ($allArgs.Count -ge 1 -And $allArgs[0] -eq "--") {
+    If ($allArgs.Count -ge 1 -And $allArgs[0] -eq "default") {
         $remaining = @($allArgs | Select-Object -Skip 1)
         $useDefault = $true
     } ElseIf ($allArgs.Count -ge 1 -And $allArgs[0] -ne "default" -And $_YOLO_MAPPING.ContainsKey([string]$allArgs[0])) {
