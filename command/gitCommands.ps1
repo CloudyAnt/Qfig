@@ -388,6 +388,20 @@ function gpush() {
     }
 }
 
+function gtop() { #? go to the top level of current repo
+    param([string]$action)
+    if (isNotGitRepository) {
+        Return
+    }
+    $gitTopLevel = git rev-parse --show-toplevel
+    if ($action -eq 'go' -or $action -eq 'g') {
+        logInfo "Go to:`n$gitTopLevel"
+        Set-Location $gitTopLevel
+    } else {
+        Write-Output $gitTopLevel
+    }
+}
+
 function gct() {
     #? git commit step by step
     param([switch]$help = $false, [switch]$pattern_set = $false, [switch]$verbose = $false)
