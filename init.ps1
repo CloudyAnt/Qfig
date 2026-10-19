@@ -124,6 +124,11 @@ If (Test-Path -PathType Leaf $localConfigFile) {
 		}
 	}
 
+	If ($content -match '(?m)^enableAutoCd=(.+)' -And "true".Equals($matches[1].trim())) {
+		Enable-AutoCd
+		$initMsg += "Auto-cd: on. "
+	}
+
 	If ($verbose) {
 		logInfo $initMsg
 	}

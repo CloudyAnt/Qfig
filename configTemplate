@@ -16,3 +16,6 @@ showVerboseInitMsg=
 # Powershell Tab key action style. Fields: Unix, Windows
 # Your os determine the default style
 psTabStyle=
+
+# Whether to enable PowerShell auto-cd (Enter on a directory path cds into it). Fields: true, false(default)
+enableAutoCd=

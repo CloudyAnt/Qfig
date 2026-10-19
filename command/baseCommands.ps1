@@ -1,6 +1,8 @@
 #? Basic support of Qfig. String related commands are here.
 #? These commands only requires Powershell built-in commands
 
+. "$_QFIG_LOC\command\enhancementForPS.ps1"
+
 function qfig { #? Qfig preserved command. -h(help) for more
     param([string]$command, [switch]$help = $false)
     If ($help -Or "help".Equals($command)) {

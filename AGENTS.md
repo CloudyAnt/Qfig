@@ -68,11 +68,12 @@ Each domain has paired files: `command/<name>Commands.sh` and `command/<name>Com
 
 ### Enhancement files
 
-`baseCommands.sh` auto-sources enhancement files based on shell and OS:
+`baseCommands.sh` / `baseCommands.ps1` auto-sources enhancement files based on shell and OS:
 - `enhancementForBash.sh` — shell aliases (`-`, `~`, `..`)
 - `enhancementForZsh.sh` — `readWithPromptAndLimit` using `vared`/`zle`
 - `enhancementForDarwin.sh` — macOS quarantine removal, brew service aliases
 - `enhancementForCygwin.sh` — wraps `refresh-qfig` to re-run `dos2unix` on reload
+- `enhancementForPS.ps1` — PowerShell extras; `Enable-AutoCd` when `enableAutoCd=true` in config
 
 ### gct (Git Commit Template)
 
