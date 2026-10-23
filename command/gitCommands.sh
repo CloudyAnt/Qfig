@@ -25,6 +25,7 @@ alias grbc='combiningGit rebase --continue'
 alias grmc='git rm --cached'
 alias gst='git status'
 alias gss='git status -s'
+alias gwtl='git worktree list'
 alias gfa='git fetch --all'
 alias gfat='git fetch origin --tags --force'
 forbidAlias gp gpush "git push"
