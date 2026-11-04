@@ -339,13 +339,19 @@ function md5() { #? calculate md5. Supporting pipe.
 	}
 }
 
-function desktop() { #? show desktop path (no params) or go to desktop (by -go flag)
-    param([switch]$go = $false)
+function desktop() { #? go to desktop. -p/--path print desktop path, -o/--open open desktop in file manager
     $DesktopPath = [Environment]::GetFolderPath("Desktop")
-    If ($go) {
+    $first = [string]$args[0]
+    If ([string]::IsNullOrEmpty($first)) {
         Set-Location $DesktopPath
-    } Else {
+    } ElseIf ($first -eq "-p" -Or $first -eq "--path") {
         Return $DesktopPath
+    } ElseIf ($first -eq "-o" -Or $first -eq "--open") {
+        Invoke-Item $DesktopPath
+    } ElseIf ($first -eq "-h" -Or $first -eq "--help") {
+        logInfo "Usage: desktop [-p|--path] [-o|--open]`n  no flag      go to desktop`n  -p, --path   print desktop path`n  -o, --open   open desktop in file manager"
+    } Else {
+        logError "Unknown option: $first. Run 'desktop -h' for help."
     }
 }
 
