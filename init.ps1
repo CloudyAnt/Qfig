@@ -112,12 +112,11 @@ If (Test-Path -PathType Leaf $localConfigFile) {
 
 	If ($content -match '(?m)^psTabStyle=(.+)') {
 		If ("Windows".Equals($matches[1].trim())) {
-			Set-PSReadLineOption -EditMode Windows
 			Set-PSReadLineKeyHandler -Key Tab -Function TabCompleteNext
 			$initMsg += "Tab style: Windows. "
 		} ElseIf ("Unix".Equals($matches[1].trim())) {
-			Set-PSReadLineOption -EditMode Emacs
-			Set-PSReadLineKeyHandler -Key Tab -Function Complete
+            Set-PSReadLineKeyHandler -Key Tab -Function MenuComplete
+            Set-PSReadLineOption -ShowToolTips
 			$initMsg += "Tab style: Unix. "
 		} Else {
 			logWarn "Unsupported tab key action style: $($matches[1])"
