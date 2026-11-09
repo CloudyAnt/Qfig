@@ -23,17 +23,32 @@ function myip() {
     }
 }
 
+function Get-LocalIp() {
+    param([ValidateSet("IPv4", "IPv6")][string]$Family)
+    if ($Family -eq "IPv4") {
+        $defaultPrefix = "0.0.0.0/0"; $exclude = '^(127\.|169\.254\.)'
+    } else {
+        $defaultPrefix = "::/0"; $exclude = '^(::|fe80:)'
+    }
+    [int[]]$routeIfIndexes = @(Get-NetRoute -DestinationPrefix $defaultPrefix -ErrorAction SilentlyContinue |
+        Sort-Object { $_.RouteMetric + $_.InterfaceMetric } | Select-Object -ExpandProperty ifIndex -Unique)
+    Get-NetIPAddress -AddressFamily $Family -ErrorAction SilentlyContinue |
+        Where-Object { $_.IPAddress -notmatch $exclude } |
+        Sort-Object -Stable { $rank = [array]::IndexOf($routeIfIndexes, [int]$_.InterfaceIndex); if ($rank -lt 0) { [int]::MaxValue } else { $rank } } |
+        Select-Object -First 1 -ExpandProperty IPAddress
+}
+
 function localip() {
     param([string]$Type = "")
     if ($Type -eq "-4" -or $Type -eq "ipv4") {
-        $ipv4 = Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.IPAddress -notlike "127.*" -and $_.InterfaceAlias -notlike "Loopback*" } | Select-Object -First 1 -ExpandProperty IPAddress
+        $ipv4 = Get-LocalIp IPv4
         if ($ipv4) { Write-Host $ipv4 } else { Write-Host "No IPv4 address found" -ForegroundColor Red }
     } elseif ($Type -eq "-6" -or $Type -eq "ipv6") {
-        $ipv6 = Get-NetIPAddress -AddressFamily IPv6 | Where-Object { $_.IPAddress -notlike "::1" -and $_.IPAddress -notlike "fe80:*" } | Select-Object -First 1 -ExpandProperty IPAddress
+        $ipv6 = Get-LocalIp IPv6
         if ($ipv6) { Write-Host $ipv6 } else { Write-Host "No IPv6 address found" -ForegroundColor Red }
     } else {
-        $ipv4 = Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.IPAddress -notlike "127.*" -and $_.InterfaceAlias -notlike "Loopback*" } | Select-Object -First 1 -ExpandProperty IPAddress
-        $ipv6 = Get-NetIPAddress -AddressFamily IPv6 | Where-Object { $_.IPAddress -notlike "::1" -and $_.IPAddress -notlike "fe80:*" } | Select-Object -First 1 -ExpandProperty IPAddress
+        $ipv4 = Get-LocalIp IPv4
+        $ipv6 = Get-LocalIp IPv6
         Write-Host "IPv4: $($ipv4 ? $ipv4 : 'N/A')" -ForegroundColor Cyan
         Write-Host "IPv6: $($ipv6 ? $ipv6 : 'N/A')" -ForegroundColor Cyan
     }

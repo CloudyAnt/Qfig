@@ -126,37 +126,41 @@ function myip() { #? get current public ip address
     fi
 }
 
+function _localipOf() { #x print the first usable ip of family 4 or 6, preferring the default route interface
+    local family=$1 dev candidates pattern exclude
+    if [ "$family" = 4 ]; then
+        pattern='inet [0-9.]+'; exclude='^(127\.|169\.254\.)'
+    else
+        pattern='inet6 [0-9a-fA-F:]+'; exclude='^(::|fe80:)'
+    fi
+    if command -v ip >/dev/null 2>&1; then
+        dev=$(ip -$family route show default 2>/dev/null | awk '{for (i = 1; i < NF; i++) if ($i == "dev") { print $(i + 1); exit }}')
+        [ -n "$dev" ] && candidates=$(ip -$family addr show dev "$dev" 2>/dev/null)
+        candidates="$candidates"$'\n'"$(ip -$family addr show)"
+    else
+        if [ "$family" = 4 ]; then
+            dev=$(route -n get default 2>/dev/null | awk '/interface:/ {print $2}')
+        else
+            dev=$(route -n get -inet6 default 2>/dev/null | awk '/interface:/ {print $2}')
+        fi
+        [ -n "$dev" ] && candidates=$(ifconfig "$dev" 2>/dev/null)
+        candidates=$(echo "$candidates"$'\n'"$(ifconfig)" | /usr/bin/sed 's/[[:cntrl:]]\[[0-9;]*m//g')
+    fi
+    echo "$candidates" | grep -oE "$pattern" | awk '{print $2}' | grep -viE "$exclude" | head -1
+}
+
 function localip() { #? get local network ip address, -4 for ipv4 only, -6 for ipv6 only
     local type=${1:-""}
-    _strip_ansi() { /usr/bin/sed 's/[[:cntrl:]]\[[0-9;]*m//g'; }
+    if ! command -v ip >/dev/null 2>&1 && ! command -v ifconfig >/dev/null 2>&1; then
+        logError "Neither ip nor ifconfig is available"
+        return 1
+    fi
     if [ "$type" = "-4" ] || [ "$type" = "ipv4" ]; then
-        if command -v ip >/dev/null 2>&1; then
-            ip -4 addr show | grep -E 'inet [0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | grep -v '127\.' | awk '{print $2}' | cut -d'/' -f1 | head -1
-        elif command -v ifconfig >/dev/null 2>&1; then
-            ifconfig | _strip_ansi | grep -E 'inet [0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | grep -v '127\.' | awk '{print $2}' | head -1
-        else
-            logError "Neither ip nor ifconfig is available"
-            return 1
-        fi
+        _localipOf 4
     elif [ "$type" = "-6" ] || [ "$type" = "ipv6" ]; then
-        if command -v ip >/dev/null 2>&1; then
-            ip -6 addr show | grep -E 'inet6 [0-9a-f:]+' | grep -v '^inet6 ::' | grep -v 'fe80' | awk '{print $2}' | cut -d'/' -f1 | head -1
-        elif command -v ifconfig >/dev/null 2>&1; then
-            ifconfig | _strip_ansi | grep -E 'inet6 [0-9a-f:]+' | grep -v 'inet6 ::' | grep -v 'fe80' | awk '{print $2}' | head -1
-        else
-            logError "Neither ip nor ifconfig is available"
-            return 1
-        fi
+        _localipOf 6
     else
-        if command -v ip >/dev/null 2>&1; then
-            logInfo "IPv4: $(ip -4 addr show | grep -E 'inet [0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | grep -v '127\.' | awk '{print $2}' | cut -d'/' -f1 | head -1)"
-            logInfo "IPv6: $(ip -6 addr show | grep -E 'inet6 [0-9a-f:]+' | grep -v '^inet6 ::' | grep -v 'fe80' | awk '{print $2}' | cut -d'/' -f1 | head -1)"
-        elif command -v ifconfig >/dev/null 2>&1; then
-            logInfo "IPv4: $(ifconfig | _strip_ansi | grep -E 'inet [0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | grep -v '127\.' | awk '{print $2}' | head -1)"
-            logInfo "IPv6: $(ifconfig | _strip_ansi | grep -E 'inet6 [0-9a-f:]+' | grep -v 'inet6 ::' | grep -v 'fe80' | awk '{print $2}' | head -1)"
-        else
-            logError "Neither ip nor ifconfig is available"
-            return 1
-        fi
+        logInfo "IPv4: $(_localipOf 4)"
+        logInfo "IPv6: $(_localipOf 6)"
     fi
 }
